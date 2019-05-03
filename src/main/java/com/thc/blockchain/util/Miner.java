@@ -189,10 +189,7 @@ public class Miner {
                         deltaN = endTime - startTime;
                         deltaS = (deltaN / 1000000000);
                         hashRate = (Nonce / deltaS);
-                        endTime = System.nanoTime();
-                        deltaN = endTime - startTime;
-                        deltaS = (deltaN / 1000000000);
-                        hashRate = (Nonce / deltaS);
+           ;
 
 
                     } else {
