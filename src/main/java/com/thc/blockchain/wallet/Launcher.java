@@ -15,14 +15,16 @@ public class Launcher extends JPanel { // extending JPanel to build GUI instead 
     public static int numBlocksMined;
     private static String algo;
 
-    public static void main(String[] args) throws IOException, InterruptedException {
+    public static void main(String[] args) throws InterruptedException {
         MainChain mc = new MainChain();
         ChainBuilder cb = new ChainBuilder();
         Miner miner = new Miner();
         File chainFile = new File("chain.dat");
+
         if (!chainFile.exists()) {
             GenesisBlock gb = new GenesisBlock();
             gb.initChain();
+
         } else {
             mc.readAddressKey();
             mc.readSendKey();
@@ -35,14 +37,10 @@ public class Launcher extends JPanel { // extending JPanel to build GUI instead 
             } else if (HashArray.hashArray.size() >= 26) {
                 String difficultyAsString = (String) HashArray.hashArray.get(HashArray.hashArray.size() - 2);
                 difficulty = Integer.parseInt(difficultyAsString.replace("Difficulty: ", ""));
-                System.out.println("Difficulty: \n" + difficulty);
-                System.out.println("Hit calculate difficulty code-path\n");
                 String lastBlockTimeAsString = (String) HashArray.hashArray.get(HashArray.hashArray.size() - 12);
                 long lastBlockTime = Long.parseLong(lastBlockTimeAsString.replace("Time stamp: ",""));
-                System.out.println("Last block time: \n" + lastBlockTime);
                 String secondToLastBlockTimeAsString = (String) HashArray.hashArray.get(HashArray.hashArray.size() - 25);
                 long secondToLastBlockTime = Long.parseLong(secondToLastBlockTimeAsString.replace("Time stamp: ",""));
-                System.out.println("Block before last time: \n" + secondToLastBlockTime);
                 long deltaT = lastBlockTime - secondToLastBlockTime;
                 if (deltaT > 15000) {
                     difficulty++;

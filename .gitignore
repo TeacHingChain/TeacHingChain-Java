@@ -3,6 +3,7 @@ target
 test
 
 # Files used for unlocking gpg key for commit signing
+unlock.sh
 unlock.txt
 unlock.txt.gpg
 
