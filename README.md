@@ -6,4 +6,8 @@ Build is stable but **LOCAL ONLY** the websocket integration for block/tx transp
 
 This means you can only run it as essentially a 'private blockchain' at this time
 
-More detailed information of the project is coming soon!
+If you wish to run a local instance of the project, use the GenesisBuilder in the GenesisBuilder-Java repository ,,,
+
+to generate a genesis block and fill in the appropriate fields in 'GenesisBlock.java'
+
+More detailed information/instruction on the project is coming soon!

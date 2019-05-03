@@ -13,3 +13,6 @@ sendKey.dat
 recvKey.dat
 minerKey.dat
 addressKey.dat
+
+# User-specific stuff:
+.idea/workspace.xml
