@@ -26,7 +26,7 @@ public class MainChain {
     private static List<String> blockChain;
     public static List<String> txPool;
     static final float nSubsidy = 50;
-    static String addressKey = "";
+    private static String addressKey = "";
     static String minerKey = "";
     static String sendKey = "";
     private static String recvKey = "";
@@ -35,21 +35,21 @@ public class MainChain {
 
     public MainChain() {}
 
-    public String getCurrentHash() {
+    String getCurrentHash() {
         currentHash = (String) HashArray.hashArray.get(HashArray.hashArray.size() - 3);
         System.out.println("\n");
         System.out.println(currentHash);
         return currentHash;
     }
 
-    public String getGenesisHash() {
+    String getGenesisHash() {
         blockHash = (String) HashArray.hashArray.get((HashArray.hashArray.size() - HashArray.hashArray.size()) + 8);
         System.out.println("\n");
         System.out.println("Genesis " + blockHash);
         return blockHash;
     }
 
-    void setGenesisHash(long index, long currentTimeMillis, String sendKeyTx, String recvKeyTx, String minerKey, String txHash, long Nonce, String previousBlockHash, String blockHash, int difficulty, float amount) throws IOException {
+    void setGenesisHash(long index, long currentTimeMillis, String sendKeyTx, String recvKeyTx, String minerKey, String txHash, long Nonce, String previousBlockHash, String blockHash, int difficulty, float amount) {
         this.index = index;
         this.currentTimeMillis = currentTimeMillis;
         this.sendKeyTx = sendKeyTx;
@@ -59,7 +59,7 @@ public class MainChain {
         this.Nonce = Nonce;
         this.previousBlockHash = previousBlockHash;
         this.blockHash = blockHash;
-        this.difficulty = difficulty;
+        MainChain.difficulty = difficulty;
 
         String endBlockLine = "-------------END BLOCK-------------";
         String indexToStr = Long.toString(index);
@@ -67,10 +67,10 @@ public class MainChain {
         String nonceToStr = Long.toString(Nonce);
         String difficultyToStr = Integer.toString(difficulty);
         String amountToStr = Float.toString(amount);
+        String algo = "sha256";
+        ChainBuilder cb = new ChainBuilder();
 
-        ChainBuilder bb = new ChainBuilder();
-
-        boolean validateGenesis = bb.isGenesisValid(index, currentTimeMillis, sendKeyTx, recvKeyTx, minerKey, txHash, Nonce, previousBlockHash, blockHash, difficulty, amount);
+        boolean validateGenesis = cb.isGenesisValid(index, currentTimeMillis, sendKeyTx, recvKeyTx, minerKey, txHash, Nonce, previousBlockHash, algo, blockHash, difficulty, amount);
         if (validateGenesis) {
             System.out.println("\n");
             System.out.println("Initializing chain...\n");
@@ -86,6 +86,7 @@ public class MainChain {
             HashArray.hashArray.add("Merkle hash: " + SHA256.generateSHA256Hash(txHash));
             HashArray.hashArray.add("Nonce: " + nonceToStr);
             HashArray.hashArray.add("Previous " + previousBlockHash);
+            HashArray.hashArray.add("Algo: " + algo);
             HashArray.hashArray.add("Block hash: " + blockHash);
             HashArray.hashArray.add("Difficulty: " + difficultyToStr);
             HashArray.hashArray.add(amountToStr);
@@ -113,13 +114,12 @@ public class MainChain {
         }
     }
 
-    public String getPreviousBlockHash() {
+    String getPreviousBlockHash() {
         previousBlockHash = (String) HashArray.hashArray.get(HashArray.hashArray.size() - 3);
         return previousBlockHash;
     }
 
-    @SuppressWarnings("deprecation")
-    List<String> getBlockChain() throws NullPointerException, IOException {
+    List<String> getBlockChain() throws NullPointerException {
         try {
             System.out.println("\n");
             System.out.println("Trying to read serialized chain.dat...\n");
@@ -145,7 +145,7 @@ public class MainChain {
         return blockChain;
     }
 
-    public List<String> readBlockChain() throws NullPointerException, IOException {
+    public List<String> readBlockChain() throws NullPointerException {
         balance = 0;
         readRecvKey();
         try {
@@ -185,14 +185,14 @@ public class MainChain {
         return blockChain;
     }
 
-    public long getIndexOfBlockChain() {
+    long getIndexOfBlockChain() {
         long chainIndex = (HashArray.hashArray.size() / 12);
         System.out.println("\n");
         System.out.println("Number of blocks on chain: " + chainIndex);
         return chainIndex;
     }
 
-    public String getBlockAtIndex(long index) {
+    String getBlockAtIndex(long index) {
         this.index = index;
         if (((index + 1) * 8) > HashArray.hashArray.size()) {
             System.out.println("\n");
@@ -207,12 +207,12 @@ public class MainChain {
     return null;
     }
 
-    public long getUnixTimestamp() {
+    long getUnixTimestamp() {
         currentTimeMillis = System.currentTimeMillis();
         return currentTimeMillis;
     }
 
-    public void generateAddressKey(){
+    void generateAddressKey(){
         Random randKeyGen = new Random();
         BigInteger b = new BigInteger(256, randKeyGen);
         String keyToStr = b.toString(10);
@@ -232,7 +232,7 @@ public class MainChain {
         }
     }
 
-    public void generateRecvKey(){
+    void generateRecvKey(){
         recvKey = SHA256.generateSHA256Hash(Constants.pubKey + addressKey);
         System.out.println("Receive key generated: \n" + recvKey);
         try {
@@ -250,9 +250,9 @@ public class MainChain {
     }
 
 
-    public void generateMinerKey(){
+    void generateMinerKey(){
         minerKey = SHA256.generateSHA256Hash(Constants.pubKey + recvKey);
-        System.out.println("Receive key generated: \n" + minerKey);
+        System.out.println("Miner key generated: \n" + minerKey);
         try {
             System.out.println("Trying to serialize minerKey.dat...\n");
             FileOutputStream fos = new FileOutputStream("minerKey.dat");
@@ -267,7 +267,7 @@ public class MainChain {
         }
     }
 
-    public void generateSendKey() {
+    void generateSendKey() {
         sendKey = SHA256.generateSHA256Hash(addressKey + recvKey);
         System.out.println("Send key generated: \n" + sendKey);
         try {
@@ -284,7 +284,7 @@ public class MainChain {
         }
     }
 
-    public void generateAllKeys() {
+    void generateAllKeys() {
         generateAddressKey();
         generateRecvKey();
         generateMinerKey();
@@ -293,7 +293,7 @@ public class MainChain {
 
 
 
-    public String getAddressKey() {
+    String getAddressKey() {
         try {
             System.out.println("\n");
             System.out.println("Trying to read serialized addressKey.dat...\n");
@@ -315,7 +315,7 @@ public class MainChain {
         return addressKey;
     }
 
-    public String readAddressKey(){
+    String readAddressKey(){
         try {
             System.out.println("\n");
             System.out.println("Trying to read serialized addressKey.dat...\n");
@@ -335,7 +335,7 @@ public class MainChain {
         return addressKey;
     }
 
-    public String readRecvKey() {
+    private String readRecvKey() {
         try {
             FileInputStream fis = new FileInputStream("recvKey.dat");
             ObjectInputStream ois = new ObjectInputStream(fis);
@@ -353,7 +353,7 @@ public class MainChain {
         return recvKey;
     }
 
-    public String getRecvKey() {
+    String getRecvKey() {
         try {
             FileInputStream fis = new FileInputStream("recvKey.dat");
             ObjectInputStream ois = new ObjectInputStream(fis);
@@ -373,7 +373,7 @@ public class MainChain {
         return recvKey;
     }
 
-    public String getSendKey() {
+    String getSendKey() {
         try {
             System.out.println("\n");
             System.out.println("Trying to read serialized sendKey.dat...\n");
@@ -395,7 +395,7 @@ public class MainChain {
         return sendKey;
     }
 
-    public String readSendKey() {
+    String readSendKey() {
         try {
             System.out.println("\n");
             System.out.println("Trying to read serialized sendKey.dat...\n");
@@ -415,7 +415,7 @@ public class MainChain {
         return sendKey;
     }
 
-    public String getMinerKey() {
+    String getMinerKey() {
         try {
            // System.out.println("\n");
             //System.out.println("Trying to read serialized minerKey.dat...\n");
@@ -435,7 +435,7 @@ public class MainChain {
         return minerKey;
     }
 
-    public String readMinerKey() {
+    String readMinerKey() {
         try {
             // System.out.println("\n");
             // System.out.println("Trying to read serialized minerKey.dat...\n");
@@ -455,7 +455,7 @@ public class MainChain {
         return minerKey;
     }
 
-    public void sendTx(String sendKeyTx, String recvKeyTx, float amount) throws IOException {
+    void sendTx(String sendKeyTx, String recvKeyTx, float amount) {
         ChainBuilder cb = new ChainBuilder();
         this.sendKeyTx = sendKeyTx;
         this.recvKeyTx = recvKeyTx;
@@ -490,7 +490,7 @@ public class MainChain {
     }
 
 
-    public long getDifficulty(){
+    long getDifficulty(){
         System.out.println("\n");
         System.out.println("Difficulty: \n" + difficulty);
         return difficulty;

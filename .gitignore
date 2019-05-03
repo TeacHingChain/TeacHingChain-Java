@@ -1,4 +1,15 @@
+# Directories for jar/unused test directory
 target
 test
-d.txt
-d.txt.gpg
+
+# Files used for unlocking gpg key for commit signing
+unlock.txt
+unlock.txt.gpg
+
+# Program data files
+chain.dat
+tx-pool.dat
+sendKey.dat
+recvKey.dat
+minerKey.dat
+addressKey.dat

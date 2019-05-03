@@ -4,18 +4,19 @@ import java.io.*;
 
 import com.thc.blockchain.algos.SHA256;
 
-public class GenesisBlock { // this is where the hardcoded genesis block goes, it is only called in the event of the chain.dat not existing
-                            // which is why it includes checks for keys and the actual initialization/serialization of the ArrayList object
-    public void initChain() {
+class GenesisBlock { // this is where the hardcoded genesis block goes, it is only called in the event of the chain.dat not existing
+                     // which is why it includes checks for keys and the actual initialization/serialization of the chain ArrayList object
+    void initChain() {
         MainChain mc = new MainChain();
         ChainBuilder cb = new ChainBuilder();
         long genesisIndex = 0;
-        long currentTimeMillis = System.currentTimeMillis();
         File addressKeyFile = new File("addressKey.dat");
         File recvKeyFile = new File("recvKey.dat");
         File minerKeyFile = new File("minerKey.dat");
         File sendKeyFile = new File("sendKey.dat");
-        if (!addressKeyFile.exists()) {
+        if (!addressKeyFile.exists() && !recvKeyFile.exists() && !minerKeyFile.exists() && !sendKeyFile.exists()) {
+            mc.generateAllKeys();
+        } else if (!addressKeyFile.exists()) {
             mc.generateAddressKey();
         } else if (!recvKeyFile.exists()) {
             mc.generateRecvKey();
@@ -23,35 +24,37 @@ public class GenesisBlock { // this is where the hardcoded genesis block goes, i
             mc.generateMinerKey();
         } else if (!sendKeyFile.exists()) {
             mc.generateSendKey();
-        } else if (!addressKeyFile.exists() && !recvKeyFile.exists() && !minerKeyFile.exists() && !sendKeyFile.exists()) {
-            mc.generateAllKeys();
         }
 
+        String pszTimeStamp = "test"; // replace recvKey with pszTimeStamp for genesis block
         String recvKey = "";
         String minerKey = "";
-        String sendKey = "";
-        String txHash = SHA256.generateSHA256Hash(genesisIndex + sendKey + recvKey);
-        long Nonce = 0;
+        String algo = "sha256";
+        long genesisTimeStamp = 1556849753564L;
+        String txHash = SHA256.generateSHA256Hash(genesisIndex + pszTimeStamp + recvKey);
+        long Nonce = 279442;
         String previousBlockHash = null;
-        String genesisHash = null;
+        String genesisHash = "00000329b26279f8550b297e4b232832473e76c3c6260366a88da90404310c7f";
         int difficulty = 5;
         float amount = MainChain.nSubsidy;
         String indexToStr = Long.toString(genesisIndex);
-        String timeToStr = Long.toString(currentTimeMillis);
+        String timeToStr = Long.toString(genesisTimeStamp);
         String nonceToStr = Long.toString(Nonce);
         String difficultyToStr = Integer.toString(difficulty);
         String amountToStr = Float.toString(amount);
-        boolean isGenesisValid = cb.isGenesisValid(genesisIndex, currentTimeMillis, sendKey, recvKey, minerKey, txHash, Nonce, previousBlockHash, genesisHash, difficulty, amount);
+        boolean isGenesisValid = cb.isGenesisValid(genesisIndex, genesisTimeStamp, pszTimeStamp, recvKey, minerKey, txHash, Nonce, previousBlockHash, algo, genesisHash, difficulty, amount);
         if (isGenesisValid) {
+            HashArray hashArray = new HashArray();
             HashArray.hashArray.add("Index: " + indexToStr);
             HashArray.hashArray.add("Time stamp: " + timeToStr);
-            HashArray.hashArray.add("Send key: " + sendKey);
+            HashArray.hashArray.add("pszTimeStamp: " + pszTimeStamp);
             HashArray.hashArray.add("Receive key: " + recvKey);
             HashArray.hashArray.add("Miner key: " + minerKey);
             HashArray.hashArray.add("Tx Hash: " + txHash);
             HashArray.hashArray.add("Merkle hash: " + SHA256.generateSHA256Hash((String) HashArray.hashArray.get(HashArray.hashArray.size() - 6)));
             HashArray.hashArray.add("Nonce: " + nonceToStr);
             HashArray.hashArray.add("Previous " + previousBlockHash);
+            HashArray.hashArray.add("Algorithm: " + algo);
             HashArray.hashArray.add("Block hash: " + genesisHash);
             HashArray.hashArray.add("Difficulty: " + difficultyToStr);
             HashArray.hashArray.add(amountToStr);
@@ -65,9 +68,9 @@ public class GenesisBlock { // this is where the hardcoded genesis block goes, i
                 fos.close();
                 mc.readBlockChain();
             } catch (FileNotFoundException e) {
-                e.printStackTrace();
+                System.out.println("File not found exception!\n");
             } catch (IOException e) {
-                e.printStackTrace();
+                System.out.println("An IO exception occurred\n");
             }
         }
     }

@@ -26,11 +26,10 @@ public class ChainBuilder extends MainChain {
     public ChainBuilder(long index, long currentTimeMillis, String sendKey, String recvKey, String minerKey, String txHash, long Nonce, String previousBlockHash, int difficulty, float amount) throws InterruptedException {
         super();
         this.currentTimeMillis = System.currentTimeMillis();
-        this.pszTimeStamp = pszTimeStamp;
         MainChain.difficulty = difficulty;
         boolean iterator = true;
         String blockHeader = (index + currentTimeMillis + sendKey + recvKey + minerKey + txHash + Nonce + previousBlockHash + difficulty + amount);
-        String hash = SHA256.generateSHA256Hash(blockHeader);
+        String hash;
         startTime = System.nanoTime();
         TimeUnit.SECONDS.sleep(2);
         Timer timer = new Timer();
@@ -213,13 +212,14 @@ public class ChainBuilder extends MainChain {
         }
     }
 
-    public boolean isGenesisValid(long index, long currentTimeMillis, String sendKey, String recvKey, String minerKey, String txHash, long Nonce, String previousBlockHash, String genesisHash, int difficulty, float amount) {
+    boolean isGenesisValid(long index, long genesisTimeStamp, String pszTimeStamp, String recvKey, String minerKey, String txHash, long Nonce, String previousBlockHash, String algo,  String genesisHash, int difficulty, float amount) {
         MainChain mc = new MainChain();
-        this.currentTimeMillis = currentTimeMillis;
-        MainChain.difficulty = difficulty;
-        txHash = SHA256.generateSHA256Hash(index + sendKey + recvKey);
-
-        String checkHash = SHA256.generateSHA256Hash(index + currentTimeMillis + sendKey + recvKey + minerKey + txHash + Nonce + previousBlockHash + difficulty + amount);
+        String checkHash = SHA256.generateSHA256Hash(index + genesisTimeStamp + pszTimeStamp + recvKey + minerKey + txHash + Nonce + previousBlockHash + algo + difficulty + amount);
+        System.out.println("Index: \n" + index);
+        System.out.println("Timestamp: \n" + genesisTimeStamp);
+        System.out.println("pszTimeStamp: \n" + pszTimeStamp);
+        System.out.println("Actual genesis hash: \n" + genesisHash);
+        System.out.println("Hash: \n" + checkHash);
         if (!checkHash.contentEquals(genesisHash)) {
             System.out.println("\n");
             System.out.println("Hash is invalid!\n");
@@ -234,27 +234,33 @@ public class ChainBuilder extends MainChain {
         }
     }
 
-    public boolean isBlockHashValid(long index, long currentTimeMillis, String sendKey, String recvKey, String minerKey, String txHash, long Nonce, String previousBlockHash, String currentHash, int difficulty, float amount) {
+    public boolean isBlockHashValid(long index, long currentTimeMillis, String sendKey, String recvKey, String minerKey, String txHash, long Nonce, String previousBlockHash, String algo, String currentHash, int difficulty, float amount) {
 
         this.currentTimeMillis = currentTimeMillis;
         MainChain.difficulty = difficulty;
-        txHash = SHA256.generateSHA256Hash(index + sendKey + recvKey);
+        if (algo.contentEquals("sha256")) {
+            txHash = SHA256.generateSHA256Hash(index + sendKey + recvKey);
 
-        String checkHash = SHA256.generateSHA256Hash(index + currentTimeMillis + sendKey + recvKey + minerKey + txHash + Nonce + previousBlockHash + difficulty + amount);
-        if (!checkHash.contentEquals(currentHash)) {
-            System.out.println("\n");
-            System.out.println("Hash is invalid!\n");
-            System.out.println("\n");
-            return false;
-        } else {
-            System.out.println("\n");
-            System.out.println("Hash is valid!\n");
-            System.out.println("\n");
+            String checkHash = SHA256.generateSHA256Hash(index + currentTimeMillis + sendKey + recvKey + minerKey + txHash + Nonce + previousBlockHash + algo + difficulty + amount);
+            if (!checkHash.contentEquals(currentHash)) {
+                System.out.println("\n");
+                System.out.println("Hash is invalid!\n");
+                System.out.println("\n");
+                return false;
+            } else {
+                System.out.println("\n");
+                System.out.println("Hash is valid!\n");
+                System.out.println("\n");
+            }
+            return true;
+
         }
         return true;
     }
 
-    public void writeTxPool(long blockIndex, String sendKey, String recvKey, float amount) {
+
+
+    void writeTxPool(long blockIndex, String sendKey, String recvKey, float amount) {
         String txHash = SHA256.generateSHA256Hash(blockIndex + sendKey + recvKey);
         File tempFile = new File("tx-pool.dat");
         if (!tempFile.exists()) {
@@ -290,7 +296,7 @@ public class ChainBuilder extends MainChain {
         }
     }
 
-    public void overwriteTxPool() {
+    void overwriteTxPool() {
         try {
             FileOutputStream fos = new FileOutputStream("tx-pool.dat");
             ObjectOutputStream oos = new ObjectOutputStream(fos);
@@ -307,8 +313,7 @@ public class ChainBuilder extends MainChain {
     }
 
 
-    public void readTxPool() {
-
+    void readTxPool() {
         try {
             FileInputStream fis = new FileInputStream("tx-pool.dat");
             ObjectInputStream ois = new ObjectInputStream(fis);
@@ -327,7 +332,7 @@ public class ChainBuilder extends MainChain {
     }
 
 
-    public void getTxPool() {
+    void getTxPool() {
         if (!TxPoolArray.TxPool.isEmpty()) {
             System.out.println("tx pool: \n");
             for (int i = 0; i < TxPoolArray.TxPool.size(); i++) {

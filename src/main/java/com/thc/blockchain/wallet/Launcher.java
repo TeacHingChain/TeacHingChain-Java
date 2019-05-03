@@ -8,11 +8,12 @@ import java.io.*;
 import java.util.Scanner;
 import java.util.Random;
 
+import static com.thc.blockchain.wallet.MainChain.difficulty;
 import static com.thc.blockchain.wallet.MainChain.minerKey;
 
 public class Launcher extends JPanel { // extending JPanel to build GUI instead of pseudo-cli-parsing
     public static int numBlocksMined;
-    public static String algo;
+    private static String algo;
 
     public static void main(String[] args) throws IOException, InterruptedException {
         MainChain mc = new MainChain();
@@ -28,14 +29,31 @@ public class Launcher extends JPanel { // extending JPanel to build GUI instead 
             mc.readMinerKey();
             mc.readBlockChain();
             cb.readTxPool();
-            String difficultyStr = (String) HashArray.hashArray.get(HashArray.hashArray.size() - 2);
-            char[] difficultyCharArray = difficultyStr.toCharArray();
-            String difficultyIntAsString = String.valueOf(difficultyCharArray[12]);
-            MainChain.difficulty = Integer.parseInt(difficultyIntAsString);
+            if (HashArray.hashArray.size() <= 1) {
+                difficulty = 5;
 
+            } else if (HashArray.hashArray.size() >= 26) {
+                String difficultyAsString = (String) HashArray.hashArray.get(HashArray.hashArray.size() - 2);
+                difficulty = Integer.parseInt(difficultyAsString.replace("Difficulty: ", ""));
+                System.out.println("Difficulty: \n" + difficulty);
+                System.out.println("Hit calculate difficulty code-path\n");
+                String lastBlockTimeAsString = (String) HashArray.hashArray.get(HashArray.hashArray.size() - 12);
+                long lastBlockTime = Long.parseLong(lastBlockTimeAsString.replace("Time stamp: ",""));
+                System.out.println("Last block time: \n" + lastBlockTime);
+                String secondToLastBlockTimeAsString = (String) HashArray.hashArray.get(HashArray.hashArray.size() - 25);
+                long secondToLastBlockTime = Long.parseLong(secondToLastBlockTimeAsString.replace("Time stamp: ",""));
+                System.out.println("Block before last time: \n" + secondToLastBlockTime);
+                long deltaT = lastBlockTime - secondToLastBlockTime;
+                if (deltaT > 15000) {
+                    difficulty++;
+                } else if (deltaT < 15000) {
+                    difficulty--;
+                }
+            }
 
             System.out.println("\n");
             System.out.println("Welcome to the light-weight, PoC, java implementation of the THC Block Chain!\n");
+
             try {
                 MainChain.indexAtStart = (HashArray.hashArray.size() / 12);
                 cb.readTxPool();
@@ -52,39 +70,7 @@ public class Launcher extends JPanel { // extending JPanel to build GUI instead 
                 System.out.println("\n");
                 System.out.println("Enter command:\n");
                 String cliInput = input.nextLine();
-
-                if (cliInput.contentEquals("build genesis block")) {
-                    Scanner ts = new Scanner(System.in);
-                    System.out.println("\n");
-                    System.out.println("Enter difficulty:\n");
-                    int enteredDifficulty = ts.nextInt();
-                    String txHash = SHA256.generateSHA256Hash(0 + "" + "");
-                    ChainBuilder buildGenesis = new ChainBuilder(0, System.currentTimeMillis(), "", "", minerKey, txHash, 0L, null, enteredDifficulty, MainChain.nSubsidy);
-
-                } else if (cliInput.contentEquals("initialize chain")) {
-                    Scanner parameters = new Scanner(System.in);
-                    System.out.println("\n");
-                    System.out.println("Enter unix time stamp:\n");
-                    System.out.println("\n");
-                    long enteredTime = parameters.nextLong();
-                    Scanner ts = new Scanner(System.in);
-                    System.out.println("\n");
-                    System.out.println("Enter nonce:\n");
-                    System.out.println("\n");
-                    long enteredNonce = parameters.nextLong();
-                    Scanner gh = new Scanner(System.in);
-                    System.out.println("\n");
-                    System.out.println("Enter genesis hash:\n");
-                    System.out.println("\n");
-                    String enteredHash = gh.nextLine();
-                    System.out.println("\n");
-                    System.out.println("Enter difficulty:\n");
-                    System.out.println("\n");
-                    int enteredDifficulty = ts.nextInt();
-                    String txHash = SHA256.generateSHA256Hash(0 + "" + "");
-                    mc.setGenesisHash(0, enteredTime, "", "", minerKey, txHash, enteredNonce, null, enteredHash, enteredDifficulty, MainChain.nSubsidy);
-
-                } else if (cliInput.contentEquals("send tx")) {
+                if (cliInput.contentEquals("send tx")) {
                     Scanner txData = new Scanner(System.in);
                     System.out.println("\n");
                     System.out.println("Please enter receive key\n");
@@ -141,6 +127,15 @@ public class Launcher extends JPanel { // extending JPanel to build GUI instead 
                     int numBlocksMined = 0;
                     Random algoSelector = new Random();
                     int algoIndex = algoSelector.nextInt(2);
+                    if (algoIndex == 0) {
+                        algo = "sha256";
+                    } else if (algoIndex == 1) {
+                        algo = "sha512";
+                    } else if (algoIndex == 2) {
+                        algo = "scrypt";
+                    }
+                    System.out.println("Algorithm Index:\n" + algoIndex);
+                    System.out.println("Algorithm:\n" + algo);
                     if (algoIndex == 0) {
                         algo = "sha256";
                     } else if (algoIndex == 1) {
