@@ -2,21 +2,36 @@ package com.thc.blockchain.wallet;
 
 import com.thc.blockchain.algos.SHA256;
 import com.thc.blockchain.gui.WalletGui;
+import com.thc.blockchain.network.ChainClientEndpoint;
+import com.thc.blockchain.network.Client;
 import com.thc.blockchain.util.Miner;
 
 import javax.swing.*;
-import java.io.*;
-import java.util.Scanner;
+import javax.websocket.ContainerProvider;
+import javax.websocket.DeploymentException;
+import javax.websocket.WebSocketContainer;
+import java.io.File;
+import java.io.IOException;
+import java.net.URI;
 import java.util.Random;
+import java.util.Scanner;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import static com.thc.blockchain.wallet.MainChain.difficulty;
 import static com.thc.blockchain.wallet.MainChain.minerKey;
 
 public class Launcher extends JFrame { // extending JPanel to build GUI instead of pseudo-cli-parsing
+
     public static int numBlocksMined;
     private static String algo;
 
     public static void main(String[] args) throws InterruptedException {
+
+//        Client client =  new Client();
+//        client.connectClient();
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         } catch (Exception ex) {
@@ -53,9 +68,9 @@ public class Launcher extends JFrame { // extending JPanel to build GUI instead 
                 String difficultyAsString = (String) HashArray.hashArray.get(HashArray.hashArray.size() - 2);
                 difficulty = Integer.parseInt(difficultyAsString.replace("Difficulty: ", ""));
                 String lastBlockTimeAsString = (String) HashArray.hashArray.get(HashArray.hashArray.size() - 12);
-                long lastBlockTime = Long.parseLong(lastBlockTimeAsString.replace("Time stamp: ",""));
+                long lastBlockTime = Long.parseLong(lastBlockTimeAsString.replace("Time stamp: ", ""));
                 String secondToLastBlockTimeAsString = (String) HashArray.hashArray.get(HashArray.hashArray.size() - 25);
-                long secondToLastBlockTime = Long.parseLong(secondToLastBlockTimeAsString.replace("Time stamp: ",""));
+                long secondToLastBlockTime = Long.parseLong(secondToLastBlockTimeAsString.replace("Time stamp: ", ""));
                 long deltaT = lastBlockTime - secondToLastBlockTime;
                 if (deltaT > 15000) {
                     difficulty++;
@@ -250,6 +265,7 @@ public class Launcher extends JFrame { // extending JPanel to build GUI instead 
         }
     }
 }
+
 
 
 

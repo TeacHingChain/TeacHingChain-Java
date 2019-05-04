@@ -2,7 +2,16 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="7e86cdb7-ff04-44e7-9a3f-145ed2f064c3" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/thc/blockchain/network/ChainClientEndpoint.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/thc.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/TeacHingChain.iml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/thc/blockchain/network/Client.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/thc/blockchain/network/Client.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/thc/blockchain/network/ClientEndpoint.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/thc/blockchain/network/ServerEndpoint.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/thc/blockchain/network/ChainServerEndpoint.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/thc/blockchain/wallet/Launcher.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/thc/blockchain/wallet/Launcher.java" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/out/" />
     <ignored path="$PROJECT_DIR$/target/" />
@@ -20,17 +29,53 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/pom.xml">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="330">
-              <caret line="22" column="37" selection-start-line="22" selection-start-column="37" selection-end-line="22" selection-end-column="37" />
+            <state relative-caret-position="1875">
+              <caret line="125" column="12" selection-start-line="125" selection-start-column="12" selection-end-line="125" selection-end-column="12" />
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/.gitignore">
+        <entry file="file://$PROJECT_DIR$/src/main/java/com/thc/blockchain/network/ChainServerEndpoint.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="105">
-              <caret line="7" column="14" lean-forward="true" selection-start-line="7" selection-start-column="14" selection-end-line="7" selection-end-column="14" />
+            <state relative-caret-position="45">
+              <caret line="7" column="37" selection-start-line="7" selection-start-column="37" selection-end-line="7" selection-end-column="37" />
+              <folding>
+                <element signature="imports" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/thc.sh">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="15">
+              <caret line="1" selection-start-line="1" selection-end-line="1" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/main/java/com/thc/blockchain/network/ChainClientEndpoint.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="435">
+              <caret line="34" selection-start-line="34" selection-end-line="34" />
+              <folding>
+                <element signature="imports" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/main/java/com/thc/blockchain/network/Client.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="240">
+              <caret line="24" column="46" selection-start-line="24" selection-start-column="46" selection-end-line="24" selection-end-column="46" />
+              <folding>
+                <element signature="imports" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -38,85 +83,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/java/com/thc/blockchain/wallet/Launcher.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="154">
-              <caret line="185" lean-forward="true" selection-start-line="185" selection-end-line="185" />
-              <folding>
-                <element signature="imports" expanded="true" />
-                <element signature="e#784#911#0" expanded="true" />
-                <element signature="e#910#911#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/main/java/com/thc/blockchain/gui/WalletGui.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="149">
-              <caret line="48" column="8" selection-start-line="48" selection-start-column="8" selection-end-line="48" selection-end-column="8" />
-              <folding>
-                <element signature="imports" expanded="true" />
-                <element signature="e#8343#8344#0" expanded="true" />
-                <element signature="e#8405#8406#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/main/java/com/thc/blockchain/gui/MiningPane.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="105">
-              <caret line="7" selection-start-line="7" selection-end-line="7" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/main/java/com/thc/blockchain/wallet/MainChain.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="149">
-              <caret line="30" column="11" selection-start-line="30" selection-start-column="11" selection-end-line="30" selection-end-column="11" />
-              <folding>
-                <element signature="imports" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/main/java/com/thc/blockchain/util/Miner.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="374">
-              <caret line="692" column="59" lean-forward="true" selection-start-line="692" selection-start-column="59" selection-end-line="692" selection-end-column="59" />
-              <folding>
-                <element signature="imports" expanded="true" />
-                <element signature="e#40662#40663#0" expanded="true" />
-                <element signature="e#40727#40728#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/main/java/com/thc/blockchain/wallet/ChainBuilder.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="139">
-              <caret line="236" column="128" selection-start-line="236" selection-start-column="128" selection-end-line="236" selection-end-column="128" />
-              <folding>
-                <element signature="imports" expanded="true" />
-                <element signature="e#1342#1566#0" expanded="true" />
-                <element signature="e#1565#1566#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/main/java/com/thc/blockchain/wallet/GenesisBlock.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="615">
-              <caret line="74" column="9" selection-start-line="74" selection-start-column="9" selection-end-line="74" selection-end-column="9" />
+            <state relative-caret-position="75">
+              <caret line="27" column="4" selection-start-line="27" selection-start-column="4" selection-end-line="27" selection-end-column="4" />
               <folding>
                 <element signature="imports" expanded="true" />
               </folding>
@@ -128,8 +96,8 @@
         <entry file="file://$PROJECT_DIR$/README.md">
           <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
             <state split_layout="FIRST">
-              <first_editor relative-caret-position="142">
-                <caret line="32" column="172" selection-start-line="32" selection-start-column="172" selection-end-line="32" selection-end-column="172" />
+              <first_editor relative-caret-position="630">
+                <caret line="42" column="153" selection-start-line="42" selection-start-column="153" selection-end-line="42" selection-end-column="153" />
               </first_editor>
               <second_editor />
             </state>
@@ -161,8 +129,6 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/.gitignore" />
-        <option value="$PROJECT_DIR$/src/main/java/com/thc/blockchain/wallet/Launcher.java" />
         <option value="$PROJECT_DIR$/src/main/java/com/thc/blockchain/wallet/WalletGui.java" />
         <option value="$PROJECT_DIR$/src/main/java/com/thc/blockchain/wallet/MiningPane.java" />
         <option value="$PROJECT_DIR$/src/main/java/com/thc/blockchain/wallet/ChainBuilder.java" />
@@ -170,14 +136,34 @@
         <option value="$PROJECT_DIR$/src/main/java/com/thc/blockchain/gui/MiningPane.java" />
         <option value="$PROJECT_DIR$/src/main/java/com/thc/blockchain/util/Miner.java" />
         <option value="$PROJECT_DIR$/src/main/java/com/thc/blockchain/wallet/MainChain.java" />
+        <option value="$PROJECT_DIR$/.gitignore" />
+        <option value="$PROJECT_DIR$/.idea/workspace.xml" />
+        <option value="$PROJECT_DIR$/src/main/java/com/thc/blockchain/network/ClientEndpoint.java" />
+        <option value="$PROJECT_DIR$/src/main/java/com/thc/blockchain/network/ServerEndpoint.java" />
+        <option value="$PROJECT_DIR$/target/apache-tomcat-8.5.23/webapps/manager/META-INF/context.xml" />
+        <option value="$PROJECT_DIR$/target/apache-tomcat-8.5.23/webapps/host-manager/manager.xml" />
+        <option value="$PROJECT_DIR$/TeacHingChain.iml" />
+        <option value="$PROJECT_DIR$/src/main/java/com/thc/blockchain/network/ChainServerEndpoint.java" />
+        <option value="$PROJECT_DIR$/src/main/java/com/thc/blockchain/network/ChainClientEndpoint.java" />
+        <option value="$PROJECT_DIR$/pom.xml" />
+        <option value="$PROJECT_DIR$/src/main/java/com/thc/blockchain/network/Client.java" />
+        <option value="$PROJECT_DIR$/thc.sh" />
+        <option value="$PROJECT_DIR$/src/main/java/com/thc/blockchain/wallet/Launcher.java" />
         <option value="$PROJECT_DIR$/README.md" />
       </list>
     </option>
   </component>
+  <component name="MavenImportPreferences">
+    <option name="importingSettings">
+      <MavenImportingSettings>
+        <option name="importAutomatically" value="true" />
+      </MavenImportingSettings>
+    </option>
+  </component>
   <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="189" />
+    <option name="x" value="413" />
     <option name="y" value="246" />
-    <option name="width" value="1186" />
+    <option name="width" value="1176" />
     <option name="height" value="654" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
@@ -186,19 +172,14 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="PackagesPane" />
       <pane id="Scope" />
+      <pane id="PackagesPane" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
             <path>
               <item name="TeacHingChain" type="b2602c69:ProjectViewProjectNode" />
               <item name="TeacHingChain" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="TeacHingChain" type="b2602c69:ProjectViewProjectNode" />
-              <item name="TeacHingChain" type="462c0819:PsiDirectoryNode" />
-              <item name=".idea" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="TeacHingChain" type="b2602c69:ProjectViewProjectNode" />
@@ -225,6 +206,33 @@
               <item name="main" type="462c0819:PsiDirectoryNode" />
               <item name="java" type="462c0819:PsiDirectoryNode" />
               <item name="blockchain" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="TeacHingChain" type="b2602c69:ProjectViewProjectNode" />
+              <item name="TeacHingChain" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="main" type="462c0819:PsiDirectoryNode" />
+              <item name="java" type="462c0819:PsiDirectoryNode" />
+              <item name="blockchain" type="462c0819:PsiDirectoryNode" />
+              <item name="gui" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="TeacHingChain" type="b2602c69:ProjectViewProjectNode" />
+              <item name="TeacHingChain" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="main" type="462c0819:PsiDirectoryNode" />
+              <item name="java" type="462c0819:PsiDirectoryNode" />
+              <item name="blockchain" type="462c0819:PsiDirectoryNode" />
+              <item name="network" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="TeacHingChain" type="b2602c69:ProjectViewProjectNode" />
+              <item name="TeacHingChain" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="main" type="462c0819:PsiDirectoryNode" />
+              <item name="java" type="462c0819:PsiDirectoryNode" />
+              <item name="blockchain" type="462c0819:PsiDirectoryNode" />
+              <item name="util" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="TeacHingChain" type="b2602c69:ProjectViewProjectNode" />
@@ -237,7 +245,14 @@
             </path>
             <path>
               <item name="TeacHingChain" type="b2602c69:ProjectViewProjectNode" />
-              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
+              <item name="TeacHingChain" type="462c0819:PsiDirectoryNode" />
+              <item name="target" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="TeacHingChain" type="b2602c69:ProjectViewProjectNode" />
+              <item name="TeacHingChain" type="462c0819:PsiDirectoryNode" />
+              <item name="target" type="462c0819:PsiDirectoryNode" />
+              <item name="dependency-jars" type="462c0819:PsiDirectoryNode" />
             </path>
           </expand>
           <select />
@@ -248,11 +263,15 @@
   <component name="PropertiesComponent">
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="full.screen.before.presentation.mode" value="false" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/target/TeacHingChain-0.1.jar" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/target/apache-tomcat-8.5.23/webapps/cargocpc" />
   </component>
   <component name="RecentsManager">
     <key name="MoveClassesOrPackagesDialog.RECENTS_KEY">
       <recent name="com.thc.blockchain.gui" />
+    </key>
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/target/apache-tomcat-8.5.23/webapps/cargocpc" />
+      <recent name="$PROJECT_DIR$/target/apache-tomcat-8.5.23/webapps/program-files" />
     </key>
   </component>
   <component name="RunDashboard">
@@ -267,13 +286,22 @@
       </list>
     </option>
   </component>
-  <component name="RunManager">
+  <component name="RunManager" selected="JAR Application.TeacHingChain">
+    <configuration name="TeacHingChain-0.1-classes.jar" type="JarApplication" temporary="true">
+      <option name="JAR_PATH" value="$PROJECT_DIR$/target/TeacHingChain-0.1-classes.jar" />
+      <method v="2" />
+    </configuration>
     <configuration name="TeacHingChain" type="JarApplication">
       <option name="JAR_PATH" value="$PROJECT_DIR$/target/TeacHingChain-0.1.jar" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
       <option name="ALTERNATIVE_JRE_PATH" />
       <method v="2" />
     </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="JAR Application.TeacHingChain-0.1-classes.jar" />
+      </list>
+    </recent_temporary>
   </component>
   <component name="SvnConfiguration">
     <configuration />
@@ -321,13 +349,20 @@
       <option name="project" value="LOCAL" />
       <updated>1556935606047</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="Updating 'IN THE WORKS' in README">
+      <created>1556936684098</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1556936684098</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="ToolWindowManager">
     <frame x="67" y="25" width="1533" height="875" extended-state="6" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.20174849" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.20981842" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Image Layers" order="2" />
       <window_info id="Designer" order="3" />
@@ -337,12 +372,12 @@
       <window_info anchor="bottom" id="Inspection Results" order="0" weight="0.328877" />
       <window_info anchor="bottom" id="Message" order="1" />
       <window_info anchor="bottom" id="Find" order="2" weight="0.32841823" />
-      <window_info anchor="bottom" id="Run" order="3" sideWeight="0.49899125" weight="0.18096514" />
+      <window_info anchor="bottom" id="Run" order="3" sideWeight="0.49899125" weight="0.25201073" />
       <window_info anchor="bottom" id="Debug" order="4" weight="0.4" />
       <window_info anchor="bottom" id="Cvs" order="5" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="6" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="7" weight="0.17914438" />
-      <window_info active="true" anchor="bottom" id="Terminal" order="8" sideWeight="0.49831876" visible="true" weight="0.19839142" />
+      <window_info active="true" anchor="bottom" id="Terminal" order="8" sideWeight="0.49831876" visible="true" weight="0.2386059" />
       <window_info anchor="bottom" id="Event Log" order="9" sideWeight="0.5016812" side_tool="true" weight="0.19839142" />
       <window_info anchor="bottom" id="Version Control" order="10" sideWeight="0.49899125" weight="0.21313673" />
       <window_info anchor="bottom" id="Messages" order="11" weight="0.3297587" />
@@ -391,7 +426,8 @@
     <MESSAGE value="Updating README and minor changes to Launcher.." />
     <MESSAGE value="Editing README" />
     <MESSAGE value="Began building GUI, still only printing relevant data to console, not to a GUI pane.. Only partially functional.. Minor changes to Launcher/MainChain/ChainBuilder" />
-    <option name="LAST_COMMIT_MESSAGE" value="Began building GUI, still only printing relevant data to console, not to a GUI pane.. Only partially functional.. Minor changes to Launcher/MainChain/ChainBuilder" />
+    <MESSAGE value="Updating 'IN THE WORKS' in README" />
+    <option name="LAST_COMMIT_MESSAGE" value="Updating 'IN THE WORKS' in README" />
   </component>
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/src/main/java/com/thc/blockchain/network/Constants.java">
@@ -401,38 +437,12 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/.gitignore">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="105">
-          <caret line="7" column="14" lean-forward="true" selection-start-line="7" selection-start-column="14" selection-end-line="7" selection-end-column="14" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/com/thc/blockchain/wallet/GenesisBlock.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="615">
           <caret line="74" column="9" selection-start-line="74" selection-start-column="9" selection-end-line="74" selection-end-column="9" />
           <folding>
             <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/pom.xml">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="330">
-          <caret line="22" column="37" selection-start-line="22" selection-start-column="37" selection-end-line="22" selection-end-column="37" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/com/thc/blockchain/wallet/Launcher.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="154">
-          <caret line="185" lean-forward="true" selection-start-line="185" selection-end-line="185" />
-          <folding>
-            <element signature="imports" expanded="true" />
-            <element signature="e#784#911#0" expanded="true" />
-            <element signature="e#910#911#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -481,7 +491,7 @@
     <entry file="file://$PROJECT_DIR$/src/main/java/com/thc/blockchain/util/Miner.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="374">
-          <caret line="692" column="59" lean-forward="true" selection-start-line="692" selection-start-column="59" selection-end-line="692" selection-end-column="59" />
+          <caret line="692" column="59" selection-start-line="692" selection-start-column="59" selection-end-line="692" selection-end-column="59" />
           <folding>
             <element signature="imports" expanded="true" />
             <element signature="e#40662#40663#0" expanded="true" />
@@ -490,11 +500,90 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/.idea/workspace.xml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1020">
+          <caret line="68" column="47" lean-forward="true" selection-start-line="68" selection-start-column="47" selection-end-line="68" selection-end-column="47" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/.gitignore">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="150">
+          <caret line="10" column="9" selection-start-line="10" selection-start-column="9" selection-end-line="10" selection-end-column="9" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/target/apache-tomcat-8.5.23/webapps/program-files/addressKey.dat" />
+    <entry file="file://$PROJECT_DIR$/target/apache-tomcat-8.5.23/webapps/host-manager/META-INF/context.xml" />
+    <entry file="file://$PROJECT_DIR$/target/apache-tomcat-8.5.23/webapps/manager/META-INF/context.xml" />
+    <entry file="file://$PROJECT_DIR$/target/apache-tomcat-8.5.23/webapps/manager/index.jsp" />
+    <entry file="file://$PROJECT_DIR$/target/apache-tomcat-8.5.23/webapps/cargocpc/tx-pool.dat" />
+    <entry file="file://$PROJECT_DIR$/target/apache-tomcat-8.5.23/webapps/cargocpc/index.html" />
+    <entry file="file://$PROJECT_DIR$/TeacHingChain.iml" />
+    <entry file="file://$PROJECT_DIR$/target/apache-tomcat-8.5.23/conf/tomcat-users.xml" />
+    <entry file="file://$PROJECT_DIR$/target/apache-tomcat-8.5.23/conf/server.xml" />
+    <entry file="file://$PROJECT_DIR$/target/apache-tomcat-8.5.23/conf/context.xml" />
+    <entry file="file://$PROJECT_DIR$/target/apache-tomcat-8.5.23/webapps/host-manager/manager.xml" />
+    <entry file="file://$PROJECT_DIR$/pom.xml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1875">
+          <caret line="125" column="12" selection-start-line="125" selection-start-column="12" selection-end-line="125" selection-end-column="12" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/com/thc/blockchain/network/ChainServerEndpoint.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="45">
+          <caret line="7" column="37" selection-start-line="7" selection-start-column="37" selection-end-line="7" selection-end-column="37" />
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/com/thc/blockchain/network/ChainClientEndpoint.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="435">
+          <caret line="34" selection-start-line="34" selection-end-line="34" />
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/com/thc/blockchain/network/Client.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="240">
+          <caret line="24" column="46" selection-start-line="24" selection-start-column="46" selection-end-line="24" selection-end-column="46" />
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/thc.sh">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="15">
+          <caret line="1" selection-start-line="1" selection-end-line="1" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/com/thc/blockchain/wallet/Launcher.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="75">
+          <caret line="27" column="4" selection-start-line="27" selection-start-column="4" selection-end-line="27" selection-end-column="4" />
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/README.md">
       <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
         <state split_layout="FIRST">
-          <first_editor relative-caret-position="142">
-            <caret line="32" column="172" selection-start-line="32" selection-start-column="172" selection-end-line="32" selection-end-column="172" />
+          <first_editor relative-caret-position="630">
+            <caret line="42" column="153" selection-start-line="42" selection-start-column="153" selection-end-line="42" selection-end-column="153" />
           </first_editor>
           <second_editor />
         </state>

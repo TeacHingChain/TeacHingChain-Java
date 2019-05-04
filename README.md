@@ -18,19 +18,17 @@ This means you can only run it as a 'private blockchain' at this time
 
 **NOTES**
 
-1.  If you're running linux you will need to either have the appropriate maven dependencies in /usr/share/java (as this is the classpath configured in the pom.xml) OR edit the classpath in the pom.xml to suite your needs
+1.  We have added support for the maven dependencies plugin, so the classpath is now in the build directory 
 
-2.  If you're running Windows you will NEED to modify the classpath entry in the pom.xml to the location of your java libraries 
+2.  This project is in it's infancy, there are many things that are being added/changed/worked on.. This is never meant to be production quality software, it's meant to be very simple and for illustrative purposes.. 
 
-3.  This project is in it's infancy, there are many things that are being added/changed/worked on.. This is never meant to be production quality software, it's meant to be very simple and for illustrative purposes.. 
-
-4.  We are amateur coders, there will be mistakes and better ways to code some of the elements of this project. Feel free to give us your thoughts on any of the code or any part of the project!
+3.  We are amateur coders, there will be mistakes and better ways to code some of the elements of this project. Feel free to give us your thoughts on any of the code or any part of the project!
 
 **IN THE WORKS**
 
 1.  Adding web socket client and server end-points for block/tx transport across nodes using server push
 
-~2.  Building a GUI to get rid of the home rolled CLI~ 2.  Began building GUI, only send tx and mining functionality, not yet separate from CLI (they still run concurrently)
+2.  Began building GUI, only send tx and mining functionality, not yet separate from CLI (they still run concurrently)
 
 3.  Adding support for SHA512 and scrypt algorithms
 
@@ -41,6 +39,8 @@ This means you can only run it as a 'private blockchain' at this time
 6.  Adding support for SHA512 and scrypt algorithms for the GenesisBuilder (in the GenesisBuilder-Java repo)
 
 7.  Adding the ability to run the wallet as the GUI or as a daemon with a CLI
+
+8.  Writing shell scripts for easy building/running (since the project will need to run as both a deployed war AND a jar when the network side is working)
 
 8.  And more!
 
