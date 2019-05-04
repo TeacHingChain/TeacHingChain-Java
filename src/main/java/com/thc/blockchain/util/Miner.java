@@ -1,11 +1,13 @@
 package com.thc.blockchain.util;
 
 import com.thc.blockchain.algos.SHA256;
+import com.thc.blockchain.gui.MiningPane;
 import com.thc.blockchain.wallet.ChainBuilder;
 import com.thc.blockchain.wallet.HashArray;
 import com.thc.blockchain.wallet.Launcher;
 import com.thc.blockchain.wallet.MainChain;
 
+import java.awt.*;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
@@ -21,9 +23,11 @@ public class Miner {
     private static long deltaN;
     private static long startTime;
     private static long endTime;
-    private static long hashRate;
+    public static long hashRate;
+    public static boolean iterator;
 
-    public void mine(long index, long currentTimeMillis, String sendKey, String recvKey, String minerKey, String txHash, long Nonce, String previousBlockHash, String algo, int difficulty, float amount) throws InterruptedException {
+
+    public boolean mine(long index, long currentTimeMillis, String sendKey, String recvKey, String minerKey, String txHash, long Nonce, String previousBlockHash, String algo, int difficulty, float amount) throws InterruptedException {
         MainChain mc = new MainChain();
         ChainBuilder cb = new ChainBuilder();
         long start = System.currentTimeMillis();
@@ -31,12 +35,12 @@ public class Miner {
         this.currentTimeMillis = currentTimeMillis;
         MainChain.difficulty = difficulty;
         if (algo.contentEquals("sha256")) {
-            boolean iterator = true;
             System.out.println("difficulty says: \n" + MainChain.difficulty);
             startTime = System.nanoTime();
             TimeUnit.SECONDS.sleep(1);
             mc.checkForChainUpdates();
             mc.checkForTxPoolUpdates();
+            MiningPane mp = new MiningPane();
             Timer timer = new Timer();
             timer.schedule(new TimerTask() {
                 @Override
@@ -46,7 +50,7 @@ public class Miner {
 
                 }
             }, 0, 3000);
-
+            iterator = true;
             while (iterator) {
                 String blockHeader = (index + currentTimeMillis + sendKey + recvKey + minerKey + txHash + Nonce + previousBlockHash + algo + difficulty + amount);
                 String hash = SHA256.generateSHA256Hash(blockHeader);
@@ -702,9 +706,15 @@ public class Miner {
                     }
                 }
             }
-        } else if (algo.contentEquals("sha512")) {
+        } else {
+            iterator = false;
             System.out.println("Coming soon!\n");
         }
+    return true;
+    }
+
+    public void paint(Graphics g){
+        g.drawString(String.valueOf(hashRate), 10, 10);
     }
 }
 

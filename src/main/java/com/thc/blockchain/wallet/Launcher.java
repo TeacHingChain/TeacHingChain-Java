@@ -1,6 +1,7 @@
 package com.thc.blockchain.wallet;
 
 import com.thc.blockchain.algos.SHA256;
+import com.thc.blockchain.gui.WalletGui;
 import com.thc.blockchain.util.Miner;
 
 import javax.swing.*;
@@ -11,11 +12,25 @@ import java.util.Random;
 import static com.thc.blockchain.wallet.MainChain.difficulty;
 import static com.thc.blockchain.wallet.MainChain.minerKey;
 
-public class Launcher extends JPanel { // extending JPanel to build GUI instead of pseudo-cli-parsing
+public class Launcher extends JFrame { // extending JPanel to build GUI instead of pseudo-cli-parsing
     public static int numBlocksMined;
     private static String algo;
 
     public static void main(String[] args) throws InterruptedException {
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                new WalletGui().setVisible(true);
+            }
+        });
+
+
         MainChain mc = new MainChain();
         ChainBuilder cb = new ChainBuilder();
         Miner miner = new Miner();

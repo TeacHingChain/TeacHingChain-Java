@@ -5,7 +5,6 @@ import com.thc.blockchain.network.Constants;
 
 import java.io.*;
 import java.math.BigInteger;
-import java.net.Socket;
 import java.util.*;
 
 public class MainChain {
@@ -21,17 +20,15 @@ public class MainChain {
     private String sendKeyTx;
     private String recvKeyTx;
     private float amount;
-    static float balance;
+    public static float balance;
     static long indexAtStart;
     private static List<String> blockChain;
     public static List<String> txPool;
-    static final float nSubsidy = 50;
+    public static final float nSubsidy = 50;
     private static String addressKey = "";
-    static String minerKey = "";
-    static String sendKey = "";
+    public static String minerKey = "";
+    public static String sendKey = "";
     private static String recvKey = "";
-    private static Socket connect;
-
 
     public MainChain() {}
 
@@ -114,7 +111,7 @@ public class MainChain {
         }
     }
 
-    String getPreviousBlockHash() {
+    public String getPreviousBlockHash() {
         previousBlockHash = (String) HashArray.hashArray.get(HashArray.hashArray.size() - 3);
         return previousBlockHash;
     }
@@ -207,7 +204,7 @@ public class MainChain {
     return null;
     }
 
-    long getUnixTimestamp() {
+    public long getUnixTimestamp() {
         currentTimeMillis = System.currentTimeMillis();
         return currentTimeMillis;
     }
@@ -455,7 +452,7 @@ public class MainChain {
         return minerKey;
     }
 
-    void sendTx(String sendKeyTx, String recvKeyTx, float amount) {
+    public void sendTx(String sendKeyTx, String recvKeyTx, float amount) {
         ChainBuilder cb = new ChainBuilder();
         this.sendKeyTx = sendKeyTx;
         this.recvKeyTx = recvKeyTx;

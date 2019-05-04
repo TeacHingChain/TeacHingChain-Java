@@ -296,7 +296,7 @@ public class ChainBuilder extends MainChain {
         }
     }
 
-    void overwriteTxPool() {
+    public void overwriteTxPool() {
         try {
             FileOutputStream fos = new FileOutputStream("tx-pool.dat");
             ObjectOutputStream oos = new ObjectOutputStream(fos);
@@ -313,7 +313,7 @@ public class ChainBuilder extends MainChain {
     }
 
 
-    void readTxPool() {
+    public void readTxPool() {
         try {
             FileInputStream fis = new FileInputStream("tx-pool.dat");
             ObjectInputStream ois = new ObjectInputStream(fis);
