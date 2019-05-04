@@ -30,7 +30,7 @@ This means you can only run it as a 'private blockchain' at this time
 
 1.  Adding web socket client and server end-points for block/tx transport across nodes using server push
 
-2.  Building a GUI to get rid of the home rolled CLI
+~2.  Building a GUI to get rid of the home rolled CLI~ 2.  Began building GUI, only send tx and mining functionality, not yet separate from CLI (they still run concurrently)
 
 3.  Adding support for SHA512 and scrypt algorithms
 

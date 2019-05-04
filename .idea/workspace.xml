@@ -1,14 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="7e86cdb7-ff04-44e7-9a3f-145ed2f064c3" name="Default Changelist" comment="Began building GUI, still only printing relevant data to console, not to a GUI pane.. Only partially functional.. Minor changes to Launcher/MainChain/ChainBuilder">
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/thc/blockchain/gui/MiningPane.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/thc/blockchain/gui/WalletGui.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/thc/blockchain/util/Miner.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/thc/blockchain/util/Miner.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/thc/blockchain/wallet/ChainBuilder.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/thc/blockchain/wallet/ChainBuilder.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/thc/blockchain/wallet/Launcher.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/thc/blockchain/wallet/Launcher.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/thc/blockchain/wallet/MainChain.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/thc/blockchain/wallet/MainChain.java" afterDir="false" />
+    <list default="true" id="7e86cdb7-ff04-44e7-9a3f-145ed2f064c3" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/out/" />
     <ignored path="$PROJECT_DIR$/target/" />
@@ -55,11 +49,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/java/com/thc/blockchain/gui/WalletGui.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="181">
-              <caret line="46" column="35" lean-forward="true" selection-start-line="46" selection-start-column="35" selection-end-line="46" selection-end-column="35" />
+            <state relative-caret-position="149">
+              <caret line="48" column="8" selection-start-line="48" selection-start-column="8" selection-end-line="48" selection-end-column="8" />
               <folding>
                 <element signature="imports" expanded="true" />
                 <element signature="e#8343#8344#0" expanded="true" />
@@ -81,8 +75,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/java/com/thc/blockchain/wallet/MainChain.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="386">
-              <caret line="26" column="11" selection-start-line="26" selection-start-column="11" selection-end-line="26" selection-end-column="11" />
+            <state relative-caret-position="149">
+              <caret line="30" column="11" selection-start-line="30" selection-start-column="11" selection-end-line="30" selection-end-column="11" />
               <folding>
                 <element signature="imports" expanded="true" />
               </folding>
@@ -93,8 +87,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/java/com/thc/blockchain/util/Miner.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="300">
-              <caret line="38" column="40" selection-start-line="38" selection-start-column="40" selection-end-line="38" selection-end-column="40" />
+            <state relative-caret-position="374">
+              <caret line="692" column="59" lean-forward="true" selection-start-line="692" selection-start-column="59" selection-end-line="692" selection-end-column="59" />
               <folding>
                 <element signature="imports" expanded="true" />
                 <element signature="e#40662#40663#0" expanded="true" />
@@ -107,8 +101,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/java/com/thc/blockchain/wallet/ChainBuilder.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="266">
-              <caret line="41" column="20" lean-forward="true" selection-start-line="34" selection-start-column="8" selection-end-line="41" selection-end-column="20" />
+            <state relative-caret-position="139">
+              <caret line="236" column="128" selection-start-line="236" selection-start-column="128" selection-end-line="236" selection-end-column="128" />
               <folding>
                 <element signature="imports" expanded="true" />
                 <element signature="e#1342#1566#0" expanded="true" />
@@ -130,12 +124,12 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/README.md">
           <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
             <state split_layout="FIRST">
-              <first_editor relative-caret-position="-361">
-                <caret line="5" lean-forward="true" selection-start-line="5" selection-end-line="5" />
+              <first_editor relative-caret-position="142">
+                <caret line="32" column="172" selection-start-line="32" selection-start-column="172" selection-end-line="32" selection-end-column="172" />
               </first_editor>
               <second_editor />
             </state>
@@ -168,15 +162,15 @@
     <option name="CHANGED_PATHS">
       <list>
         <option value="$PROJECT_DIR$/.gitignore" />
-        <option value="$PROJECT_DIR$/README.md" />
         <option value="$PROJECT_DIR$/src/main/java/com/thc/blockchain/wallet/Launcher.java" />
         <option value="$PROJECT_DIR$/src/main/java/com/thc/blockchain/wallet/WalletGui.java" />
         <option value="$PROJECT_DIR$/src/main/java/com/thc/blockchain/wallet/MiningPane.java" />
         <option value="$PROJECT_DIR$/src/main/java/com/thc/blockchain/wallet/ChainBuilder.java" />
-        <option value="$PROJECT_DIR$/src/main/java/com/thc/blockchain/wallet/MainChain.java" />
         <option value="$PROJECT_DIR$/src/main/java/com/thc/blockchain/gui/WalletGui.java" />
         <option value="$PROJECT_DIR$/src/main/java/com/thc/blockchain/gui/MiningPane.java" />
         <option value="$PROJECT_DIR$/src/main/java/com/thc/blockchain/util/Miner.java" />
+        <option value="$PROJECT_DIR$/src/main/java/com/thc/blockchain/wallet/MainChain.java" />
+        <option value="$PROJECT_DIR$/README.md" />
       </list>
     </option>
   </component>
@@ -320,7 +314,14 @@
       <option name="project" value="LOCAL" />
       <updated>1556920692952</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="Began building GUI, still only printing relevant data to console, not to a GUI pane.. Only partially functional.. Minor changes to Launcher/MainChain/ChainBuilder">
+      <created>1556935606047</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1556935606047</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -341,10 +342,10 @@
       <window_info anchor="bottom" id="Cvs" order="5" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="6" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="7" weight="0.17914438" />
-      <window_info anchor="bottom" id="Terminal" order="8" sideWeight="0.49831876" weight="0.3632708" />
-      <window_info anchor="bottom" id="Event Log" order="9" sideWeight="0.5016812" side_tool="true" weight="0.1997319" />
+      <window_info active="true" anchor="bottom" id="Terminal" order="8" sideWeight="0.49831876" visible="true" weight="0.19839142" />
+      <window_info anchor="bottom" id="Event Log" order="9" sideWeight="0.5016812" side_tool="true" weight="0.19839142" />
       <window_info anchor="bottom" id="Version Control" order="10" sideWeight="0.49899125" weight="0.21313673" />
-      <window_info active="true" anchor="bottom" id="Messages" order="11" visible="true" weight="0.3297587" />
+      <window_info anchor="bottom" id="Messages" order="11" weight="0.3297587" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.24949563" />
@@ -424,28 +425,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/README.md">
-      <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
-        <state split_layout="FIRST">
-          <first_editor relative-caret-position="-361">
-            <caret line="5" lean-forward="true" selection-start-line="5" selection-end-line="5" />
-          </first_editor>
-          <second_editor />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/com/thc/blockchain/wallet/ChainBuilder.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="266">
-          <caret line="41" column="20" lean-forward="true" selection-start-line="34" selection-start-column="8" selection-end-line="41" selection-end-column="20" />
-          <folding>
-            <element signature="imports" expanded="true" />
-            <element signature="e#1342#1566#0" expanded="true" />
-            <element signature="e#1565#1566#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/com/thc/blockchain/wallet/Launcher.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="154">
@@ -458,10 +437,51 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/com/thc/blockchain/gui/MiningPane.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="105">
+          <caret line="7" selection-start-line="7" selection-end-line="7" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/com/thc/blockchain/wallet/MainChain.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="149">
+          <caret line="30" column="11" selection-start-line="30" selection-start-column="11" selection-end-line="30" selection-end-column="11" />
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/com/thc/blockchain/wallet/ChainBuilder.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="139">
+          <caret line="236" column="128" selection-start-line="236" selection-start-column="128" selection-end-line="236" selection-end-column="128" />
+          <folding>
+            <element signature="imports" expanded="true" />
+            <element signature="e#1342#1566#0" expanded="true" />
+            <element signature="e#1565#1566#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/com/thc/blockchain/gui/WalletGui.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="149">
+          <caret line="48" column="8" selection-start-line="48" selection-start-column="8" selection-end-line="48" selection-end-column="8" />
+          <folding>
+            <element signature="imports" expanded="true" />
+            <element signature="e#8343#8344#0" expanded="true" />
+            <element signature="e#8405#8406#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/com/thc/blockchain/util/Miner.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="300">
-          <caret line="38" column="40" selection-start-line="38" selection-start-column="40" selection-end-line="38" selection-end-column="40" />
+        <state relative-caret-position="374">
+          <caret line="692" column="59" lean-forward="true" selection-start-line="692" selection-start-column="59" selection-end-line="692" selection-end-column="59" />
           <folding>
             <element signature="imports" expanded="true" />
             <element signature="e#40662#40663#0" expanded="true" />
@@ -470,32 +490,13 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/com/thc/blockchain/wallet/MainChain.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="386">
-          <caret line="26" column="11" selection-start-line="26" selection-start-column="11" selection-end-line="26" selection-end-column="11" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/com/thc/blockchain/gui/MiningPane.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="105">
-          <caret line="7" selection-start-line="7" selection-end-line="7" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/com/thc/blockchain/gui/WalletGui.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="181">
-          <caret line="46" column="35" lean-forward="true" selection-start-line="46" selection-start-column="35" selection-end-line="46" selection-end-column="35" />
-          <folding>
-            <element signature="imports" expanded="true" />
-            <element signature="e#8343#8344#0" expanded="true" />
-            <element signature="e#8405#8406#0" expanded="true" />
-          </folding>
+    <entry file="file://$PROJECT_DIR$/README.md">
+      <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
+        <state split_layout="FIRST">
+          <first_editor relative-caret-position="142">
+            <caret line="32" column="172" selection-start-line="32" selection-start-column="172" selection-end-line="32" selection-end-column="172" />
+          </first_editor>
+          <second_editor />
         </state>
       </provider>
     </entry>
