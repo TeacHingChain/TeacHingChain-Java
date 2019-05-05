@@ -50,4 +50,4 @@ If you are interested in contributing, email us @ TeacHingChain0420@gmail.com
 
 We are open to suggestions, comments and contributions so please feel free to contact us!
 
-More detailed technical specifications on the project is coming soon!
+More detailed technical specifications on the project are coming soon!
