@@ -1,501 +1,342 @@
 package com.thc.blockchain.wallet;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.thc.blockchain.algos.SHA256;
 import com.thc.blockchain.network.Constants;
-
+import com.thc.blockchain.util.ConfigParser;
+import com.thc.blockchain.util.WalletLogger;
+import com.thc.blockchain.util.addresses.AddressBook;
+import com.thc.blockchain.util.addresses.Base58;
 import java.io.*;
-import java.math.BigInteger;
-import java.util.*;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import static com.thc.blockchain.network.Constants.baseDir;
 
 public class MainChain {
 
-    private long currentTimeMillis;
-    private long Nonce;
-    private long index;
     public static int difficulty;
-    private String currentHash;
-    private String blockHash;
-    private String previousBlockHash;
-    private String txHash;
-    private String sendKeyTx;
-    private String recvKeyTx;
-    private float amount;
     public static float balance;
-    static long indexAtStart;
-    private static List<String> blockChain;
-    public static List<String> txPool;
     public static final float nSubsidy = 50;
-    private static String addressKey = "";
-    public static String minerKey = "";
-    public static String sendKey = "";
-    private static String recvKey = "";
+    private static String address;
+    private static String privKey;
+
+    private ConfigParser config = new ConfigParser();
 
     public MainChain() {}
 
-    String getCurrentHash() {
-        currentHash = (String) HashArray.hashArray.get(HashArray.hashArray.size() - 3);
-        System.out.println("\n");
-        System.out.println(currentHash);
-        return currentHash;
+    String getBestHash() {
+        String bestBlock = HashArray.hashArray.get(HashArray.hashArray.size() - 1).toString();
+        JsonElement jsonElement = new JsonParser().parse(bestBlock);
+        JsonObject jsonObject = jsonElement.getAsJsonObject();
+        JsonElement best_hash = jsonObject.get("block hash");
+        return best_hash.getAsString();
     }
 
     String getGenesisHash() {
-        blockHash = (String) HashArray.hashArray.get((HashArray.hashArray.size() - HashArray.hashArray.size()) + 8);
-        System.out.println("\n");
-        System.out.println("Genesis " + blockHash);
-        return blockHash;
-    }
-
-    void setGenesisHash(long index, long currentTimeMillis, String sendKeyTx, String recvKeyTx, String minerKey, String txHash, long Nonce, String previousBlockHash, String blockHash, int difficulty, float amount) {
-        this.index = index;
-        this.currentTimeMillis = currentTimeMillis;
-        this.sendKeyTx = sendKeyTx;
-        this.recvKeyTx = recvKeyTx;
-        MainChain.minerKey = minerKey;
-        this.txHash = txHash;
-        this.Nonce = Nonce;
-        this.previousBlockHash = previousBlockHash;
-        this.blockHash = blockHash;
-        MainChain.difficulty = difficulty;
-
-        String endBlockLine = "-------------END BLOCK-------------";
-        String indexToStr = Long.toString(index);
-        String timeToStr = Long.toString(currentTimeMillis);
-        String nonceToStr = Long.toString(Nonce);
-        String difficultyToStr = Integer.toString(difficulty);
-        String amountToStr = Float.toString(amount);
-        String algo = "sha256";
-        ChainBuilder cb = new ChainBuilder();
-
-        boolean validateGenesis = cb.isGenesisValid(index, currentTimeMillis, sendKeyTx, recvKeyTx, minerKey, txHash, Nonce, previousBlockHash, algo, blockHash, difficulty, amount);
-        if (validateGenesis) {
-            System.out.println("\n");
-            System.out.println("Initializing chain...\n");
-            System.out.println("\n");
-            System.out.println("index says: " + index  + " " + indexToStr);
-            HashArray hashArray = new HashArray();
-            HashArray.hashArray.add("Index: " + indexToStr);
-            HashArray.hashArray.add("Time stamp: " + timeToStr);
-            HashArray.hashArray.add("Send key: " + sendKeyTx);
-            HashArray.hashArray.add("Receive key: " + recvKeyTx);
-            HashArray.hashArray.add("Miner key: " + minerKey);
-            HashArray.hashArray.add("Tx Hash: " + txHash);
-            HashArray.hashArray.add("Merkle hash: " + SHA256.generateSHA256Hash(txHash));
-            HashArray.hashArray.add("Nonce: " + nonceToStr);
-            HashArray.hashArray.add("Previous " + previousBlockHash);
-            HashArray.hashArray.add("Algo: " + algo);
-            HashArray.hashArray.add("Block hash: " + blockHash);
-            HashArray.hashArray.add("Difficulty: " + difficultyToStr);
-            HashArray.hashArray.add(amountToStr);
-
-            try {
-                System.out.println("\n");
-                System.out.println("Trying to serialize chain.dat...\n");
-                System.out.println("\n");
-                FileOutputStream fos = new FileOutputStream("chain.dat");
-                ObjectOutputStream oos = new ObjectOutputStream(fos);
-                oos.writeObject(HashArray.hashArray);
-                oos.close();
-                fos.close();
-
-            } catch (IOException ioe) {
-                System.out.println("\n");
-                System.out.println("Failed to write chain.dat!\n");
-                System.out.println("\n");
-            }
-
-        } else {
-            System.out.println("\n");
-            System.out.println("ERROR! Genesis block not passing validation, please check values!");
-            System.out.println("\n");
-        }
+        String genesisBlock = HashArray.hashArray.get(HashArray.hashArray.size() - HashArray.hashArray.size()).toString();
+        JsonElement jsonElement = new JsonParser().parse(genesisBlock);
+        JsonObject jsonObject = jsonElement.getAsJsonObject();
+        JsonElement genesis_hash = jsonObject.get("block hash");
+        return genesis_hash.getAsString();
     }
 
     public String getPreviousBlockHash() {
-        previousBlockHash = (String) HashArray.hashArray.get(HashArray.hashArray.size() - 3);
-        return previousBlockHash;
+        readBlockChain();
+        String previousBlock = HashArray.hashArray.get(HashArray.hashArray.size() - 1).toString();
+        JsonElement jsonElement = new JsonParser().parse(previousBlock);
+        JsonObject blockJSONObject = jsonElement.getAsJsonObject();
+        JsonElement je = blockJSONObject.get("block hash");
+        return je.getAsString();
     }
 
-    List<String> getBlockChain() throws NullPointerException {
+    void getBlockChain() {
         try {
-            System.out.println("\n");
-            System.out.println("Trying to read serialized chain.dat...\n");
-            FileInputStream fis = new FileInputStream("chain.dat");
+            FileInputStream fis = new FileInputStream(baseDir + "/chain.dat");
             ObjectInputStream ois = new ObjectInputStream(fis);
             HashArray.hashArray = (ArrayList) ois.readObject();
             ois.close();
             fis.close();
-            for (int i = 0; i < HashArray.hashArray.size(); i++) {
-                System.out.println(HashArray.hashArray.get(i));
-                System.out.println("--------------------------------------------------------------------");
+            for (Object o : HashArray.hashArray) {
+                System.out.println(o.toString());
             }
-            return blockChain;
-
         } catch (ClassNotFoundException e) {
-            e.printStackTrace();
+            WalletLogger.logException(e, "severe", WalletLogger.getLogTimeStamp() + " Class not found exception occurred while fetching chain.dat! See below:\n" + WalletLogger.exceptionStacktraceToString(e));
         } catch (IOException ioe) {
-            System.out.println("ERROR! chain.dat not found, please make sure wallet and chain are in sync!\n");
+            WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp() + " IO exception occurred while fetching chain.dat! See below:\n" + WalletLogger.exceptionStacktraceToString(ioe));
         } catch (NullPointerException npe) {
-            System.out.println("ERROR! chain.dat not found or of size zero, please make sure wallet and chain are in sync!\n");
+            WalletLogger.logException(npe, "severe", WalletLogger.getLogTimeStamp() + " Null pointer exception occurred while fetching chain.dat! See below:\n" + WalletLogger.exceptionStacktraceToString(npe));
         }
-
-        return blockChain;
     }
 
-    public List<String> readBlockChain() throws NullPointerException {
+    public void readBlockChain() {
+        config.readConfigFile();
         balance = 0;
-        readRecvKey();
         try {
-          //  System.out.println("\n");
-          //  System.out.println("Trying to read serialized chain.dat...\n");
-            FileInputStream fis = new FileInputStream("chain.dat");
+            FileInputStream fis = new FileInputStream(baseDir + "/chain.dat");
             ObjectInputStream ois = new ObjectInputStream(fis);
             HashArray.hashArray = (ArrayList) ois.readObject();
             ois.close();
             fis.close();
-            for (int i = 0; i < HashArray.hashArray.size(); i++) {
-                if (HashArray.hashArray.get(i).equals("Miner key: " + minerKey)) {
-                    balance += nSubsidy;
+            for (Object blockObj : HashArray.hashArray) {
+                String block = blockObj.toString();
+                JsonElement jsonElement = new JsonParser().parse(block);
+                JsonObject blockJSONObject = jsonElement.getAsJsonObject();
+                JsonElement from_address = blockJSONObject.get("from address");
+                String fromAddress = from_address.getAsString();
+                JsonElement to_address = blockJSONObject.get("to address");
+                String toAddress = to_address.toString();
+                for (Object addressObj : AddressBook.addressBook) {
+                    address = addressObj.toString();
+                    System.out.println("ADDRESS TEST: " + address);
+                    if (fromAddress.contentEquals(address)) {
+                        byte[] decodedAddressBytes = Base58.decode(fromAddress);
+                        String decodedAddress = new String(decodedAddressBytes, StandardCharsets.UTF_8);
+                        for (Object o : KeyRing.keyRing) {
+                            privKey = o.toString();
+                            if (SHA256.generateSHA256Hash(privKey).contentEquals(decodedAddress)) {
+                                JsonElement tx_hash = blockJSONObject.get("tx hash");
+                                String txHash = tx_hash.getAsString();
+                                JsonElement block_hash = blockJSONObject.get("block hash");
+                                String blockHash = block_hash.getAsString();
+                                WalletLogger.logEvent("info", "Found sent transaction: \n" + txHash + "\n corresponding block: \n" + blockHash);
+                                JsonElement tx_amount = blockJSONObject.get("amount");
+                                float amount = tx_amount.getAsFloat();
+                                balance -= amount;
+                            }
+                        }
+                    } else if (toAddress.contentEquals(address)) {
+                        byte[] decodedAddressBytes = Base58.decode(toAddress);
+                        String decodedAddress = new String(decodedAddressBytes, StandardCharsets.UTF_8);
+                        for (Object o : KeyRing.keyRing) {
+                            privKey = o.toString();
+                            if (SHA256.generateSHA256Hash(privKey).contentEquals(decodedAddress)) {
+                                JsonElement tx_hash = blockJSONObject.get("tx hash");
+                                String txHash = tx_hash.getAsString();
+                                JsonElement block_hash = blockJSONObject.get("block hash");
+                                String blockHash = block_hash.getAsString();
+                                WalletLogger.logEvent("info", "Found received transaction: \n" + txHash + "\n corresponding block: \n" + blockHash);
+                                JsonElement tx_amount = blockJSONObject.get("amount");
+                                float amount = tx_amount.getAsFloat();
+                                balance += amount;
+                            }
+                        }
+                    } else if (fromAddress.contentEquals(Constants.cbAddress) && toAddress.contentEquals(address)) {
+                        byte[] decodedAddressBytes = Base58.decode(toAddress);
+                        String decodedAddress = new String(decodedAddressBytes, StandardCharsets.UTF_8);
+                        for (Object o : KeyRing.keyRing) {
+                            privKey = o.toString();
+                            if (SHA256.generateSHA256Hash(privKey).contentEquals(decodedAddress)) {
+                                JsonElement tx_hash = blockJSONObject.get("tx hash");
+                                String txHash = tx_hash.getAsString();
+                                JsonElement block_hash = blockJSONObject.get("block hash");
+                                String blockHash = block_hash.getAsString();
+                                WalletLogger.logEvent("info", "Found mined transaction: \n" + txHash + "\n corresponding block: \n" + blockHash);
+                                JsonElement tx_amount = blockJSONObject.get("amount");
+                                float amount = tx_amount.getAsFloat();
+                                balance -= amount;
+                            }
+                        }
+                    }
                 }
             }
-            for (int j = 0; j < HashArray.hashArray.size(); j++) {
-                if (HashArray.hashArray.get(j).equals("Send key: " + sendKey)) {
-                    String amountToStr = String.valueOf(HashArray.hashArray.get(j + 9));
-                    balance -= Float.parseFloat(amountToStr);
-                }
-            }
-            for (int k = 0; k < HashArray.hashArray.size(); k++) {
-                if (HashArray.hashArray.get(k).equals("Receive key: " + recvKey)) {
-                    String amountToStr = String.valueOf(HashArray.hashArray.get(k + 8));
-                    balance += Float.parseFloat(amountToStr);
-                }
-            }
-
         } catch (ClassNotFoundException e) {
-            e.printStackTrace();
+            WalletLogger.logException(e, "severe", WalletLogger.getLogTimeStamp() + " Class not found exception occurred while fetching chain.dat! See below:\n" + WalletLogger.exceptionStacktraceToString(e));
+        } catch (Base58.AddressFormatException afe) {
+            WalletLogger.logException(afe, "severe", WalletLogger.getLogTimeStamp() + " Address format exception occurred while encoding/decoding an address! See below:\n" + WalletLogger.exceptionStacktraceToString(afe));
         } catch (IOException ioe) {
-            System.out.println("ERROR! chain.dat not found, please make sure wallet and chain are in sync!\n");
-        } catch (NullPointerException npe) {
-            System.out.println("ERROR! chain.dat not found or of size zero, please make sure wallet and chain are in sync!\n");
+            WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp() + " IO exception occurred while fetching chain.dat! See below:\n" + WalletLogger.exceptionStacktraceToString(ioe));
         }
-
-        return blockChain;
     }
 
-    long getIndexOfBlockChain() {
-        long chainIndex = (HashArray.hashArray.size() / 12);
-        System.out.println("\n");
-        System.out.println("Number of blocks on chain: " + chainIndex);
-        return chainIndex;
+    public void writeBlockChain() {
+        try {
+            System.out.println("Trying to serialize chain.dat...\n");
+            FileOutputStream fos = new FileOutputStream("/home/dev-environment/Desktop/java_random/TeacHingChain" + "/chain.dat");
+            ObjectOutputStream oos = new ObjectOutputStream(fos);
+            oos.writeObject(HashArray.hashArray);
+            oos.close();
+            fos.close();
+            readBlockChain();
+        } catch (IOException ioe) {
+            WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp() + " IO exception occurred while trying to write to blockchain! See below:\n" + WalletLogger.exceptionStacktraceToString(ioe));
+        }
     }
 
-    String getBlockAtIndex(long index) {
-        this.index = index;
-        if (((index + 1) * 8) > HashArray.hashArray.size()) {
-            System.out.println("\n");
-            System.out.println("ERROR! Index out of range!\n");
+    int getIndexOfBlockChain() {
+        return HashArray.hashArray.size() - 1;
+    }
 
-        } else {
-            String hashAtIndex = (String) HashArray.hashArray.get((int) (((index + 1) * 8) - 3));
-            System.out.println("\n");
-            System.out.println("Block hash at index " + index + ": \n" + hashAtIndex);
-            return null;
-        }
-    return null;
+    String getBlockAtIndex(int index) {
+        return HashArray.hashArray.get(index).toString();
     }
 
     public long getUnixTimestamp() {
-        currentTimeMillis = System.currentTimeMillis();
-        return currentTimeMillis;
+        return System.currentTimeMillis();
     }
 
-    void generateAddressKey(){
-        Random randKeyGen = new Random();
-        BigInteger b = new BigInteger(256, randKeyGen);
-        String keyToStr = b.toString(10);
-        System.out.println("\n");
-        System.out.println("Address key generated: \n" + b);
-        addressKey = keyToStr;
+    private String readPrivateKey(String path) {
         try {
-            System.out.println("Trying to serialize addressKey.dat...\n");
-            FileOutputStream fos = new FileOutputStream("addressKey.dat");
-            ObjectOutputStream oos = new ObjectOutputStream(fos);
-            oos.writeObject(addressKey);
-            oos.close();
-            fos.close();
-
+            byte[] encoded = Files.readAllBytes(Paths.get(path));
+            privKey = new String (encoded, StandardCharsets.UTF_8);
         } catch (IOException ioe) {
-            System.out.println("Something went wrong while writing key to file..");
+            WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp() + " IO exception occurred while reading private key! See below:\n" + WalletLogger.exceptionStacktraceToString(ioe));
+        }
+    return privKey;
+    }
+
+    public void generatePrivateKey() {
+        try {
+            Process bash_script = Runtime.getRuntime().exec(baseDir + "/keygen.sh");
+            bash_script.destroy();
+        } catch (IOException ioe) {
+            WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp() + " IO exception occurred while generating private key! See below:\n" + WalletLogger.exceptionStacktraceToString(ioe));
+        }
+        System.out.println("Private key: " + readPrivateKey(baseDir + "/THC_PRIVATE_KEY"));
+        File keyRingFile = new File(baseDir + "keyring.dat");
+        if (!keyRingFile.exists()) {
+            KeyRing keyRing = new KeyRing();
+            try {
+                KeyRing.keyRing.add(privKey);
+                FileOutputStream fos = new FileOutputStream(baseDir + "/keyring.dat");
+                ObjectOutputStream oos = new ObjectOutputStream(fos);
+                oos.writeObject(KeyRing.keyRing);
+                oos.close();
+                fos.close();
+            } catch (IOException ioe) {
+                WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp() + " IO exception occurred while writing to keyring! See below:\n" + WalletLogger.exceptionStacktraceToString(ioe));
+            }
+        } else {
+            KeyRing.keyRing.add(privKey);
+            try {
+                FileOutputStream fos = new FileOutputStream(baseDir + "/keyring.dat");
+                ObjectOutputStream oos = new ObjectOutputStream(fos);
+                oos.writeObject(KeyRing.keyRing);
+                oos.close();
+                fos.close();
+            } catch (IOException ioe) {
+                WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp() + " IO exception occurred while writing to keyring! See below:\n" + WalletLogger.exceptionStacktraceToString(ioe));
+            }
         }
     }
 
-    void generateRecvKey(){
-        recvKey = SHA256.generateSHA256Hash(Constants.pubKey + addressKey);
-        System.out.println("Receive key generated: \n" + recvKey);
-        try {
-            System.out.println("Trying to serialize recvKey.dat...\n");
-            FileOutputStream fos = new FileOutputStream("recvKey.dat");
-            ObjectOutputStream oos = new ObjectOutputStream(fos);
-            oos.writeObject(recvKey);
-            oos.close();
-            fos.close();
+    public String generateAddress(){
 
-        } catch (IOException ioe) {
-            System.out.println("Something went wrong while writing key to file..");
+        if (KeyRing.keyRing.size() == 1) {
+            String privKeyStr = KeyRing.keyRing.get(0).toString();
+            byte[] privKeyBytes = privKeyStr.getBytes();
+            address = Base58.encode(privKeyBytes);
+        } else if (KeyRing.keyRing.size() >= 2) {
+            String privKeyStr = KeyRing.keyRing.get(0).toString();
+            byte[] privKeyBytes = privKeyStr.getBytes();
+            address = Base58.encode(privKeyBytes);
+        }
+        addToAddressBook(address);
+        return address;
+    }
 
+    private void addToAddressBook(String address) {
+        File abFile = new File(baseDir + "addressBook.dat");
+        if (!abFile.exists()) {
+            AddressBook addressBook = new AddressBook();
+            AddressBook.addressBook.add(address);
+            try {
+                FileOutputStream fos = new FileOutputStream(baseDir + "/addressBook.dat");
+                ObjectOutputStream oos = new ObjectOutputStream(fos);
+                oos.writeObject(AddressBook.addressBook);
+                oos.close();
+                fos.close();
+            } catch (IOException ioe) {
+                WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp() + " IO exception occurred while writing to address book! See below:\n" + WalletLogger.exceptionStacktraceToString(ioe));
+            }
+        } else {
+            AddressBook.addressBook.add(address);
+            try {
+                FileOutputStream fos = new FileOutputStream(baseDir + "/addressBook.dat");
+                ObjectOutputStream oos = new ObjectOutputStream(fos);
+                oos.writeObject(AddressBook.addressBook);
+                oos.close();
+                fos.close();
+            } catch (IOException ioe) {
+                WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp() + " IO exception occurred while writing to address book! See below:\n" + WalletLogger.exceptionStacktraceToString(ioe));
+            }
         }
     }
 
-
-    void generateMinerKey(){
-        minerKey = SHA256.generateSHA256Hash(Constants.pubKey + recvKey);
-        System.out.println("Miner key generated: \n" + minerKey);
-        try {
-            System.out.println("Trying to serialize minerKey.dat...\n");
-            FileOutputStream fos = new FileOutputStream("minerKey.dat");
-            ObjectOutputStream oos = new ObjectOutputStream(fos);
-            oos.writeObject(minerKey);
-            oos.close();
-            fos.close();
-
-        } catch (IOException ioe) {
-            System.out.println("Something went wrong while writing key to file..");
-
-        }
+    public String getAddressFromAddressBook(int index) {
+        return AddressBook.addressBook.get(index).toString();
     }
-
-    void generateSendKey() {
-        sendKey = SHA256.generateSHA256Hash(addressKey + recvKey);
-        System.out.println("Send key generated: \n" + sendKey);
+    
+    void readAddressBook() {
         try {
-            System.out.println("Trying to serialize sendKey.dat...\n");
-            FileOutputStream fos = new FileOutputStream("sendKey.dat");
-            ObjectOutputStream oos = new ObjectOutputStream(fos);
-            oos.writeObject(sendKey);
-            oos.close();
-            fos.close();
-
-        } catch (IOException ioe) {
-            System.out.println("Something went wrong while writing key to file..");
-
-        }
-    }
-
-    void generateAllKeys() {
-        generateAddressKey();
-        generateRecvKey();
-        generateMinerKey();
-        generateSendKey();
-    }
-
-
-
-    String getAddressKey() {
-        try {
-            System.out.println("\n");
-            System.out.println("Trying to read serialized addressKey.dat...\n");
-            FileInputStream fis = new FileInputStream("addressKey.dat");
+            FileInputStream fis = new FileInputStream(baseDir + "/addressBook.dat");
             ObjectInputStream ois = new ObjectInputStream(fis);
-            addressKey = (String) ois.readObject();
+            AddressBook.addressBook = (ArrayList) ois.readObject();
             ois.close();
             fis.close();
-            System.out.println("\n");
-            System.out.println("Address key found: \n" + addressKey);
-
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
+        } catch (ClassNotFoundException cnfe) {
+            WalletLogger.logException(cnfe, "severe", WalletLogger.getLogTimeStamp() + " Class not found exception occurred while reading address book! See below:\n" + WalletLogger.exceptionStacktraceToString(cnfe));
         } catch (IOException ioe) {
-            System.out.println("ERROR! addressKey.dat not found, please make sure wallet and chain are in sync!\n");
+            WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp() + " IO exception occurred while reading address book! See below:\n" + WalletLogger.exceptionStacktraceToString(ioe));
         } catch (NullPointerException npe) {
-            System.out.println("ERROR! addressKey.dat not found or of size zero, please make sure wallet and chain are in sync!\n");
+            WalletLogger.logException(npe, "severe", WalletLogger.getLogTimeStamp() + " Null pointer exception occurred while reading address book! See below:\n" + WalletLogger.exceptionStacktraceToString(npe));
         }
-        return addressKey;
     }
-
-    String readAddressKey(){
+    
+    void readKeyRing() {
         try {
-            System.out.println("\n");
-            System.out.println("Trying to read serialized addressKey.dat...\n");
-            FileInputStream fis = new FileInputStream("addressKey.dat");
+            FileInputStream fis = new FileInputStream(baseDir + "/keyring.dat");
             ObjectInputStream ois = new ObjectInputStream(fis);
-            addressKey = (String) ois.readObject();
+            KeyRing.keyRing = (ArrayList) ois.readObject();
             ois.close();
             fis.close();
-
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
+        } catch (ClassNotFoundException cnfe) {
+            WalletLogger.logException(cnfe, "severe", WalletLogger.getLogTimeStamp() + " Class not found exception occurred while reading keyring! See below:\n" + WalletLogger.exceptionStacktraceToString(cnfe));
         } catch (IOException ioe) {
-            System.out.println("ERROR! addressKey.dat not found, please make sure wallet and chain are in sync!\n");
+            WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp() + " IO exception occurred while reading keyring! See below:\n" + WalletLogger.exceptionStacktraceToString(ioe));
         } catch (NullPointerException npe) {
-            System.out.println("ERROR! addressKey.dat not found or of size zero, please make sure wallet and chain are in sync!\n");
+            WalletLogger.logException(npe, "severe", WalletLogger.getLogTimeStamp() + " Null pointer exception occurred while reading keyring! See below:\n" + WalletLogger.exceptionStacktraceToString(npe));
         }
-        return addressKey;
-    }
-
-    private String readRecvKey() {
-        try {
-            FileInputStream fis = new FileInputStream("recvKey.dat");
-            ObjectInputStream ois = new ObjectInputStream(fis);
-            recvKey = (String) ois.readObject();
-            ois.close();
-            fis.close();
-
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException ioe) {
-            System.out.println("ERROR! minerKey.dat not found, please make sure wallet and chain are in sync!\n");
-        } catch (NullPointerException npe) {
-            System.out.println("ERROR! minerKey.dat not found or of size zero, please make sure wallet and chain are in sync!\n");
-        }
-        return recvKey;
-    }
-
-    String getRecvKey() {
-        try {
-            FileInputStream fis = new FileInputStream("recvKey.dat");
-            ObjectInputStream ois = new ObjectInputStream(fis);
-            recvKey = (String) ois.readObject();
-            ois.close();
-            fis.close();
-            System.out.println("\n");
-            System.out.println("Receive key: \n" + recvKey);
-
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException ioe) {
-            System.out.println("ERROR! minerKey.dat not found, please make sure wallet and chain are in sync!\n");
-        } catch (NullPointerException npe) {
-            System.out.println("ERROR! minerKey.dat not found or of size zero, please make sure wallet and chain are in sync!\n");
-        }
-        return recvKey;
-    }
-
-    String getSendKey() {
-        try {
-            System.out.println("\n");
-            System.out.println("Trying to read serialized sendKey.dat...\n");
-            FileInputStream fis = new FileInputStream("sendKey.dat");
-            ObjectInputStream ois = new ObjectInputStream(fis);
-            sendKey = (String) ois.readObject();
-            ois.close();
-            fis.close();
-            System.out.println("\n");
-            System.out.println("Send key: \n" + sendKey);
-
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException ioe) {
-            System.out.println("ERROR! sendKey.dat not found, please make sure wallet and chain are in sync!\n");
-        } catch (NullPointerException npe) {
-            System.out.println("ERROR! sendKey.dat not found or of size zero, please make sure wallet and chain are in sync!\n");
-        }
-        return sendKey;
-    }
-
-    String readSendKey() {
-        try {
-            System.out.println("\n");
-            System.out.println("Trying to read serialized sendKey.dat...\n");
-            FileInputStream fis = new FileInputStream("sendKey.dat");
-            ObjectInputStream ois = new ObjectInputStream(fis);
-            sendKey = (String) ois.readObject();
-            ois.close();
-            fis.close();
-
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException ioe) {
-            System.out.println("ERROR! sendKey.dat not found, please make sure wallet and chain are in sync!\n");
-        } catch (NullPointerException npe) {
-            System.out.println("ERROR! sendKey.dat not found or of size zero, please make sure wallet and chain are in sync!\n");
-        }
-        return sendKey;
-    }
-
-    String getMinerKey() {
-        try {
-           // System.out.println("\n");
-            //System.out.println("Trying to read serialized minerKey.dat...\n");
-            FileInputStream fis = new FileInputStream("minerKey.dat");
-            ObjectInputStream ois = new ObjectInputStream(fis);
-            minerKey = (String) ois.readObject();
-            ois.close();
-            fis.close();
-
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException ioe) {
-            System.out.println("ERROR! minerKey.dat not found, please make sure wallet and chain are in sync!\n");
-        } catch (NullPointerException npe) {
-            System.out.println("ERROR! minerKey.dat not found or of size zero, please make sure wallet and chain are in sync!\n");
-        }
-        return minerKey;
-    }
-
-    String readMinerKey() {
-        try {
-            // System.out.println("\n");
-            // System.out.println("Trying to read serialized minerKey.dat...\n");
-            FileInputStream fis = new FileInputStream("minerKey.dat");
-            ObjectInputStream ois = new ObjectInputStream(fis);
-            minerKey = (String) ois.readObject();
-            ois.close();
-            fis.close();
-
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException ioe) {
-            System.out.println("ERROR! minerKey.dat not found, please make sure wallet and chain are in sync!\n");
-        } catch (NullPointerException npe) {
-            System.out.println("ERROR! minerKey.dat not found or of size zero, please make sure wallet and chain are in sync!\n");
-        }
-        return minerKey;
     }
 
     public void sendTx(String sendKeyTx, String recvKeyTx, float amount) {
         ChainBuilder cb = new ChainBuilder();
-        this.sendKeyTx = sendKeyTx;
-        this.recvKeyTx = recvKeyTx;
-        this.amount = amount;
-        long blockIndex = (HashArray.hashArray.size() / 12);
+        long blockIndex = (HashArray.hashArray.size());
         cb.writeTxPool(blockIndex, sendKeyTx, recvKeyTx, amount);
     }
-
-    public void checkForChainUpdates(){
-        ChainBuilder cb = new ChainBuilder();
-        Timer timer = new Timer();
-        timer.schedule(new TimerTask() {
-
-            @Override
-            public void run() {
-
-            }
-        }, 10000, 10000);
-    }
-
-    public void checkForTxPoolUpdates(){
-        ChainBuilder cb = new ChainBuilder();
-        Timer timer = new Timer();
-        timer.schedule(new TimerTask() {
-
-            @Override
-            public void run() {
-
-
-            }
-        }, 8000, 3000);
-    }
-
 
     long getDifficulty(){
         System.out.println("\n");
         System.out.println("Difficulty: \n" + difficulty);
         return difficulty;
     }
-}
 
-/*
-TODO: Add send/receive parameter to chain
-TODO: Add algorithm ID parameter to chain
- */
+    public int calculateDifficulty() {
+        readBlockChain();
+        if (HashArray.hashArray.size() >= 2) {
+            String mostRecentBlock = HashArray.hashArray.get(HashArray.hashArray.size() - 1).toString();
+            JsonElement parseLastBlock = new JsonParser().parse(mostRecentBlock);
+            JsonObject latBlockObject = parseLastBlock.getAsJsonObject();
+            JsonElement difficultyElement = latBlockObject.get("difficulty");
+            difficulty = difficultyElement.getAsInt();
+            JsonElement lastBlockTime = latBlockObject.get("time stamp");
+            long lbtAsLong = lastBlockTime.getAsLong();
+            String blockBeforeLast = HashArray.hashArray.get(HashArray.hashArray.size() - 2).toString();
+            JsonElement jsonElement1 = new JsonParser().parse(blockBeforeLast);
+            JsonObject jsonObject1 = jsonElement1.getAsJsonObject();
+            JsonElement timeElement = jsonObject1.get("time stamp");
+            long bblTimeAsLong = timeElement.getAsLong();
+            long deltaT = lbtAsLong - bblTimeAsLong;
+            if (deltaT > 60000) {
+                difficulty--;
+            } else if (deltaT < 60000) {
+                difficulty++;
+            }
+        }
+    return difficulty;
+    }
+}
 

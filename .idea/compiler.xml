@@ -9,5 +9,8 @@
         <module name="TeacHingChain" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="TeacHingChain" target="8" />
+    </bytecodeTargetLevel>
   </component>
 </project>

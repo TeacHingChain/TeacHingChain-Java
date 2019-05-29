@@ -1,721 +1,484 @@
 package com.thc.blockchain.util;
 
 import com.thc.blockchain.algos.SHA256;
-import com.thc.blockchain.gui.MiningPane;
+import com.thc.blockchain.algos.SHA512;
+import com.thc.blockchain.algos.Scrypt;
+import com.thc.blockchain.network.nodes.ClientManager;
+import com.thc.blockchain.network.nodes.NodeManager;
+import com.thc.blockchain.network.objects.Block;
 import com.thc.blockchain.wallet.ChainBuilder;
 import com.thc.blockchain.wallet.HashArray;
-import com.thc.blockchain.wallet.Launcher;
 import com.thc.blockchain.wallet.MainChain;
-
-import java.awt.*;
-import java.io.FileOutputStream;
+import javax.websocket.Session;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
+import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 
 public class Miner {
 
-    private long currentTimeMillis;
-    private String txHash;
-    private static long deltaS;
-    private static long deltaN;
-    private static long startTime;
-    private static long endTime;
-    public static long hashRate;
-    public static boolean iterator;
+    public static long index;
+    public static float amount;
+    private static long hashRate;
+    private static Timer timer;
+    private static int updatedIndex;
+    private String hash;
+    private String merkleHash;
 
-
-    public boolean mine(long index, long currentTimeMillis, String sendKey, String recvKey, String minerKey, String txHash, long Nonce, String previousBlockHash, String algo, int difficulty, float amount) throws InterruptedException {
-        MainChain mc = new MainChain();
-        ChainBuilder cb = new ChainBuilder();
-        long start = System.currentTimeMillis();
-        this.txHash = txHash;
-        this.currentTimeMillis = currentTimeMillis;
-        MainChain.difficulty = difficulty;
-        if (algo.contentEquals("sha256")) {
-            System.out.println("difficulty says: \n" + MainChain.difficulty);
-            startTime = System.nanoTime();
-            TimeUnit.SECONDS.sleep(1);
-            mc.checkForChainUpdates();
-            mc.checkForTxPoolUpdates();
-            MiningPane mp = new MiningPane();
-            Timer timer = new Timer();
-            timer.schedule(new TimerTask() {
-                @Override
-                public void run() {
-                    System.out.println("\n");
-                    System.out.println("Current hash rate: " + hashRate + " " + "hash/s");
-
-                }
-            }, 0, 3000);
-            iterator = true;
-            while (iterator) {
-                String blockHeader = (index + currentTimeMillis + sendKey + recvKey + minerKey + txHash + Nonce + previousBlockHash + algo + difficulty + amount);
-                String hash = SHA256.generateSHA256Hash(blockHeader);
-                long stop;
-                long deltaM;
-                if (difficulty <= 1) {
-                    difficulty = 1;
-
-                    if (!hash.startsWith("0")) {
-                        Nonce++;
-                        endTime = System.nanoTime();
-                        deltaN = endTime - startTime;
-                        deltaS = (deltaN / 1000000000);
-                        hashRate = (Nonce / deltaS);
-
-
-                    } else {
+    public void mine(long index, long currentTimeMillis, String fromAddress, String toAddress, String txHash, long Nonce, String previousBlockHash, String algo, int difficulty, float amount) {
+        try {
+            System.out.println("Seeing if any configured nodes are up...\n");
+            ClientManager clientManager = new ClientManager();
+            if (clientManager.isNodeConnected(1) || clientManager.isNodeConnected(2)) {
+                int indexAtStart = HashArray.hashArray.size();
+                MainChain mc = new MainChain();
+                ChainBuilder cb = new ChainBuilder();
+                MainChain.difficulty = difficulty;
+                System.out.println("difficulty says: \n" + MainChain.difficulty);
+                long startTime = System.nanoTime();
+                TimeUnit.SECONDS.sleep(1);
+                timer = new Timer();
+                timer.schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        mc.readBlockChain();
                         System.out.println("\n");
-                        System.out.println("[" + hash + "]");
-                        System.out.println("\n");
-                        String indexToStr = Long.toString(index);
-                        String timeToStr = Long.toString(currentTimeMillis);
-                        String nonceToStr = Long.toString(Nonce);
-                        String difficultyToStr = Integer.toString(difficulty);
-                        String amountToStr = Float.toString(amount);
-                        System.out.println("Adding block to chain...\n");
-                        boolean validateHash = cb.isBlockHashValid(index, currentTimeMillis, sendKey, recvKey, minerKey, txHash, Nonce, previousBlockHash, algo, hash, difficulty, amount);
-                        if (validateHash) {
-                            HashArray.hashArray.add("Index: " + indexToStr);
-                            HashArray.hashArray.add("Time stamp: " + timeToStr);
-                            HashArray.hashArray.add("Send key: " + sendKey);
-                            HashArray.hashArray.add("Receive key: " + recvKey);
-                            HashArray.hashArray.add("Miner key: " + minerKey);
-                            HashArray.hashArray.add("Tx Hash: " + txHash);
-                            HashArray.hashArray.add("Merkle hash: " + SHA256.generateSHA256Hash((String) HashArray.hashArray.get(HashArray.hashArray.size() - 6)));
-                            HashArray.hashArray.add("Nonce: " + nonceToStr);
-                            HashArray.hashArray.add("Previous " + previousBlockHash);
-                            HashArray.hashArray.add("Algorithm: " + algo);
-                            HashArray.hashArray.add("Block hash: " + hash);
-                            HashArray.hashArray.add("Difficulty: " + difficultyToStr);
-                            HashArray.hashArray.add(amountToStr);
-
-                            try {
-                                System.out.println("Trying to serialize chain.dat...\n");
-                                FileOutputStream fos = new FileOutputStream("chain.dat");
-                                ObjectOutputStream oos = new ObjectOutputStream(fos);
-                                oos.writeObject(HashArray.hashArray);
-                                oos.close();
-                                fos.close();
-                                mc.readBlockChain();
-
-                                System.out.println("\n");
-                                stop = System.currentTimeMillis();
-                                deltaM = stop - start;
-                                System.out.println("DeltaM: \n" + deltaM);
-                                if (deltaM < 15000) {
-                                    MainChain.difficulty++;
-                                } else if (deltaM > 15000) {
-                                    MainChain.difficulty--;
-                                }
-
-                            } catch (IOException ioe) {
-                                System.out.println("Something went wrong while writing cache..");
-                            }
-                            timer.cancel();
-                            iterator = false;
-
-                        } else {
-                            System.out.println("Error adding block to chain! Hash is not valid!\n");
-                        }
+                        System.out.println("Current hash rate: " + hashRate + " " + "hash/s");
+                        updatedIndex = HashArray.hashArray.size();
                     }
-                } else if (difficulty == 2) {
-                    if (!hash.startsWith("00")) {
-                        Nonce++;
-                        endTime = System.nanoTime();
-                        deltaN = endTime - startTime;
-                        deltaS = (deltaN / 1000000000);
-                        hashRate = (Nonce / deltaS);
-
-                    } else {
-                        System.out.println("\n");
-                        System.out.println("[" + hash + "]");
-                        System.out.println("\n");
-                        String indexToStr = Long.toString(index);
-                        String timeToStr = Long.toString(currentTimeMillis);
-                        String nonceToStr = Long.toString(Nonce);
-                        String difficultyToStr = Integer.toString(difficulty);
-                        String amountToStr = Float.toString(amount);
-                        System.out.println("Adding block to chain...\n");
-                        boolean validateHash = cb.isBlockHashValid(index, currentTimeMillis, sendKey, recvKey, minerKey, txHash, Nonce, previousBlockHash, algo, hash, difficulty, amount);
-                        if (validateHash) {
-                            HashArray.hashArray.add("Index: " + indexToStr);
-                            HashArray.hashArray.add("Time stamp: " + timeToStr);
-                            HashArray.hashArray.add("Send key: " + sendKey);
-                            HashArray.hashArray.add("Receive key: " + recvKey);
-                            HashArray.hashArray.add("Miner key: " + minerKey);
-                            HashArray.hashArray.add("Tx Hash: " + txHash);
-                            HashArray.hashArray.add("Merkle hash: " + SHA256.generateSHA256Hash((String) HashArray.hashArray.get(HashArray.hashArray.size() - 6)));
-                            HashArray.hashArray.add("Nonce: " + nonceToStr);
-                            HashArray.hashArray.add("Previous " + previousBlockHash);
-                            HashArray.hashArray.add("Algorithm: " + algo);
-                            HashArray.hashArray.add("Block hash: " + hash);
-                            HashArray.hashArray.add("Difficulty: " + difficultyToStr);
-                            HashArray.hashArray.add(amountToStr);
-
-                            try {
-                                System.out.println("Trying to serialize chain.dat...\n");
-                                FileOutputStream fos = new FileOutputStream("chain.dat");
-                                ObjectOutputStream oos = new ObjectOutputStream(fos);
-                                oos.writeObject(HashArray.hashArray);
-                                oos.close();
-                                fos.close();
-                                mc.readBlockChain();
-
-                                System.out.println("\n");
-                                stop = System.currentTimeMillis();
-                                deltaM = stop - start;
-                                System.out.println("DeltaM: \n" + deltaM);
-                                if (deltaM < 15000) {
-                                    MainChain.difficulty++;
-                                } else if (deltaM > 15000) {
-                                    MainChain.difficulty--;
-                                }
-
-                            } catch (IOException ioe) {
-                                System.out.println("Something went wrong while writing cache..");
-                            }
-                            timer.cancel();
-                            iterator = false;
-
-                        } else {
-                            System.out.println("Error adding block to chain! Hash is not valid!\n");
-                        }
+                }, 0, 3000);
+                while (true) {
+                    String blockHeader = (index + currentTimeMillis + fromAddress + toAddress + txHash + Nonce + previousBlockHash + algo + difficulty + amount);
+                    if (algo.contentEquals("sha256")) {
+                        hash = SHA256.generateSHA256Hash(blockHeader);
+                        merkleHash = SHA256.generateSHA256Hash(txHash);
+                    } else if (algo.contentEquals("sha512")) {
+                        hash = SHA512.generateSHA512Hash(blockHeader);
+                        merkleHash = SHA512.generateSHA512Hash(txHash);
+                    } else if (algo.contentEquals("scrypt")) {
+                        hash = Scrypt.generateScryptHash(blockHeader);
+                        merkleHash = Scrypt.generateScryptHash(txHash);
                     }
-
-                } else if (difficulty == 3) {
-                    if (!hash.startsWith("000")) {
-                        Nonce++;
-                        endTime = System.nanoTime();
-                        deltaN = endTime - startTime;
-                        deltaS = (deltaN / 1000000000);
-                        hashRate = (Nonce / deltaS);
-           ;
-
-
-                    } else {
-                        System.out.println("\n");
-                        System.out.println("[" + hash + "]");
-                        System.out.println("\n");
-                        String indexToStr = Long.toString(index);
-                        String timeToStr = Long.toString(currentTimeMillis);
-                        String nonceToStr = Long.toString(Nonce);
-                        String difficultyToStr = Integer.toString(difficulty);
-                        String amountToStr = Float.toString(amount);
-                        System.out.println("Adding block to chain...\n");
-                        boolean validateHash = cb.isBlockHashValid(index, currentTimeMillis, sendKey, recvKey, minerKey, txHash, Nonce, previousBlockHash, algo, hash, difficulty, amount);
-                        if (validateHash) {
-                            HashArray.hashArray.add("Index: " + indexToStr);
-                            HashArray.hashArray.add("Time stamp: " + timeToStr);
-                            HashArray.hashArray.add("Send key: " + sendKey);
-                            HashArray.hashArray.add("Receive key: " + recvKey);
-                            HashArray.hashArray.add("Miner key: " + minerKey);
-                            HashArray.hashArray.add("Tx Hash: " + txHash);
-                            HashArray.hashArray.add("Merkle hash: " + SHA256.generateSHA256Hash((String) HashArray.hashArray.get(HashArray.hashArray.size() - 6)));
-                            HashArray.hashArray.add("Nonce: " + nonceToStr);
-                            HashArray.hashArray.add("Previous " + previousBlockHash);
-                            HashArray.hashArray.add("Algorithm: " + algo);
-                            HashArray.hashArray.add("Block hash: " + hash);
-                            HashArray.hashArray.add("Difficulty: " + difficultyToStr);
-                            HashArray.hashArray.add(amountToStr);
-
-                            try {
-                                System.out.println("Trying to serialize chain.dat...\n");
-                                FileOutputStream fos = new FileOutputStream("chain.dat");
-                                ObjectOutputStream oos = new ObjectOutputStream(fos);
-                                oos.writeObject(HashArray.hashArray);
-                                oos.close();
-                                fos.close();
-                                mc.readBlockChain();
-
-                                System.out.println("\n");
-                                stop = System.currentTimeMillis();
-                                deltaM = stop - start;
-                                System.out.println("DeltaM: \n" + deltaM);
-                                if (deltaM < 15000) {
-                                    MainChain.difficulty++;
-                                } else if (deltaM > 15000) {
-                                    MainChain.difficulty--;
-                                }
-
-                            } catch (IOException ioe) {
-                                System.out.println("Something went wrong while writing cache..");
+                    long deltaS;
+                    long deltaN;
+                    long endTime;
+                    if (difficulty <= 1) {
+                        difficulty = 1;
+                        if (!hash.startsWith("0")) {
+                            Nonce++;
+                            endTime = System.nanoTime();
+                            deltaN = endTime - startTime;
+                            deltaS = (deltaN / 1000000000);
+                            hashRate = (Nonce / deltaS);
+                            if (updatedIndex > indexAtStart) {
+                                previousBlockHash = mc.getPreviousBlockHash();
+                                currentTimeMillis = System.currentTimeMillis();
+                                Nonce = 0L;
+                                txHash = SHA256.generateSHA256Hash(updatedIndex + fromAddress + toAddress);
+                                difficulty = mc.calculateDifficulty();
+                                restartMiner(updatedIndex, currentTimeMillis, fromAddress, toAddress, txHash, Nonce, previousBlockHash, algo, difficulty, amount);
+                                break;
                             }
-                            timer.cancel();
-                            iterator = false;
                         } else {
-                            System.out.println("Error adding block to chain! Hash is not valid!\n");
+                            System.out.println("\n");
+                            System.out.println("[" + hash + "]");
+                            System.out.println("\n");
+                            String indexToStr = Long.toString(index);
+                            String timeToStr = Long.toString(currentTimeMillis);
+                            String nonceToStr = Long.toString(Nonce);
+                            String difficultyToStr = Integer.toString(difficulty);
+                            String amountToStr = Float.toString(amount);
+                            System.out.println("Adding block to chain...\n");
+                            if (cb.isBlockHashValid(index, currentTimeMillis, fromAddress, toAddress, txHash, Nonce, previousBlockHash, algo, hash, difficulty, amount)) {
+                                clientManager.connectAsClient("update");
+                                Block block = new Block(indexToStr, timeToStr, fromAddress, toAddress, txHash, merkleHash, nonceToStr, previousBlockHash, algo, hash, difficultyToStr, amountToStr);
+                                Session sessionForMiner = NodeManager.getSession();
+                                NodeManager.pushBlock(block, sessionForMiner);
+                                WalletLogger.logEvent("info", new Date() + "A block was mined! See details below:");
+                                WalletLogger.logEvent("info", "Hash: " + hash + " New best height: " + index);
+                                timer.cancel();
+                                break;
+                            } else {
+                                System.out.println("Error adding block to chain! Hash is not valid!\n");
+                                timer.cancel();
+                                break;
+                            }
                         }
-                    }
-
-                } else if (difficulty == 4) {
-                    if (!hash.startsWith("0000")) {
-                        Nonce++;
-                        endTime = System.nanoTime();
-                        deltaN = endTime - startTime;
-                        deltaS = (deltaN / 1000000000);
-                        hashRate = (Nonce / deltaS);
-
-
-                    } else {
-                        System.out.println("\n");
-                        System.out.println("[" + hash + "]");
-                        System.out.println("\n");
-                        String indexToStr = Long.toString(index);
-                        String timeToStr = Long.toString(currentTimeMillis);
-                        String nonceToStr = Long.toString(Nonce);
-                        String difficultyToStr = Integer.toString(difficulty);
-                        String amountToStr = Float.toString(amount);
-                        System.out.println("Adding block to chain...\n");
-                        boolean validateHash = cb.isBlockHashValid(index, currentTimeMillis, sendKey, recvKey, minerKey, txHash, Nonce, previousBlockHash, algo, hash, difficulty, amount);
-                        if (validateHash) {
-                            HashArray.hashArray.add("Index: " + indexToStr);
-                            HashArray.hashArray.add("Time stamp: " + timeToStr);
-                            HashArray.hashArray.add("Send key: " + sendKey);
-                            HashArray.hashArray.add("Receive key: " + recvKey);
-                            HashArray.hashArray.add("Miner key: " + minerKey);
-                            HashArray.hashArray.add("Tx Hash: " + txHash);
-                            HashArray.hashArray.add("Merkle hash: " + SHA256.generateSHA256Hash((String) HashArray.hashArray.get(HashArray.hashArray.size() - 6)));
-                            HashArray.hashArray.add("Nonce: " + nonceToStr);
-                            HashArray.hashArray.add("Previous " + previousBlockHash);
-                            HashArray.hashArray.add("Algorithm: " + algo);
-                            HashArray.hashArray.add("Block hash: " + hash);
-                            HashArray.hashArray.add("Difficulty: " + difficultyToStr);
-                            HashArray.hashArray.add(amountToStr);
-                            Launcher.numBlocksMined++;
-
-                            try {
-                                System.out.println("Trying to serialize chain.dat...\n");
-                                FileOutputStream fos = new FileOutputStream("chain.dat");
-                                ObjectOutputStream oos = new ObjectOutputStream(fos);
-                                oos.writeObject(HashArray.hashArray);
-                                oos.close();
-                                fos.close();
-                                mc.readBlockChain();
-
-                                System.out.println("\n");
-                                stop = System.currentTimeMillis();
-                                deltaM = stop - start;
-                                System.out.println("DeltaM: \n" + deltaM);
-                                if (deltaM < 15000) {
-                                    MainChain.difficulty++;
-                                } else if (deltaM > 15000) {
-                                    MainChain.difficulty--;
-                                }
-
-                            } catch (IOException ioe) {
-                                System.out.println("Something went wrong while writing cache..");
+                    } else if (difficulty == 2) {
+                        if (!hash.startsWith("00")) {
+                            Nonce++;
+                            endTime = System.nanoTime();
+                            deltaN = endTime - startTime;
+                            deltaS = (deltaN / 1000000000);
+                            hashRate = (Nonce / deltaS);
+                            if (updatedIndex > indexAtStart) {
+                                previousBlockHash = mc.getPreviousBlockHash();
+                                currentTimeMillis = System.currentTimeMillis();
+                                Nonce = 0L;
+                                txHash = SHA256.generateSHA256Hash(updatedIndex + fromAddress + toAddress);
+                                difficulty = mc.calculateDifficulty();
+                                restartMiner(updatedIndex, currentTimeMillis, fromAddress, toAddress, txHash, Nonce, previousBlockHash, algo, difficulty, amount);
+                                break;
                             }
-                            iterator = false;
-                            timer.cancel();
                         } else {
-                            System.out.println("Error adding block to chain! Hash is not valid!\n");
+                            System.out.println("\n");
+                            System.out.println("[" + hash + "]");
+                            System.out.println("\n");
+                            String indexToStr = Long.toString(index);
+                            String timeToStr = Long.toString(currentTimeMillis);
+                            String nonceToStr = Long.toString(Nonce);
+                            String difficultyToStr = Integer.toString(difficulty);
+                            String amountToStr = Float.toString(amount);
+                            System.out.println("Adding block to chain...\n");
+                            if (cb.isBlockHashValid(index, currentTimeMillis, fromAddress, toAddress, txHash, Nonce, previousBlockHash, algo, hash, difficulty, amount)) {
+                                clientManager.connectAsClient("update");
+                                Block block = new Block(indexToStr, timeToStr, fromAddress, toAddress, txHash, merkleHash, nonceToStr, previousBlockHash, algo, hash, difficultyToStr, amountToStr);
+                                Session sessionForMiner = NodeManager.getSession();
+                                NodeManager.pushBlock(block, sessionForMiner);
+                                timer.cancel();
+                                break;
+                            } else {
+                                System.out.println("Error adding block to chain! Hash is not valid!\n");
+                                timer.cancel();
+                                break;
+                            }
                         }
-                    }
-
-                } else if (difficulty == 5) {
-
-
-                    if (!hash.startsWith("00000")) {
-                        Nonce++;
-                        endTime = System.nanoTime();
-                        deltaN = endTime - startTime;
-                        deltaS = (deltaN / 1000000000);
-                        hashRate = (Nonce / deltaS);
-
-
-                    } else {
-                        System.out.println("\n");
-                        System.out.println("[" + hash + "]");
-                        System.out.println("\n");
-                        String indexToStr = Long.toString(index);
-                        String timeToStr = Long.toString(currentTimeMillis);
-                        String nonceToStr = Long.toString(Nonce);
-                        String difficultyToStr = Integer.toString(difficulty);
-                        String amountToStr = Float.toString(amount);
-                        System.out.println("Adding block to chain...\n");
-                        boolean validateHash = cb.isBlockHashValid(index, currentTimeMillis, sendKey, recvKey, minerKey, txHash, Nonce, previousBlockHash, algo, hash, difficulty, amount);
-                        if (validateHash) {
-                            HashArray.hashArray.add("Index: " + indexToStr);
-                            HashArray.hashArray.add("Time stamp: " + timeToStr);
-                            HashArray.hashArray.add("Send key: " + sendKey);
-                            HashArray.hashArray.add("Receive key: " + recvKey);
-                            HashArray.hashArray.add("Miner key: " + minerKey);
-                            HashArray.hashArray.add("Tx Hash: " + txHash);
-                            HashArray.hashArray.add("Merkle hash: " + SHA256.generateSHA256Hash((String) HashArray.hashArray.get(HashArray.hashArray.size() - 6)));
-                            HashArray.hashArray.add("Nonce: " + nonceToStr);
-                            HashArray.hashArray.add("Previous " + previousBlockHash);
-                            HashArray.hashArray.add("Algorithm: " + algo);
-                            HashArray.hashArray.add("Block hash: " + hash);
-                            HashArray.hashArray.add("Difficulty: " + difficultyToStr);
-                            HashArray.hashArray.add(amountToStr);
-                            Launcher.numBlocksMined++;
-
-
-                            try {
-                                System.out.println("Trying to serialize chain.dat...\n");
-                                FileOutputStream fos = new FileOutputStream("chain.dat");
-                                ObjectOutputStream oos = new ObjectOutputStream(fos);
-                                oos.writeObject(HashArray.hashArray);
-                                oos.close();
-                                fos.close();
-                                mc.readBlockChain();
-
-                                System.out.println("\n");
-                                stop = System.currentTimeMillis();
-                                deltaM = stop - start;
-                                System.out.println("DeltaM: \n" + deltaM);
-                                if (deltaM < 15000) {
-                                    MainChain.difficulty++;
-                                } else if (deltaM > 15000) {
-                                    MainChain.difficulty--;
-                                }
-
-                            } catch (IOException ioe) {
-                                System.out.println("Something went wrong while writing cache..");
+                    } else if (difficulty == 3) {
+                        if (!hash.startsWith("000")) {
+                            Nonce++;
+                            endTime = System.nanoTime();
+                            deltaN = endTime - startTime;
+                            deltaS = (deltaN / 1000000000);
+                            hashRate = (Nonce / deltaS);
+                            if (updatedIndex > indexAtStart) {
+                                previousBlockHash = mc.getPreviousBlockHash();
+                                currentTimeMillis = System.currentTimeMillis();
+                                Nonce = 0L;
+                                txHash = SHA256.generateSHA256Hash(updatedIndex + fromAddress + toAddress);
+                                difficulty = mc.calculateDifficulty();
+                                restartMiner(updatedIndex, currentTimeMillis, fromAddress, toAddress, txHash, Nonce, previousBlockHash, algo, difficulty, amount);
+                                break;
                             }
-                            iterator = false;
-                            timer.cancel();
                         } else {
-                            System.out.println("Error adding block to chain! Hash is not valid!\n");
+                            System.out.println("\n");
+                            System.out.println("[" + hash + "]");
+                            System.out.println("\n");
+                            String indexToStr = Long.toString(index);
+                            String timeToStr = Long.toString(currentTimeMillis);
+                            String nonceToStr = Long.toString(Nonce);
+                            String difficultyToStr = Integer.toString(difficulty);
+                            String amountToStr = Float.toString(amount);
+                            System.out.println("Adding block to chain...\n");
+                            if (cb.isBlockHashValid(index, currentTimeMillis, fromAddress, toAddress, txHash, Nonce, previousBlockHash, algo, hash, difficulty, amount)) {
+                                clientManager.connectAsClient("update");
+                                Block block = new Block(indexToStr, timeToStr, fromAddress, toAddress, txHash, merkleHash, nonceToStr, previousBlockHash, algo, hash, difficultyToStr, amountToStr);
+                                Session sessionForMiner = NodeManager.getSession();
+                                NodeManager.pushBlock(block, sessionForMiner);
+                                timer.cancel();
+                                break;
+                            } else {
+                                System.out.println("Error adding block to chain! Hash is not valid!\n");
+                                timer.cancel();
+                                break;
+                            }
                         }
-
-
-                    }
-                } else if (difficulty == 6) {
-                    if (!hash.startsWith("000000")) {
-                        Nonce++;
-                        endTime = System.nanoTime();
-                        deltaN = endTime - startTime;
-                        deltaS = (deltaN / 1000000000);
-                        hashRate = (Nonce / deltaS);
-
-                    } else {
-                        System.out.println("\n");
-                        System.out.println("[" + hash + "]");
-                        System.out.println("\n");
-                        String indexToStr = Long.toString(index);
-                        String timeToStr = Long.toString(currentTimeMillis);
-                        String nonceToStr = Long.toString(Nonce);
-                        String difficultyToStr = Integer.toString(difficulty);
-                        String amountToStr = Float.toString(amount);
-                        System.out.println("Adding block to chain...\n");
-                        boolean validateHash = cb.isBlockHashValid(index, currentTimeMillis, sendKey, recvKey, minerKey, txHash, Nonce, previousBlockHash, algo, hash, difficulty, amount);
-                        if (validateHash) {
-                            HashArray.hashArray.add("Index: " + indexToStr);
-                            HashArray.hashArray.add("Time stamp: " + timeToStr);
-                            HashArray.hashArray.add("Send key: " + sendKey);
-                            HashArray.hashArray.add("Receive key: " + recvKey);
-                            HashArray.hashArray.add("Miner key: " + minerKey);
-                            HashArray.hashArray.add("Tx Hash: " + txHash);
-                            HashArray.hashArray.add("Merkle hash: " + SHA256.generateSHA256Hash((String) HashArray.hashArray.get(HashArray.hashArray.size() - 6)));
-                            HashArray.hashArray.add("Nonce: " + nonceToStr);
-                            HashArray.hashArray.add("Previous " + previousBlockHash);
-                            HashArray.hashArray.add("Algorithm: " + algo);
-                            HashArray.hashArray.add("Block hash: " + hash);
-                            HashArray.hashArray.add("Difficulty: " + difficultyToStr);
-                            HashArray.hashArray.add(amountToStr);
-                            Launcher.numBlocksMined++;
-
-                            try {
-                                System.out.println("Trying to serialize chain.dat...\n");
-                                FileOutputStream fos = new FileOutputStream("chain.dat");
-                                ObjectOutputStream oos = new ObjectOutputStream(fos);
-                                oos.writeObject(HashArray.hashArray);
-                                oos.close();
-                                fos.close();
-                                mc.readBlockChain();
-
-                                System.out.println("\n");
-                                stop = System.currentTimeMillis();
-                                deltaM = stop - start;
-                                System.out.println("DeltaM: \n" + deltaM);
-                                if (deltaM < 15000) {
-                                    MainChain.difficulty++;
-                                } else if (deltaM > 15000) {
-                                    MainChain.difficulty--;
-                                }
-
-                            } catch (IOException ioe) {
-                                System.out.println("Something went wrong while writing cache..");
+                    } else if (difficulty == 4) {
+                        if (!hash.startsWith("0000")) {
+                            Nonce++;
+                            endTime = System.nanoTime();
+                            deltaN = endTime - startTime;
+                            deltaS = (deltaN / 1000000000);
+                            hashRate = (Nonce / deltaS);
+                            if (updatedIndex > indexAtStart) {
+                                previousBlockHash = mc.getPreviousBlockHash();
+                                currentTimeMillis = System.currentTimeMillis();
+                                Nonce = 0L;
+                                txHash = SHA256.generateSHA256Hash(updatedIndex + fromAddress + toAddress);
+                                difficulty = mc.calculateDifficulty();
+                                restartMiner(updatedIndex, currentTimeMillis, fromAddress, toAddress, txHash, Nonce, previousBlockHash, algo, difficulty, amount);
+                                break;
                             }
-                            iterator = false;
-                            timer.cancel();
                         } else {
-                            System.out.println("Error adding block to chain! Hash is not valid!\n");
+                            System.out.println("\n");
+                            System.out.println("[" + hash + "]");
+                            System.out.println("\n");
+                            String indexToStr = Long.toString(index);
+                            String timeToStr = Long.toString(currentTimeMillis);
+                            String nonceToStr = Long.toString(Nonce);
+                            String difficultyToStr = Integer.toString(difficulty);
+                            String amountToStr = Float.toString(amount);
+                            System.out.println("Adding block to chain...\n");
+                            if (cb.isBlockHashValid(index, currentTimeMillis, fromAddress, toAddress, txHash, Nonce, previousBlockHash, algo, hash, difficulty, amount)) {
+                                clientManager.connectAsClient("update");
+                                Block block = new Block(indexToStr, timeToStr, fromAddress, toAddress, txHash, merkleHash, nonceToStr, previousBlockHash, algo, hash, difficultyToStr, amountToStr);
+                                Session sessionForMiner = NodeManager.getSession();
+                                NodeManager.pushBlock(block, sessionForMiner);
+                                timer.cancel();
+                                break;
+                            } else {
+                                System.out.println("Error adding block to chain! Hash is not valid!\n");
+                                timer.cancel();
+                                break;
+                            }
                         }
-                    }
-
-                } else if (difficulty == 7) {
-
-                    if (!hash.startsWith("0000000")) {
-                        Nonce++;
-                        endTime = System.nanoTime();
-                        deltaN = endTime - startTime;
-                        deltaS = (deltaN / 1000000000);
-                        hashRate = (Nonce / deltaS);
-
-
-                    } else {
-                        System.out.println("\n");
-                        System.out.println("[" + hash + "]");
-                        System.out.println("\n");
-                        String indexToStr = Long.toString(index);
-                        String timeToStr = Long.toString(currentTimeMillis);
-                        String nonceToStr = Long.toString(Nonce);
-                        String difficultyToStr = Integer.toString(difficulty);
-                        String amountToStr = Float.toString(amount);
-                        System.out.println("Adding block to chain...\n");
-                        boolean validateHash = cb.isBlockHashValid(index, currentTimeMillis, sendKey, recvKey, minerKey, txHash, Nonce, previousBlockHash, algo, hash, difficulty, amount);
-                        if (validateHash) {
-                            HashArray.hashArray.add("Index: " + indexToStr);
-                            HashArray.hashArray.add("Time stamp: " + timeToStr);
-                            HashArray.hashArray.add("Send key: " + sendKey);
-                            HashArray.hashArray.add("Receive key: " + recvKey);
-                            HashArray.hashArray.add("Miner key: " + minerKey);
-                            HashArray.hashArray.add("Tx Hash: " + txHash);
-                            HashArray.hashArray.add("Merkle hash: " + SHA256.generateSHA256Hash((String) HashArray.hashArray.get(HashArray.hashArray.size() - 6)));
-                            HashArray.hashArray.add("Nonce: " + nonceToStr);
-                            HashArray.hashArray.add("Previous " + previousBlockHash);
-                            HashArray.hashArray.add("Algorithm: " + algo);
-                            HashArray.hashArray.add("Block hash: " + hash);
-                            HashArray.hashArray.add("Difficulty: " + difficultyToStr);
-                            HashArray.hashArray.add(amountToStr);
-                            Launcher.numBlocksMined++;
-
-                            try {
-                                System.out.println("Trying to serialize chain.dat...\n");
-                                FileOutputStream fos = new FileOutputStream("chain.dat");
-                                ObjectOutputStream oos = new ObjectOutputStream(fos);
-                                oos.writeObject(HashArray.hashArray);
-                                oos.close();
-                                fos.close();
-                                mc.readBlockChain();
-
-                                System.out.println("\n");
-                                stop = System.currentTimeMillis();
-                                deltaM = stop - start;
-                                System.out.println("DeltaM: \n" + deltaM);
-                                if (deltaM < 15000) {
-                                    MainChain.difficulty++;
-                                } else if (deltaM > 15000) {
-                                    MainChain.difficulty--;
-                                }
-
-                            } catch (IOException ioe) {
-                                System.out.println("Something went wrong while writing cache..");
+                    } else if (difficulty == 5) {
+                        if (!hash.startsWith("00000")) {
+                            Nonce++;
+                            endTime = System.nanoTime();
+                            deltaN = endTime - startTime;
+                            deltaS = (deltaN / 1000000000);
+                            hashRate = (Nonce / deltaS);
+                            if (updatedIndex > indexAtStart) {
+                                previousBlockHash = mc.getPreviousBlockHash();
+                                currentTimeMillis = System.currentTimeMillis();
+                                Nonce = 0L;
+                                txHash = SHA256.generateSHA256Hash(updatedIndex + fromAddress + toAddress);
+                                difficulty = mc.calculateDifficulty();
+                                restartMiner(updatedIndex, currentTimeMillis, fromAddress, toAddress, txHash, Nonce, previousBlockHash, algo, difficulty, amount);
+                                break;
                             }
-                            iterator = false;
-                            timer.cancel();
                         } else {
-                            System.out.println("Error adding block to chain! Hash is not valid!\n");
+                            System.out.println("\n");
+                            System.out.println("[" + hash + "]");
+                            System.out.println("\n");
+                            String indexToStr = Long.toString(index);
+                            String timeToStr = Long.toString(currentTimeMillis);
+                            String nonceToStr = Long.toString(Nonce);
+                            String difficultyToStr = Integer.toString(difficulty);
+                            String amountToStr = Float.toString(amount);
+                            System.out.println("Adding block to chain...\n");
+                            if (cb.isBlockHashValid(index, currentTimeMillis, fromAddress, toAddress, txHash, Nonce, previousBlockHash, algo, hash, difficulty, amount)) {
+                                clientManager.connectAsClient("update");
+                                Block block = new Block(indexToStr, timeToStr, fromAddress, toAddress, txHash, merkleHash, nonceToStr, previousBlockHash, algo, hash, difficultyToStr, amountToStr);
+                                Session sessionForMiner = NodeManager.getSession();
+                                NodeManager.pushBlock(block, sessionForMiner);
+                                timer.cancel();
+                                break;
+                            } else {
+                                System.out.println("Error adding block to chain! Hash is not valid!\n");
+                                timer.cancel();
+                                break;
+                            }
                         }
-                    }
-
-                } else if (difficulty == 8) {
-                    if (!hash.startsWith("00000000")) {
-                        Nonce++;
-                        endTime = System.nanoTime();
-                        deltaN = endTime - startTime;
-                        deltaS = (deltaN / 1000000000);
-                        hashRate = (Nonce / deltaS);
-
-
-                    } else {
-                        System.out.println("\n");
-                        System.out.println("[" + hash + "]");
-                        System.out.println("\n");
-                        String indexToStr = Long.toString(index);
-                        String timeToStr = Long.toString(currentTimeMillis);
-                        String nonceToStr = Long.toString(Nonce);
-                        String difficultyToStr = Integer.toString(difficulty);
-                        String amountToStr = Float.toString(amount);
-                        System.out.println("Adding block to chain...\n");
-                        boolean validateHash = cb.isBlockHashValid(index, currentTimeMillis, sendKey, recvKey, minerKey, txHash, Nonce, previousBlockHash, algo, hash, difficulty, amount);
-                        if (validateHash) {
-                            HashArray.hashArray.add("Index: " + indexToStr);
-                            HashArray.hashArray.add("Time stamp: " + timeToStr);
-                            HashArray.hashArray.add("Send key: " + sendKey);
-                            HashArray.hashArray.add("Receive key: " + recvKey);
-                            HashArray.hashArray.add("Miner key: " + minerKey);
-                            HashArray.hashArray.add("Tx Hash: " + txHash);
-                            HashArray.hashArray.add("Merkle hash: " + SHA256.generateSHA256Hash((String) HashArray.hashArray.get(HashArray.hashArray.size() - 6)));
-                            HashArray.hashArray.add("Nonce: " + nonceToStr);
-                            HashArray.hashArray.add("Previous " + previousBlockHash);
-                            HashArray.hashArray.add("Algorithm: " + algo);
-                            HashArray.hashArray.add("Block hash: " + hash);
-                            HashArray.hashArray.add("Difficulty: " + difficultyToStr);
-                            HashArray.hashArray.add(amountToStr);
-                            try {
-                                System.out.println("Trying to serialize chain.dat...\n");
-                                FileOutputStream fos = new FileOutputStream("chain.dat");
-                                ObjectOutputStream oos = new ObjectOutputStream(fos);
-                                oos.writeObject(HashArray.hashArray);
-                                oos.close();
-                                fos.close();
-                                mc.readBlockChain();
-
-                                System.out.println("\n");
-                                stop = System.currentTimeMillis();
-                                deltaM = stop - start;
-                                System.out.println("DeltaM: \n" + deltaM);
-                                if (deltaM < 15000) {
-                                    MainChain.difficulty++;
-                                } else if (deltaM > 15000) {
-                                    MainChain.difficulty--;
-                                }
-
-                            } catch (IOException ioe) {
-                                System.out.println("Something went wrong while writing cache..");
+                    } else if (difficulty == 6) {
+                        if (!hash.startsWith("000000")) {
+                            Nonce++;
+                            endTime = System.nanoTime();
+                            deltaN = endTime - startTime;
+                            deltaS = (deltaN / 1000000000);
+                            hashRate = (Nonce / deltaS);
+                            if (updatedIndex > indexAtStart) {
+                                previousBlockHash = mc.getPreviousBlockHash();
+                                currentTimeMillis = System.currentTimeMillis();
+                                Nonce = 0L;
+                                txHash = SHA256.generateSHA256Hash(updatedIndex + fromAddress + toAddress);
+                                difficulty = mc.calculateDifficulty();
+                                restartMiner(updatedIndex, currentTimeMillis, fromAddress, toAddress, txHash, Nonce, previousBlockHash, algo, difficulty, amount);
+                                break;
                             }
-                            iterator = false;
-                            timer.cancel();
                         } else {
-                            System.out.println("Error adding block to chain! Hash is not valid!\n");
+                            System.out.println("\n");
+                            System.out.println("[" + hash + "]");
+                            System.out.println("\n");
+                            String indexToStr = Long.toString(index);
+                            String timeToStr = Long.toString(currentTimeMillis);
+                            String nonceToStr = Long.toString(Nonce);
+                            String difficultyToStr = Integer.toString(difficulty);
+                            String amountToStr = Float.toString(amount);
+                            System.out.println("Adding block to chain...\n");
+                            if (cb.isBlockHashValid(index, currentTimeMillis, fromAddress, toAddress, txHash, Nonce, previousBlockHash, algo, hash, difficulty, amount)) {
+                                clientManager.connectAsClient("update");
+                                Block block = new Block(indexToStr, timeToStr, fromAddress, toAddress, txHash, merkleHash, nonceToStr, previousBlockHash, algo, hash, difficultyToStr, amountToStr);
+                                Session sessionForMiner = NodeManager.getSession();
+                                NodeManager.pushBlock(block, sessionForMiner);
+                                timer.cancel();
+                                break;
+                            } else {
+                                System.out.println("Error adding block to chain! Hash is not valid!\n");
+                                timer.cancel();
+                                break;
+                            }
                         }
-                    }
-
-                } else if (difficulty == 9) {
-
-                    if (!hash.startsWith("000000000")) {
-                        Nonce++;
-                        endTime = System.nanoTime();
-                        deltaN = endTime - startTime;
-                        deltaS = (deltaN / 1000000000);
-                        hashRate = (Nonce / deltaS);
-
-
-                    } else {
-                        System.out.println("\n");
-                        System.out.println("[" + hash + "]");
-                        System.out.println("\n");
-                        String indexToStr = Long.toString(index);
-                        String timeToStr = Long.toString(currentTimeMillis);
-                        String nonceToStr = Long.toString(Nonce);
-                        String difficultyToStr = Integer.toString(difficulty);
-                        String amountToStr = Float.toString(amount);
-                        System.out.println("Adding block to chain...\n");
-                        boolean validateHash = cb.isBlockHashValid(index, currentTimeMillis, sendKey, recvKey, minerKey, txHash, Nonce, previousBlockHash, algo, hash, difficulty, amount);
-                        if (validateHash) {
-                            HashArray.hashArray.add("Index: " + indexToStr);
-                            HashArray.hashArray.add("Time stamp: " + timeToStr);
-                            HashArray.hashArray.add("Send key: " + sendKey);
-                            HashArray.hashArray.add("Receive key: " + recvKey);
-                            HashArray.hashArray.add("Miner key: " + minerKey);
-                            HashArray.hashArray.add("Tx Hash: " + txHash);
-                            HashArray.hashArray.add("Merkle hash: " + SHA256.generateSHA256Hash((String) HashArray.hashArray.get(HashArray.hashArray.size() - 6)));
-                            HashArray.hashArray.add("Nonce: " + nonceToStr);
-                            HashArray.hashArray.add("Previous " + previousBlockHash);
-                            HashArray.hashArray.add("Algorithm: " + algo);
-                            HashArray.hashArray.add("Block hash: " + hash);
-                            HashArray.hashArray.add("Difficulty: " + difficultyToStr);
-                            HashArray.hashArray.add(amountToStr);
-                            try {
-                                System.out.println("Trying to serialize chain.dat...\n");
-                                FileOutputStream fos = new FileOutputStream("chain.dat");
-                                ObjectOutputStream oos = new ObjectOutputStream(fos);
-                                oos.writeObject(HashArray.hashArray);
-                                oos.close();
-                                fos.close();
-                                mc.readBlockChain();
-
-                                System.out.println("\n");
-                                stop = System.currentTimeMillis();
-                                deltaM = stop - start;
-                                System.out.println("DeltaM: \n" + deltaM);
-                                if (deltaM < 15000) {
-                                    MainChain.difficulty++;
-                                } else if (deltaM > 15000) {
-                                    MainChain.difficulty--;
-                                }
-
-                            } catch (IOException ioe) {
-                                System.out.println("Something went wrong while writing cache..");
+                    } else if (difficulty == 7) {
+                        if (!hash.startsWith("0000000")) {
+                            Nonce++;
+                            endTime = System.nanoTime();
+                            deltaN = endTime - startTime;
+                            deltaS = (deltaN / 1000000000);
+                            hashRate = (Nonce / deltaS);
+                            if (updatedIndex > indexAtStart) {
+                                previousBlockHash = mc.getPreviousBlockHash();
+                                currentTimeMillis = System.currentTimeMillis();
+                                Nonce = 0L;
+                                txHash = SHA256.generateSHA256Hash(updatedIndex + fromAddress + toAddress);
+                                difficulty = mc.calculateDifficulty();
+                                restartMiner(updatedIndex, currentTimeMillis, fromAddress, toAddress, txHash, Nonce, previousBlockHash, algo, difficulty, amount);
+                                break;
                             }
-                            iterator = false;
-                            timer.cancel();
                         } else {
-                            System.out.println("Error adding block to chain! Hash is not valid!\n");
+                            System.out.println("\n");
+                            System.out.println("[" + hash + "]");
+                            System.out.println("\n");
+                            String indexToStr = Long.toString(index);
+                            String timeToStr = Long.toString(currentTimeMillis);
+                            String nonceToStr = Long.toString(Nonce);
+                            String difficultyToStr = Integer.toString(difficulty);
+                            String amountToStr = Float.toString(amount);
+                            System.out.println("Adding block to chain...\n");
+                            if (cb.isBlockHashValid(index, currentTimeMillis, fromAddress, toAddress, txHash, Nonce, previousBlockHash, algo, hash, difficulty, amount)) {
+                                clientManager.connectAsClient("update");
+                                Block block = new Block(indexToStr, timeToStr, fromAddress, toAddress, txHash, merkleHash, nonceToStr, previousBlockHash, algo, hash, difficultyToStr, amountToStr);
+                                Session sessionForMiner = NodeManager.getSession();
+                                NodeManager.pushBlock(block, sessionForMiner);
+                                timer.cancel();
+                                break;
+                            } else {
+                                System.out.println("Error adding block to chain! Hash is not valid!\n");
+                                timer.cancel();
+                                break;
+                            }
                         }
-                    }
-
-                } else if (difficulty == 10) {
-                    if (!hash.startsWith("000000000000")) {
-                        Nonce++;
-                        endTime = System.nanoTime();
-                        deltaN = endTime - startTime;
-                        deltaS = (deltaN / 1000000000);
-                        hashRate = (Nonce / deltaS);
-
-
-                    } else {
-                        System.out.println("\n");
-                        System.out.println("[" + hash + "]");
-                        System.out.println("\n");
-                        String indexToStr = Long.toString(index);
-                        String timeToStr = Long.toString(currentTimeMillis);
-                        String nonceToStr = Long.toString(Nonce);
-                        String difficultyToStr = Integer.toString(difficulty);
-                        String amountToStr = Float.toString(amount);
-                        System.out.println("Adding block to chain...\n");
-                        boolean validateHash = cb.isBlockHashValid(index, currentTimeMillis, sendKey, recvKey, minerKey, txHash, Nonce, previousBlockHash, algo, hash, difficulty, amount);
-                        if (validateHash) {
-                            HashArray.hashArray.add("Index: " + indexToStr);
-                            HashArray.hashArray.add("Time stamp: " + timeToStr);
-                            HashArray.hashArray.add("Send key: " + sendKey);
-                            HashArray.hashArray.add("Receive key: " + recvKey);
-                            HashArray.hashArray.add("Miner key: " + minerKey);
-                            HashArray.hashArray.add("Tx Hash: " + txHash);
-                            HashArray.hashArray.add("Merkle hash: " + SHA256.generateSHA256Hash((String) HashArray.hashArray.get(HashArray.hashArray.size() - 6)));
-                            HashArray.hashArray.add("Nonce: " + nonceToStr);
-                            HashArray.hashArray.add("Previous " + previousBlockHash);
-                            HashArray.hashArray.add("Algorithm: " + algo);
-                            HashArray.hashArray.add("Block hash: " + hash);
-                            HashArray.hashArray.add("Difficulty: " + difficultyToStr);
-                            HashArray.hashArray.add(amountToStr);
-                            try {
-                                System.out.println("Trying to serialize chain.dat...\n");
-                                FileOutputStream fos = new FileOutputStream("chain.dat");
-                                ObjectOutputStream oos = new ObjectOutputStream(fos);
-                                oos.writeObject(HashArray.hashArray);
-                                oos.close();
-                                fos.close();
-                                mc.readBlockChain();
-
-                                System.out.println("\n");
-                                stop = System.currentTimeMillis();
-                                deltaM = stop - start;
-                                System.out.println("DeltaM: \n" + deltaM);
-                                if (deltaM < 15000) {
-                                    MainChain.difficulty++;
-                                } else if (deltaM > 15000) {
-                                    MainChain.difficulty--;
-                                }
-
-                            } catch (IOException ioe) {
-                                System.out.println("Something went wrong while writing cache..");
+                    } else if (difficulty == 8) {
+                        if (!hash.startsWith("00000000")) {
+                            Nonce++;
+                            endTime = System.nanoTime();
+                            deltaN = endTime - startTime;
+                            deltaS = (deltaN / 1000000000);
+                            hashRate = (Nonce / deltaS);
+                            if (updatedIndex > indexAtStart) {
+                                previousBlockHash = mc.getPreviousBlockHash();
+                                currentTimeMillis = System.currentTimeMillis();
+                                Nonce = 0L;
+                                txHash = SHA256.generateSHA256Hash(updatedIndex + fromAddress + toAddress);
+                                difficulty = mc.calculateDifficulty();
+                                restartMiner(updatedIndex, currentTimeMillis, fromAddress, toAddress, txHash, Nonce, previousBlockHash, algo, difficulty, amount);
+                                break;
                             }
-                            iterator = false;
-                            timer.cancel();
                         } else {
-                            System.out.println("Error adding block to chain! Hash is not valid!\n");
+                            System.out.println("\n");
+                            System.out.println("[" + hash + "]");
+                            System.out.println("\n");
+                            String indexToStr = Long.toString(index);
+                            String timeToStr = Long.toString(currentTimeMillis);
+                            String nonceToStr = Long.toString(Nonce);
+                            String difficultyToStr = Integer.toString(difficulty);
+                            String amountToStr = Float.toString(amount);
+                            System.out.println("Adding block to chain...\n");
+                            if (cb.isBlockHashValid(index, currentTimeMillis, fromAddress, toAddress, txHash, Nonce, previousBlockHash, algo, hash, difficulty, amount)) {
+                                clientManager.connectAsClient("update");
+                                Block block = new Block(indexToStr, timeToStr, fromAddress, toAddress, txHash, merkleHash, nonceToStr, previousBlockHash, algo, hash, difficultyToStr, amountToStr);
+                                Session sessionForMiner = NodeManager.getSession();
+                                NodeManager.pushBlock(block, sessionForMiner);
+                                timer.cancel();
+                                break;
+                            } else {
+                                System.out.println("Error adding block to chain! Hash is not valid!\n");
+                                timer.cancel();
+                                break;
+                            }
+                        }
+                    } else if (difficulty == 9) {
+                        if (!hash.startsWith("000000000")) {
+                            Nonce++;
+                            endTime = System.nanoTime();
+                            deltaN = endTime - startTime;
+                            deltaS = (deltaN / 1000000000);
+                            hashRate = (Nonce / deltaS);
+                            if (updatedIndex > indexAtStart) {
+                                previousBlockHash = mc.getPreviousBlockHash();
+                                currentTimeMillis = System.currentTimeMillis();
+                                Nonce = 0L;
+                                txHash = SHA256.generateSHA256Hash(updatedIndex + fromAddress + toAddress);
+                                difficulty = mc.calculateDifficulty();
+                                restartMiner(updatedIndex, currentTimeMillis, fromAddress, toAddress, txHash, Nonce, previousBlockHash, algo, difficulty, amount);
+                                break;
+                            }
+                        } else {
+                            System.out.println("\n");
+                            System.out.println("[" + hash + "]");
+                            System.out.println("\n");
+                            String indexToStr = Long.toString(index);
+                            String timeToStr = Long.toString(currentTimeMillis);
+                            String nonceToStr = Long.toString(Nonce);
+                            String difficultyToStr = Integer.toString(difficulty);
+                            String amountToStr = Float.toString(amount);
+                            System.out.println("Adding block to chain...\n");
+                            if (cb.isBlockHashValid(index, currentTimeMillis, fromAddress, toAddress, txHash, Nonce, previousBlockHash, algo, hash, difficulty, amount)) {
+                                clientManager.connectAsClient("update");
+                                Block block = new Block(indexToStr, timeToStr, fromAddress, toAddress, txHash, merkleHash, nonceToStr, previousBlockHash, algo, hash, difficultyToStr, amountToStr);
+                                Session sessionForMiner = NodeManager.getSession();
+                                NodeManager.pushBlock(block, sessionForMiner);
+                                timer.cancel();
+                                break;
+                            } else {
+                                System.out.println("Error adding block to chain! Hash is not valid!\n");
+                                timer.cancel();
+                                break;
+                            }
+                        }
+                    } else if (difficulty == 10) {
+                        if (!hash.startsWith("000000000000")) {
+                            Nonce++;
+                            endTime = System.nanoTime();
+                            deltaN = endTime - startTime;
+                            deltaS = (deltaN / 1000000000);
+                            hashRate = (Nonce / deltaS);
+                            if (updatedIndex > indexAtStart) {
+                                previousBlockHash = mc.getPreviousBlockHash();
+                                currentTimeMillis = System.currentTimeMillis();
+                                Nonce = 0L;
+                                txHash = SHA256.generateSHA256Hash(updatedIndex + fromAddress + toAddress);
+                                difficulty = mc.calculateDifficulty();
+                                restartMiner(updatedIndex, currentTimeMillis, fromAddress, toAddress, txHash, Nonce, previousBlockHash, algo, difficulty, amount);
+                                break;
+                            }
+                        } else {
+                            System.out.println("\n");
+                            System.out.println("[" + hash + "]");
+                            System.out.println("\n");
+                            String indexToStr = Long.toString(index);
+                            String timeToStr = Long.toString(currentTimeMillis);
+                            String nonceToStr = Long.toString(Nonce);
+                            String difficultyToStr = Integer.toString(difficulty);
+                            String amountToStr = Float.toString(amount);
+                            System.out.println("Adding block to chain...\n");
+                            if (cb.isBlockHashValid(index, currentTimeMillis, fromAddress, toAddress, txHash, Nonce, previousBlockHash, algo, hash, difficulty, amount)) {
+                                clientManager.connectAsClient("update");
+                                Block block = new Block(indexToStr, timeToStr, fromAddress, toAddress, txHash, merkleHash, nonceToStr, previousBlockHash, algo, hash, difficultyToStr, amountToStr);
+                                Session sessionForMiner = NodeManager.getSession();
+                                NodeManager.pushBlock(block, sessionForMiner);
+                                timer.cancel();
+                                break;
+                            } else {
+                                System.out.println("Error adding block to chain! Hash is not valid!\n");
+                                timer.cancel();
+                                break;
+                            }
                         }
                     }
                 }
+            } else {
+                System.out.println("ERROR! You aren't connected to any node, therefore the network doesn't know if you're chain is in sync! Check your network connection, or try another node");
             }
-        } else {
-            iterator = false;
-            System.out.println("Coming soon!\n");
+        } catch (IOException ioe) {
+            WalletLogger.logException(ioe, "severe", "IO exception occurred during mining operation! See below:\n");
+            String stacktraceAsString = WalletLogger.exceptionStacktraceToString(ioe);
+            WalletLogger.logException(ioe, "severe", stacktraceAsString);
+        } catch (InterruptedException ie) {
+            WalletLogger.logException(ie, "severe", "Interrupted exception occurred during mining operation! See below:\n");
+            String stacktraceAsString = WalletLogger.exceptionStacktraceToString(ie);
+            WalletLogger.logException(ie, "severe", stacktraceAsString);
         }
-    return true;
     }
 
-    public void paint(Graphics g){
-        g.drawString(String.valueOf(hashRate), 10, 10);
+    private void restartMiner(long index, long currentTimeMillis, String fromAddress, String toAddress, String txHash, long Nonce, String previousBlockHash, String algo, int difficulty, float amount) {
+        timer.cancel();
+        System.out.println("Trying to restart miner!\n");
+        mine(index, currentTimeMillis, fromAddress, toAddress, txHash, Nonce, previousBlockHash, algo, difficulty, amount);
     }
 }
+
+
 
 

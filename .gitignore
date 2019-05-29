@@ -1,19 +1,20 @@
 # Directories for jar/unused test directory
 target
-test
+src/test
 
 # Files used for unlocking gpg key for commit signing
 unlock.sh
 unlock.txt
 unlock.txt.gpg
 
-# Program data files
+# Program data/config files
 chain.dat
 tx-pool.dat
-sendKey.dat
-recvKey.dat
-minerKey.dat
-addressKey.dat
+keyring.dat
+PRIVATE_KEY
+THC_PRIVATE_KEY
+addressBook.dat
+thc.conf
 
 # User-specific stuff:
 .idea/workspace.xml
