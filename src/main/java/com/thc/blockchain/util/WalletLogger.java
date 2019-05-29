@@ -1,9 +1,8 @@
 package com.thc.blockchain.util;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.PrintStream;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.logging.FileHandler;
 import java.util.logging.Level;
@@ -42,11 +41,7 @@ public class WalletLogger {
     }
 
     public static String exceptionStacktraceToString(Exception e) {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        PrintStream ps = new PrintStream(baos);
-        e.printStackTrace(ps);
-        ps.close();
-        return baos.toString();
+        return Arrays.toString(e.getStackTrace());
     }
 
     public static void logEvent(String level, String msg) {
