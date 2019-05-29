@@ -2,7 +2,7 @@ package com.thc.blockchain.consensus;
 
 import com.thc.blockchain.algos.SHA256;
 import com.thc.blockchain.wallet.ChainBuilder;
-import com.thc.blockchain.wallet.HashArray;
+import com.thc.blockchain.wallet.BlockChain;
 
 public class Consensus {
 
@@ -18,7 +18,7 @@ public class Consensus {
 
     public static Boolean compareChainChecksum(int remoteChainSize, String remoteChecksum) {
         for (int i = 0; i < remoteChainSize; i++) {
-            String blockAsString = HashArray.hashArray.get(i).toString();
+            String blockAsString = BlockChain.blockChain.get(i).toString();
             sb.append(blockAsString);
         }
         String chainAsString = sb.toString();

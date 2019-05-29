@@ -5,7 +5,7 @@ package com.thc.blockchain.network.decoders;
 
 import com.thc.blockchain.network.Constants;
 import com.thc.blockchain.network.objects.GenesisBlock;
-import com.thc.blockchain.wallet.HashArray;
+import com.thc.blockchain.wallet.BlockChain;
 import com.thc.blockchain.wallet.MainChain;
 
 import javax.websocket.DecodeException;
@@ -24,8 +24,8 @@ public final class GenesisBlockDecoder implements Decoder.Text<GenesisBlock> {
         System.out.println("arg0 says: " + arg0);
         try {
             System.out.println(Constants.OBJECT_MAPPER.readValue(arg0, GenesisBlock.class));
-            HashArray hashArray = new HashArray();
-            HashArray.hashArray.add(arg0);
+            BlockChain blockChain = new BlockChain();
+            BlockChain.blockChain.add(arg0);
             mc.writeBlockChain();
             return Constants.OBJECT_MAPPER.readValue(arg0, GenesisBlock.class);
         } catch (IOException e) {

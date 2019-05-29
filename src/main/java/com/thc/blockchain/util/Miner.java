@@ -7,7 +7,7 @@ import com.thc.blockchain.network.nodes.ClientManager;
 import com.thc.blockchain.network.nodes.NodeManager;
 import com.thc.blockchain.network.objects.Block;
 import com.thc.blockchain.wallet.ChainBuilder;
-import com.thc.blockchain.wallet.HashArray;
+import com.thc.blockchain.wallet.BlockChain;
 import com.thc.blockchain.wallet.MainChain;
 
 import javax.websocket.Session;
@@ -31,7 +31,7 @@ public class Miner {
             System.out.println("Seeing if any configured nodes are up...\n");
             ClientManager clientManager = new ClientManager();
             if (clientManager.isNodeConnected(1) || clientManager.isNodeConnected(2)) {
-                int indexAtStart = HashArray.hashArray.size();
+                int indexAtStart = BlockChain.blockChain.size();
                 MainChain mc = new MainChain();
                 ChainBuilder cb = new ChainBuilder();
                 MainChain.difficulty = difficulty;
@@ -45,7 +45,7 @@ public class Miner {
                         mc.readBlockChain();
                         System.out.println("\n");
                         System.out.println("Current hash rate: " + hashRate + " " + "hash/s");
-                        updatedIndex = HashArray.hashArray.size();
+                        updatedIndex = BlockChain.blockChain.size();
                     }
                 }, 0, 3000);
                 while (true) {

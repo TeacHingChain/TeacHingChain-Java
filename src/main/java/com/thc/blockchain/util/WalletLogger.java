@@ -4,19 +4,18 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
-import java.util.logging.FileHandler;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.logging.*;
 
 public class WalletLogger {
 
     private static final Logger logger=Logger.getLogger("WalletLog");
 
     public static void logException(Exception ex, String level, String msg) {
-
+        LogManager.getLogManager().reset();
         FileHandler fh = null;
         try {
-            fh = new FileHandler("log.xml",true);
+            fh = new FileHandler("debug.log",true);
+            fh.setFormatter(new SimpleFormatter());
             logger.addHandler(fh);
             switch (level) {
                 case "severe":
@@ -45,9 +44,11 @@ public class WalletLogger {
     }
 
     public static void logEvent(String level, String msg) {
+        LogManager.getLogManager().reset();
         FileHandler fh = null;
         try {
-            fh = new FileHandler("log.xml", true);
+            fh = new FileHandler("debug.log", true);
+            fh.setFormatter(new SimpleFormatter());
             logger.addHandler(fh);
             switch (level) {
                 case "warning":

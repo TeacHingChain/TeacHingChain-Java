@@ -33,7 +33,7 @@ public class ChainBuilder extends MainChain {
     }
 
     public long getMostRecentIndex() {
-        String block = HashArray.hashArray.get(HashArray.hashArray.size() - 1).toString();
+        String block = BlockChain.blockChain.get(BlockChain.blockChain.size() - 1).toString();
         JsonElement checkIndex = new JsonParser().parse(block);
         JsonObject checkIndexObj = checkIndex.getAsJsonObject();
         JsonElement parseIndex = checkIndexObj.get("index");

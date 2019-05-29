@@ -9,7 +9,7 @@ import com.thc.blockchain.network.nodes.NodeManager;
 import com.thc.blockchain.network.nodes.server.endpoints.SyncAlertServer;
 import com.thc.blockchain.network.objects.Block;
 import com.thc.blockchain.util.WalletLogger;
-import com.thc.blockchain.wallet.HashArray;
+import com.thc.blockchain.wallet.BlockChain;
 import javax.websocket.ClientEndpoint;
 import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
@@ -30,7 +30,7 @@ public class SyncBlockClient {
             System.out.println("null path hit\n");
             FileInputStream fis = new FileInputStream("/home/dev-environment/Desktop/java_random/TeacHingChain/chain.dat");
             ObjectInputStream ois = new ObjectInputStream(fis);
-            HashArray.hashArray = (ArrayList) ois.readObject();
+            BlockChain.blockChain = (ArrayList) ois.readObject();
             ois.close();
             fis.close();
         } catch (IOException ioe) {
@@ -47,9 +47,9 @@ public class SyncBlockClient {
         } else if (session.getUserProperties().get("id").toString().contentEquals("sync server")) {
             size =  SyncAlertServer.remoteChainSize;
         }
-        for (int i = size; i < HashArray.hashArray.size(); i++) {
+        for (int i = size; i < BlockChain.blockChain.size(); i++) {
             System.out.println("Block " + i + " in flight!\n");
-            String blockAsString = HashArray.hashArray.get(i).toString();
+            String blockAsString = BlockChain.blockChain.get(i).toString();
             JsonElement jsonElement = new JsonParser().parse(blockAsString);
             JsonObject jsonObject = jsonElement.getAsJsonObject();
             JsonElement indexElement = jsonObject.get("index");

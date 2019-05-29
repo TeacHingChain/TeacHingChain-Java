@@ -6,7 +6,7 @@ import com.google.gson.JsonParser;
 import com.thc.blockchain.consensus.Consensus;
 import com.thc.blockchain.network.Constants;
 import com.thc.blockchain.network.objects.Block;
-import com.thc.blockchain.wallet.HashArray;
+import com.thc.blockchain.wallet.BlockChain;
 import com.thc.blockchain.wallet.MainChain;
 import javax.websocket.DecodeException;
 import javax.websocket.Decoder;
@@ -39,9 +39,9 @@ public final class BlockDecoder implements Decoder.Text<Block> {
             long parsedIndex = parseIndex.getAsLong();
             boolean verifyIndex = consensus.isBlockOrphan(parsedIndex);
             if (verifyIndex) {
-                HashArray.hashArray.add(arg0);
+                BlockChain.blockChain.add(arg0);
                 mc.writeBlockChain();
-                System.out.println("size says: " + HashArray.hashArray.size());
+                System.out.println("size says: " + BlockChain.blockChain.size());
             } else {
                 System.out.println("A consensus error occurred! Block will not be added!\n");
             }

@@ -3,16 +3,16 @@ package com.thc.blockchain.wallet;
 import java.util.ArrayList;
 import java.util.List;
 
-public class HashArray {
+public class BlockChain {
 
-    public HashArray() {
+    public BlockChain() {
         initHashArray();
     }
 
-    public static List hashArray;
+    public static List blockChain;
 
     private static void initHashArray() {
-        hashArray = new ArrayList<>();
+        blockChain = new ArrayList<>();
     }
 }
 

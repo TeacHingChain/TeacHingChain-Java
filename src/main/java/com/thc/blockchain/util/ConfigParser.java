@@ -13,10 +13,10 @@ public class ConfigParser {
 
     public void readConfigFile() {
 
-        File configFile = new File(Constants.baseDir + "/thc.conf");
+        File configFile = new File(Constants.baseDir + "/config.txt");
         try {
             if (configFile.exists()) {
-                List<String> configList = Files.readAllLines(Paths.get(Constants.baseDir + "/thc.conf"));
+                List<String> configList = Files.readAllLines(Paths.get(Constants.baseDir + "/config.txt"));
                 for (String configLine : configList) {
                     if (configLine.contains("node1")) {
                         String[] configLineSplit = configLine.split("node1=");

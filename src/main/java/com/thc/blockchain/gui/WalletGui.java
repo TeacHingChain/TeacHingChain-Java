@@ -8,7 +8,7 @@ import com.thc.blockchain.network.Constants;
 import com.thc.blockchain.util.Miner;
 import com.thc.blockchain.util.addresses.AddressBook;
 import com.thc.blockchain.wallet.ChainBuilder;
-import com.thc.blockchain.wallet.HashArray;
+import com.thc.blockchain.wallet.BlockChain;
 import com.thc.blockchain.wallet.MainChain;
 import com.thc.blockchain.wallet.TxPoolArray;
 import javax.swing.*;
@@ -106,10 +106,10 @@ public class WalletGui extends JFrame implements ActionListener {
                     cb.readTxPool();
                     cb.getTxPool();
                     File tempFile = new File(baseDir + "/tx-pool.dat");
-                    if (!tempFile.exists() && HashArray.hashArray.size() >= 3) {
+                    if (!tempFile.exists() && BlockChain.blockChain.size() >= 3) {
                         TxPoolArray txPool = new TxPoolArray();
                         difficulty = mc.calculateDifficulty();
-                        long indexValue = (HashArray.hashArray.size());
+                        long indexValue = (BlockChain.blockChain.size());
                         long timeStamp = mc.getUnixTimestamp();
                         String sendKey = "";
                         String recvKey = "";
@@ -121,9 +121,9 @@ public class WalletGui extends JFrame implements ActionListener {
                         TimeUnit.SECONDS.sleep(5);
                     } else if (TxPoolArray.TxPool == null) {
                         TxPoolArray txpool = new TxPoolArray();
-                    } else if (tempFile.exists() && TxPoolArray.TxPool.isEmpty() && HashArray.hashArray.size() >= 3) {
+                    } else if (tempFile.exists() && TxPoolArray.TxPool.isEmpty() && BlockChain.blockChain.size() >= 3) {
                         mc.readBlockChain();
-                        String mostRecentBlock = (HashArray.hashArray.get(HashArray.hashArray.size() - 1).toString());
+                        String mostRecentBlock = (BlockChain.blockChain.get(BlockChain.blockChain.size() - 1).toString());
                         JsonElement jsonElement = new JsonParser().parse(mostRecentBlock);
                         JsonObject jsonObject = jsonElement.getAsJsonObject();
                         JsonElement indexElement = jsonObject.get("index");
@@ -138,9 +138,9 @@ public class WalletGui extends JFrame implements ActionListener {
                         miner.mine(indexValue, timeStamp, Constants.cbAddress, toAddress, txHash, 0L, previousHash, algo, MainChain.difficulty, MainChain.nSubsidy);
                         numBlocksMined++;
                         TimeUnit.SECONDS.sleep(5);
-                    } else if (tempFile.exists() && TxPoolArray.TxPool.isEmpty() && HashArray.hashArray.size() < 3) {
+                    } else if (tempFile.exists() && TxPoolArray.TxPool.isEmpty() && BlockChain.blockChain.size() < 3) {
                         mc.readBlockChain();
-                        String mostRecentBlock = (HashArray.hashArray.get(HashArray.hashArray.size() - 1).toString());
+                        String mostRecentBlock = (BlockChain.blockChain.get(BlockChain.blockChain.size() - 1).toString());
                         JsonElement jsonElement = new JsonParser().parse(mostRecentBlock);
                         JsonObject jsonObject = jsonElement.getAsJsonObject();
                         JsonElement indexElement = jsonObject.get("index");
@@ -160,7 +160,7 @@ public class WalletGui extends JFrame implements ActionListener {
                         TimeUnit.SECONDS.sleep(5);
                     } else {
                         mc.readBlockChain();
-                        String mostRecentBlock = (HashArray.hashArray.get(HashArray.hashArray.size() - 1).toString());
+                        String mostRecentBlock = (BlockChain.blockChain.get(BlockChain.blockChain.size() - 1).toString());
                         JsonElement jsonElement = new JsonParser().parse(mostRecentBlock);
                         JsonObject jsonObject = jsonElement.getAsJsonObject();
                         JsonElement indexElement = jsonObject.get("index");

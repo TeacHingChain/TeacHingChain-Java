@@ -21,7 +21,7 @@ public class Launcher {
     private static String algo;
     public static int difficulty;
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws MainChain.InsufficientBalanceException {
         // File rootDir = new File(baseDir);
         // Process proc = Runtime.getRuntime().exec("mvn cargo:run -e", null, rootDir);
         ConfigParser configParser = new ConfigParser();
@@ -43,9 +43,9 @@ public class Launcher {
         }
         if (!chainFile.exists()) {
             difficulty = 5;
-        } else if (chainFile.exists() && HashArray.hashArray.size() <= 1) {
+        } else if (chainFile.exists() && BlockChain.blockChain.size() <= 1) {
             difficulty = 5;
-        } else if (HashArray.hashArray.size() >= 2) {
+        } else if (BlockChain.blockChain.size() >= 2) {
             mc.calculateDifficulty();
         }
         System.out.println("\n");
@@ -61,13 +61,13 @@ public class Launcher {
                     Scanner txData = new Scanner(System.in);
                     System.out.println("\n");
                     System.out.println("Please enter to address: \n");
-                    String fromAddress = (String) AddressBook.addressBook.get(0);
+                    String fromAddress = AddressBook.addressBook.get(0).toString();
                     String toAddress = txData.nextLine();
                     System.out.println("\n");
                     System.out.println("Please enter amount: \n");
                     float amountInput = txData.nextFloat();
                     if (amountInput > MainChain.balance) {
-                        System.out.println("ERROR! You don't have enough coins to send this tx, please check your balance and try again..\n");
+                        throw new MainChain.InsufficientBalanceException("Insufficient balance for tx " + SHA256.generateSHA256Hash(fromAddress + toAddress + amountInput));
                     } else {
                         mc.sendTx(fromAddress, toAddress, amountInput);
                     }
@@ -82,7 +82,7 @@ public class Launcher {
                     break;
                 }
                 case "get genesis hash": {
-                    if (!HashArray.hashArray.isEmpty()) {
+                    if (!BlockChain.blockChain.isEmpty()) {
                         System.out.println("Genesis hash: " + mc.getGenesisHash());
                     } else {
                         System.out.println("No block found on chain!");
@@ -90,7 +90,7 @@ public class Launcher {
                     break;
                 }
                 case "get best block hash": {
-                    if (!HashArray.hashArray.isEmpty()) {
+                    if (!BlockChain.blockChain.isEmpty()) {
                         System.out.println("Best block hash: " + mc.getBestHash());
                     } else {
                         System.out.println("No block found on chain!");
@@ -105,6 +105,7 @@ public class Launcher {
                         int indexValue = indexInt.nextInt();
                         System.out.println("Block at index " + indexValue + ": " + mc.getBlockAtIndex(Math.toIntExact(indexValue)));
                     } catch (IndexOutOfBoundsException iobe) {
+                        System.out.println("Requested block doesn't exist! See log for details\n");
                         WalletLogger.logException(iobe, "warning", WalletLogger.getLogTimeStamp() + " Index out of bound exception occurred trying to fetch a block! See below:\n" + WalletLogger.exceptionStacktraceToString(iobe));
                     }
                     break;
@@ -134,10 +135,10 @@ public class Launcher {
                         cb.readTxPool();
                         cb.getTxPool();
                         File tempFile = new File(baseDir + "/tx-pool.dat");
-                        if (!tempFile.exists() && HashArray.hashArray.size() >= 3) {
+                        if (!tempFile.exists() && BlockChain.blockChain.size() >= 3) {
                             TxPoolArray txPool = new TxPoolArray();
                             difficulty = mc.calculateDifficulty();
-                            int indexValue = (HashArray.hashArray.size());
+                            int indexValue = (BlockChain.blockChain.size());
                             long timeStamp = mc.getUnixTimestamp();
                             String previousHash = mc.getPreviousBlockHash();
                             String toAddress = AddressBook.addressBook.get(0).toString();
@@ -151,9 +152,9 @@ public class Launcher {
                             numBlocksMined++;
                         } else if (TxPoolArray.TxPool == null) {
                             TxPoolArray txpool = new TxPoolArray();
-                        } else if (tempFile.exists() && TxPoolArray.TxPool.isEmpty() && HashArray.hashArray.size() >= 3) {
+                        } else if (tempFile.exists() && TxPoolArray.TxPool.isEmpty() && BlockChain.blockChain.size() >= 3) {
                             mc.readBlockChain();
-                            int indexValue = HashArray.hashArray.size();
+                            int indexValue = BlockChain.blockChain.size();
                             long timeStamp = mc.getUnixTimestamp();
                             difficulty = mc.calculateDifficulty();
                             String toAddress = AddressBook.addressBook.get(0).toString();
@@ -166,9 +167,9 @@ public class Launcher {
                                 WalletLogger.logException(ie, "severe", WalletLogger.getLogTimeStamp() + " Interrupted exception occurred during mining operation! See below:\n" + WalletLogger.exceptionStacktraceToString(ie));
                             }
                             numBlocksMined++;
-                        } else if (tempFile.exists() && TxPoolArray.TxPool.isEmpty() && HashArray.hashArray.size() < 3) {
+                        } else if (tempFile.exists() && TxPoolArray.TxPool.isEmpty() && BlockChain.blockChain.size() < 3) {
                             mc.readBlockChain();
-                            int indexValue = HashArray.hashArray.size();
+                            int indexValue = BlockChain.blockChain.size();
                             long timeStamp = mc.getUnixTimestamp();
                             difficulty = mc.calculateDifficulty();
                             String toAddress = AddressBook.addressBook.get(0).toString();
@@ -183,7 +184,7 @@ public class Launcher {
                             numBlocksMined++;
                         } else {
                             mc.readBlockChain();
-                            int indexValue = HashArray.hashArray.size();
+                            int indexValue = BlockChain.blockChain.size();
                             long timeStamp = mc.getUnixTimestamp();
                             difficulty = mc.calculateDifficulty();
                             String fromAddress = TxPoolArray.TxPool.get(TxPoolArray.TxPool.size() - TxPoolArray.TxPool.size()).toString();

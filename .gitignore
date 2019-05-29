@@ -14,9 +14,10 @@ keyring.dat
 PRIVATE_KEY
 THC_PRIVATE_KEY
 addressBook.dat
+debug.log
 
 # Config file
-thc.conf
+config.txt
 
 # User-specific stuff:
 .idea/workspace.xml

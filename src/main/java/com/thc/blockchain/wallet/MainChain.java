@@ -29,7 +29,7 @@ public class MainChain {
     public MainChain() {}
 
     String getBestHash() {
-        String bestBlock = HashArray.hashArray.get(HashArray.hashArray.size() - 1).toString();
+        String bestBlock = BlockChain.blockChain.get(BlockChain.blockChain.size() - 1).toString();
         JsonElement jsonElement = new JsonParser().parse(bestBlock);
         JsonObject jsonObject = jsonElement.getAsJsonObject();
         JsonElement best_hash = jsonObject.get("block hash");
@@ -37,7 +37,7 @@ public class MainChain {
     }
 
     String getGenesisHash() {
-        String genesisBlock = HashArray.hashArray.get(HashArray.hashArray.size() - HashArray.hashArray.size()).toString();
+        String genesisBlock = BlockChain.blockChain.get(BlockChain.blockChain.size() - BlockChain.blockChain.size()).toString();
         JsonElement jsonElement = new JsonParser().parse(genesisBlock);
         JsonObject jsonObject = jsonElement.getAsJsonObject();
         JsonElement genesis_hash = jsonObject.get("block hash");
@@ -46,7 +46,7 @@ public class MainChain {
 
     public String getPreviousBlockHash() {
         readBlockChain();
-        String previousBlock = HashArray.hashArray.get(HashArray.hashArray.size() - 1).toString();
+        String previousBlock = BlockChain.blockChain.get(BlockChain.blockChain.size() - 1).toString();
         JsonElement jsonElement = new JsonParser().parse(previousBlock);
         JsonObject blockJSONObject = jsonElement.getAsJsonObject();
         JsonElement je = blockJSONObject.get("block hash");
@@ -57,10 +57,10 @@ public class MainChain {
         try {
             FileInputStream fis = new FileInputStream(baseDir + "/chain.dat");
             ObjectInputStream ois = new ObjectInputStream(fis);
-            HashArray.hashArray = (ArrayList) ois.readObject();
+            BlockChain.blockChain = (ArrayList) ois.readObject();
             ois.close();
             fis.close();
-            for (Object o : HashArray.hashArray) {
+            for (Object o : BlockChain.blockChain) {
                 System.out.println(o.toString());
             }
         } catch (ClassNotFoundException e) {
@@ -78,10 +78,10 @@ public class MainChain {
         try {
             FileInputStream fis = new FileInputStream(baseDir + "/chain.dat");
             ObjectInputStream ois = new ObjectInputStream(fis);
-            HashArray.hashArray = (ArrayList) ois.readObject();
+            BlockChain.blockChain = (ArrayList) ois.readObject();
             ois.close();
             fis.close();
-            for (Object blockObj : HashArray.hashArray) {
+            for (Object blockObj : BlockChain.blockChain) {
                 String block = blockObj.toString();
                 JsonElement jsonElement = new JsonParser().parse(block);
                 JsonObject blockJSONObject = jsonElement.getAsJsonObject();
@@ -157,7 +157,7 @@ public class MainChain {
             System.out.println("Trying to serialize chain.dat...\n");
             FileOutputStream fos = new FileOutputStream("/home/dev-environment/Desktop/java_random/TeacHingChain" + "/chain.dat");
             ObjectOutputStream oos = new ObjectOutputStream(fos);
-            oos.writeObject(HashArray.hashArray);
+            oos.writeObject(BlockChain.blockChain);
             oos.close();
             fos.close();
             readBlockChain();
@@ -167,11 +167,11 @@ public class MainChain {
     }
 
     int getIndexOfBlockChain() {
-        return HashArray.hashArray.size() - 1;
+        return BlockChain.blockChain.size() - 1;
     }
 
     String getBlockAtIndex(int index) {
-        return HashArray.hashArray.get(index).toString();
+        return BlockChain.blockChain.get(index).toString();
     }
 
     public long getUnixTimestamp() {
@@ -304,7 +304,7 @@ public class MainChain {
 
     public void sendTx(String sendKeyTx, String recvKeyTx, float amount) {
         ChainBuilder cb = new ChainBuilder();
-        long blockIndex = (HashArray.hashArray.size());
+        long blockIndex = (BlockChain.blockChain.size());
         cb.writeTxPool(blockIndex, sendKeyTx, recvKeyTx, amount);
     }
 
@@ -316,15 +316,15 @@ public class MainChain {
 
     public int calculateDifficulty() {
         readBlockChain();
-        if (HashArray.hashArray.size() >= 2) {
-            String mostRecentBlock = HashArray.hashArray.get(HashArray.hashArray.size() - 1).toString();
+        if (BlockChain.blockChain.size() >= 2) {
+            String mostRecentBlock = BlockChain.blockChain.get(BlockChain.blockChain.size() - 1).toString();
             JsonElement parseLastBlock = new JsonParser().parse(mostRecentBlock);
             JsonObject latBlockObject = parseLastBlock.getAsJsonObject();
             JsonElement difficultyElement = latBlockObject.get("difficulty");
             difficulty = difficultyElement.getAsInt();
             JsonElement lastBlockTime = latBlockObject.get("time stamp");
             long lbtAsLong = lastBlockTime.getAsLong();
-            String blockBeforeLast = HashArray.hashArray.get(HashArray.hashArray.size() - 2).toString();
+            String blockBeforeLast = BlockChain.blockChain.get(BlockChain.blockChain.size() - 2).toString();
             JsonElement jsonElement1 = new JsonParser().parse(blockBeforeLast);
             JsonObject jsonObject1 = jsonElement1.getAsJsonObject();
             JsonElement timeElement = jsonObject1.get("time stamp");
@@ -337,6 +337,13 @@ public class MainChain {
             }
         }
     return difficulty;
+    }
+
+    static class InsufficientBalanceException extends Exception {
+        InsufficientBalanceException(String msg) {
+            System.out.println("Insufficient funds for transaction! See log for details\n");
+            WalletLogger.logEvent("warning", WalletLogger.getLogTimeStamp() + " " + msg);
+        }
     }
 }
 
