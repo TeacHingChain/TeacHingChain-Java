@@ -7,10 +7,10 @@ import com.thc.blockchain.algos.SHA256;
 import com.thc.blockchain.algos.SHA512;
 import com.thc.blockchain.algos.Scrypt;
 import com.thc.blockchain.util.WalletLogger;
+
 import java.io.*;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
+
 import static com.thc.blockchain.network.Constants.baseDir;
 
 public class ChainBuilder extends MainChain {
@@ -41,9 +41,6 @@ public class ChainBuilder extends MainChain {
     }
 
     void writeTxPool(long blockIndex, String sendKey, String recvKey, float amount) {
-        SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
-        Calendar calendar = Calendar.getInstance();
-        String formattedTime = (formatter.format(calendar.getTime()));
         String txHash = SHA256.generateSHA256Hash(blockIndex + sendKey + recvKey);
         File tempFile = new File(baseDir + "/tx-pool.dat");
         if (!tempFile.exists()) {
@@ -70,16 +67,11 @@ public class ChainBuilder extends MainChain {
             oos.close();
             fos.close();
         } catch (IOException ioe) {
-            WalletLogger.logException(ioe, "severe", formattedTime + " IO exception occurred while writing to tx-pool! See below:\n");
-            String stacktraceAsString = WalletLogger.exceptionStacktraceToString(ioe);
-            WalletLogger.logException(ioe, "severe", stacktraceAsString);
+            WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp() + " IO exception occurred while writing to tx-pool! See below:\n" + WalletLogger.exceptionStacktraceToString(ioe));
         }
     }
 
     public void overwriteTxPool() {
-        SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
-        Calendar calendar = Calendar.getInstance();
-        String formattedTime = (formatter.format(calendar.getTime()));
         try {
             FileOutputStream fos = new FileOutputStream(baseDir + "/tx-pool.dat");
             ObjectOutputStream oos = new ObjectOutputStream(fos);
@@ -88,16 +80,11 @@ public class ChainBuilder extends MainChain {
             fos.close();
             readTxPool();
         } catch (IOException ioe) {
-            WalletLogger.logException(ioe, "severe", formattedTime + " IO exception occurred while overwriting tx-pool! See below:\n");
-            String stacktraceAsString = WalletLogger.exceptionStacktraceToString(ioe);
-            WalletLogger.logException(ioe, "severe", stacktraceAsString);
+            WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp() + " IO exception occurred while overwriting tx-pool! See below:\n" + WalletLogger.exceptionStacktraceToString(ioe));
         }
     }
 
     public void readTxPool() {
-        SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
-        Calendar calendar = Calendar.getInstance();
-        String formattedTime = (formatter.format(calendar.getTime()));
         try {
             FileInputStream fis = new FileInputStream(baseDir + "/tx-pool.dat");
             ObjectInputStream ois = new ObjectInputStream(fis);
@@ -108,13 +95,9 @@ public class ChainBuilder extends MainChain {
             TxPoolArray txpool = new TxPoolArray();
             overwriteTxPool();
         } catch (IOException ioe) {
-            WalletLogger.logException(ioe, "severe", formattedTime + " IO exception occurred while reading tx-pool! See below:\n");
-            String stacktraceAsString = WalletLogger.exceptionStacktraceToString(ioe);
-            WalletLogger.logException(ioe, "severe", stacktraceAsString);
+            WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp() + " IO exception occurred while reading tx-pool! See below:\n" + WalletLogger.exceptionStacktraceToString(ioe));
         } catch (ClassNotFoundException cnfe) {
-            WalletLogger.logException(cnfe, "severe", formattedTime + " Class not found exception occurred while reading tx-pool! See below:\n");
-            String stacktraceAsString = WalletLogger.exceptionStacktraceToString(cnfe);
-            WalletLogger.logException(cnfe, "severe", stacktraceAsString);
+            WalletLogger.logException(cnfe, "severe", WalletLogger.getLogTimeStamp() + " Class not found exception occurred while reading tx-pool! See below:\n" + WalletLogger.exceptionStacktraceToString(cnfe));
         }
     }
 
@@ -129,10 +112,3 @@ public class ChainBuilder extends MainChain {
         }
     }
 }
-
-/*
-TODO: Remove timers in favor of websockets integration
-TODO: Fix miner method to allow for stale work detection
-TODO: Devise new difficulty adjustment with much higher resolution
-TODO: Make genesis hardcoded, move buildGenesisBlock to util package
-*/

@@ -7,13 +7,15 @@ unlock.sh
 unlock.txt
 unlock.txt.gpg
 
-# Program data/config files
+# Program data files
 chain.dat
 tx-pool.dat
 keyring.dat
 PRIVATE_KEY
 THC_PRIVATE_KEY
 addressBook.dat
+
+# Config file
 thc.conf
 
 # User-specific stuff:

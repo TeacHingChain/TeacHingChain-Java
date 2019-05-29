@@ -11,8 +11,8 @@ public class HelloServerEndpoint {
     @OnOpen
     public void onOpen () {
         System.out.println("Hello client connected!\n");
-
     }
+
     @OnError
     public void onError (Throwable exception) {
         System.out.println(exception.getMessage());

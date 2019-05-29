@@ -39,9 +39,7 @@ public class ConfigParser {
                 Constants.programDataDir = Constants.baseDir;
             }
         } catch (IOException ioe) {
-            WalletLogger.logException(ioe, "severe", "IO exception occurred while parsing config file! See below:\n");
-            String stacktraceAsString = WalletLogger.exceptionStacktraceToString(ioe);
-            WalletLogger.logException(ioe, "severe", stacktraceAsString);
+            WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp() + " IO exception occurred while parsing config file! See below:\n" + WalletLogger.exceptionStacktraceToString(ioe));
         }
     }
 }
