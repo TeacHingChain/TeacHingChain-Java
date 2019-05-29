@@ -9,8 +9,8 @@ import com.thc.blockchain.network.objects.Block;
 import com.thc.blockchain.wallet.ChainBuilder;
 import com.thc.blockchain.wallet.HashArray;
 import com.thc.blockchain.wallet.MainChain;
+
 import javax.websocket.Session;
-import java.io.IOException;
 import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -461,14 +461,8 @@ public class Miner {
             } else {
                 System.out.println("ERROR! You aren't connected to any node, therefore the network doesn't know if you're chain is in sync! Check your network connection, or try another node");
             }
-        } catch (IOException ioe) {
-            WalletLogger.logException(ioe, "severe", "IO exception occurred during mining operation! See below:\n");
-            String stacktraceAsString = WalletLogger.exceptionStacktraceToString(ioe);
-            WalletLogger.logException(ioe, "severe", stacktraceAsString);
         } catch (InterruptedException ie) {
-            WalletLogger.logException(ie, "severe", "Interrupted exception occurred during mining operation! See below:\n");
-            String stacktraceAsString = WalletLogger.exceptionStacktraceToString(ie);
-            WalletLogger.logException(ie, "severe", stacktraceAsString);
+            WalletLogger.logException(ie, "severe", WalletLogger.getLogTimeStamp() + " Interrupted exception occurred during mining operation! See below:\n" + WalletLogger.exceptionStacktraceToString(ie));
         }
     }
 
