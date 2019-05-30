@@ -7,10 +7,10 @@ import com.thc.blockchain.algos.SHA256;
 import com.thc.blockchain.network.Constants;
 import com.thc.blockchain.util.Miner;
 import com.thc.blockchain.util.addresses.AddressBook;
-import com.thc.blockchain.wallet.ChainBuilder;
 import com.thc.blockchain.wallet.BlockChain;
 import com.thc.blockchain.wallet.MainChain;
 import com.thc.blockchain.wallet.TxPoolArray;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -18,6 +18,7 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
+
 import static com.thc.blockchain.network.Constants.baseDir;
 import static com.thc.blockchain.wallet.MainChain.difficulty;
 
@@ -86,7 +87,6 @@ public class WalletGui extends JFrame implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent actionEvent) {
         Miner miner = new Miner();
-        ChainBuilder cb = new ChainBuilder();
         MainChain mc = new MainChain();
         String action = actionEvent.getActionCommand();
         if (action.equals("mine")) {
@@ -103,8 +103,8 @@ public class WalletGui extends JFrame implements ActionListener {
             }
             while (howManyBlocks > numBlocksMined) {
                 try {
-                    cb.readTxPool();
-                    cb.getTxPool();
+                    mc.readTxPool();
+                    mc.getTxPool();
                     File tempFile = new File(baseDir + "/tx-pool.dat");
                     if (!tempFile.exists() && BlockChain.blockChain.size() >= 3) {
                         TxPoolArray txPool = new TxPoolArray();
@@ -187,7 +187,7 @@ public class WalletGui extends JFrame implements ActionListener {
                         System.out.println("removing: \n" + txHash);
                         TxPoolArray.TxPool.remove("------------------------------------------------------------------------------------");
                         System.out.println("removing: \n" + "------------------------------------------------------------------------------------");
-                        cb.overwriteTxPool();
+                        mc.overwriteTxPool();
                         numBlocksMined++;
                         TimeUnit.SECONDS.sleep(5);
                     }

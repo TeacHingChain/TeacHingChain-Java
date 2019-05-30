@@ -1,7 +1,7 @@
 package com.thc.blockchain.network;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.thc.blockchain.network.nodes.ClientManager;
+import com.thc.blockchain.network.nodes.EndpointManager;
 import com.thc.blockchain.wallet.MainChain;
 import com.thc.blockchain.util.addresses.Base58;
 
@@ -22,17 +22,17 @@ public final class Constants {
     public static String programDataDir;
     public static String baseDir = System.getProperty("user.dir");
     public static final String syncKey = "sync";
-    public static String syncNode1FQN = "ws://" + ClientManager.node1ConfigIP + ":" + commPort + "/server/" + syncKey;
+    public static String syncNode1FQN = "ws://" + EndpointManager.node1ConfigIP + ":" + commPort + "/server/" + syncKey;
     public static final String updateKey = "update";
-    public static String updateNode1FQN = "ws://" + ClientManager.node1ConfigIP + ":" + commPort + "/server/" + updateKey;
+    public static String updateNode1FQN = "ws://" + EndpointManager.node1ConfigIP + ":" + commPort + "/server/" + updateKey;
     public static final String helloKey = "hello";
-    public static  String helloNode1FQN = "ws://" + ClientManager.node1ConfigIP + ":" + commPort + "/server/" + helloKey;
-    public static  String syncNode2FQN = "ws://" + ClientManager.node2ConfigIP + ":" + commPort + "/server/" + syncKey;
-    public static  String updateNode2FQN = "ws://" + ClientManager.node2ConfigIP + ":" + commPort + "/server/" + updateKey;
-    public static  String helloNode2FQN = "ws://" + ClientManager.node2ConfigIP + ":" + commPort + "/server/" + helloKey;
+    public static  String helloNode1FQN = "ws://" + EndpointManager.node1ConfigIP + ":" + commPort + "/server/" + helloKey;
+    public static  String syncNode2FQN = "ws://" + EndpointManager.node2ConfigIP + ":" + commPort + "/server/" + syncKey;
+    public static  String updateNode2FQN = "ws://" + EndpointManager.node2ConfigIP + ":" + commPort + "/server/" + updateKey;
+    public static  String helloNode2FQN = "ws://" + EndpointManager.node2ConfigIP + ":" + commPort + "/server/" + helloKey;
     public static final String pushChainKey = "push";
-    public static  String pushChainNode1FQN = "ws://" + ClientManager.node1ConfigIP + ":" + commPort + "/server/" + pushChainKey;
-    public static  String pushChainNode2FQN = "ws://" + ClientManager.node2ConfigIP + ":" + commPort + "/server/" + pushChainKey;
+    public static  String pushChainNode1FQN = "ws://" + EndpointManager.node1ConfigIP + ":" + commPort + "/server/" + pushChainKey;
+    public static  String pushChainNode2FQN = "ws://" + EndpointManager.node2ConfigIP + ":" + commPort + "/server/" + pushChainKey;
     public static final String genesisServerKey = "genesis";
     public static final String genesisNodeFQN = "ws://" + localNodeIP + "/server/" + genesisServerKey;
     public static final String genesisIndex = "0";

@@ -3,10 +3,9 @@ package com.thc.blockchain.util;
 import com.thc.blockchain.algos.SHA256;
 import com.thc.blockchain.algos.SHA512;
 import com.thc.blockchain.algos.Scrypt;
-import com.thc.blockchain.network.nodes.ClientManager;
+import com.thc.blockchain.network.nodes.EndpointManager;
 import com.thc.blockchain.network.nodes.NodeManager;
 import com.thc.blockchain.network.objects.Block;
-import com.thc.blockchain.wallet.ChainBuilder;
 import com.thc.blockchain.wallet.BlockChain;
 import com.thc.blockchain.wallet.MainChain;
 
@@ -29,11 +28,10 @@ public class Miner {
     public void mine(long index, long currentTimeMillis, String fromAddress, String toAddress, String txHash, long Nonce, String previousBlockHash, String algo, int difficulty, float amount) {
         try {
             System.out.println("Seeing if any configured nodes are up...\n");
-            ClientManager clientManager = new ClientManager();
-            if (clientManager.isNodeConnected(1) || clientManager.isNodeConnected(2)) {
+            EndpointManager endpointManager = new EndpointManager();
+            if (endpointManager.isNodeConnected(1) || endpointManager.isNodeConnected(2)) {
                 int indexAtStart = BlockChain.blockChain.size();
                 MainChain mc = new MainChain();
-                ChainBuilder cb = new ChainBuilder();
                 MainChain.difficulty = difficulty;
                 System.out.println("difficulty says: \n" + MainChain.difficulty);
                 long startTime = System.nanoTime();
@@ -90,8 +88,8 @@ public class Miner {
                             String difficultyToStr = Integer.toString(difficulty);
                             String amountToStr = Float.toString(amount);
                             System.out.println("Adding block to chain...\n");
-                            if (cb.isBlockHashValid(index, currentTimeMillis, fromAddress, toAddress, txHash, Nonce, previousBlockHash, algo, hash, difficulty, amount)) {
-                                clientManager.connectAsClient("update");
+                            if (MainChain.isBlockHashValid(index, currentTimeMillis, fromAddress, toAddress, txHash, Nonce, previousBlockHash, algo, hash, difficulty, amount)) {
+                                endpointManager.connectAsClient("update");
                                 Block block = new Block(indexToStr, timeToStr, fromAddress, toAddress, txHash, merkleHash, nonceToStr, previousBlockHash, algo, hash, difficultyToStr, amountToStr);
                                 Session sessionForMiner = NodeManager.getSession();
                                 NodeManager.pushBlock(block, sessionForMiner);
@@ -131,8 +129,8 @@ public class Miner {
                             String difficultyToStr = Integer.toString(difficulty);
                             String amountToStr = Float.toString(amount);
                             System.out.println("Adding block to chain...\n");
-                            if (cb.isBlockHashValid(index, currentTimeMillis, fromAddress, toAddress, txHash, Nonce, previousBlockHash, algo, hash, difficulty, amount)) {
-                                clientManager.connectAsClient("update");
+                            if (MainChain.isBlockHashValid(index, currentTimeMillis, fromAddress, toAddress, txHash, Nonce, previousBlockHash, algo, hash, difficulty, amount)) {
+                                endpointManager.connectAsClient("update");
                                 Block block = new Block(indexToStr, timeToStr, fromAddress, toAddress, txHash, merkleHash, nonceToStr, previousBlockHash, algo, hash, difficultyToStr, amountToStr);
                                 Session sessionForMiner = NodeManager.getSession();
                                 NodeManager.pushBlock(block, sessionForMiner);
@@ -170,8 +168,8 @@ public class Miner {
                             String difficultyToStr = Integer.toString(difficulty);
                             String amountToStr = Float.toString(amount);
                             System.out.println("Adding block to chain...\n");
-                            if (cb.isBlockHashValid(index, currentTimeMillis, fromAddress, toAddress, txHash, Nonce, previousBlockHash, algo, hash, difficulty, amount)) {
-                                clientManager.connectAsClient("update");
+                            if (MainChain.isBlockHashValid(index, currentTimeMillis, fromAddress, toAddress, txHash, Nonce, previousBlockHash, algo, hash, difficulty, amount)) {
+                                endpointManager.connectAsClient("update");
                                 Block block = new Block(indexToStr, timeToStr, fromAddress, toAddress, txHash, merkleHash, nonceToStr, previousBlockHash, algo, hash, difficultyToStr, amountToStr);
                                 Session sessionForMiner = NodeManager.getSession();
                                 NodeManager.pushBlock(block, sessionForMiner);
@@ -209,8 +207,8 @@ public class Miner {
                             String difficultyToStr = Integer.toString(difficulty);
                             String amountToStr = Float.toString(amount);
                             System.out.println("Adding block to chain...\n");
-                            if (cb.isBlockHashValid(index, currentTimeMillis, fromAddress, toAddress, txHash, Nonce, previousBlockHash, algo, hash, difficulty, amount)) {
-                                clientManager.connectAsClient("update");
+                            if (MainChain.isBlockHashValid(index, currentTimeMillis, fromAddress, toAddress, txHash, Nonce, previousBlockHash, algo, hash, difficulty, amount)) {
+                                endpointManager.connectAsClient("update");
                                 Block block = new Block(indexToStr, timeToStr, fromAddress, toAddress, txHash, merkleHash, nonceToStr, previousBlockHash, algo, hash, difficultyToStr, amountToStr);
                                 Session sessionForMiner = NodeManager.getSession();
                                 NodeManager.pushBlock(block, sessionForMiner);
@@ -248,8 +246,8 @@ public class Miner {
                             String difficultyToStr = Integer.toString(difficulty);
                             String amountToStr = Float.toString(amount);
                             System.out.println("Adding block to chain...\n");
-                            if (cb.isBlockHashValid(index, currentTimeMillis, fromAddress, toAddress, txHash, Nonce, previousBlockHash, algo, hash, difficulty, amount)) {
-                                clientManager.connectAsClient("update");
+                            if (MainChain.isBlockHashValid(index, currentTimeMillis, fromAddress, toAddress, txHash, Nonce, previousBlockHash, algo, hash, difficulty, amount)) {
+                                endpointManager.connectAsClient("update");
                                 Block block = new Block(indexToStr, timeToStr, fromAddress, toAddress, txHash, merkleHash, nonceToStr, previousBlockHash, algo, hash, difficultyToStr, amountToStr);
                                 Session sessionForMiner = NodeManager.getSession();
                                 NodeManager.pushBlock(block, sessionForMiner);
@@ -287,8 +285,8 @@ public class Miner {
                             String difficultyToStr = Integer.toString(difficulty);
                             String amountToStr = Float.toString(amount);
                             System.out.println("Adding block to chain...\n");
-                            if (cb.isBlockHashValid(index, currentTimeMillis, fromAddress, toAddress, txHash, Nonce, previousBlockHash, algo, hash, difficulty, amount)) {
-                                clientManager.connectAsClient("update");
+                            if (MainChain.isBlockHashValid(index, currentTimeMillis, fromAddress, toAddress, txHash, Nonce, previousBlockHash, algo, hash, difficulty, amount)) {
+                                endpointManager.connectAsClient("update");
                                 Block block = new Block(indexToStr, timeToStr, fromAddress, toAddress, txHash, merkleHash, nonceToStr, previousBlockHash, algo, hash, difficultyToStr, amountToStr);
                                 Session sessionForMiner = NodeManager.getSession();
                                 NodeManager.pushBlock(block, sessionForMiner);
@@ -326,8 +324,8 @@ public class Miner {
                             String difficultyToStr = Integer.toString(difficulty);
                             String amountToStr = Float.toString(amount);
                             System.out.println("Adding block to chain...\n");
-                            if (cb.isBlockHashValid(index, currentTimeMillis, fromAddress, toAddress, txHash, Nonce, previousBlockHash, algo, hash, difficulty, amount)) {
-                                clientManager.connectAsClient("update");
+                            if (MainChain.isBlockHashValid(index, currentTimeMillis, fromAddress, toAddress, txHash, Nonce, previousBlockHash, algo, hash, difficulty, amount)) {
+                                endpointManager.connectAsClient("update");
                                 Block block = new Block(indexToStr, timeToStr, fromAddress, toAddress, txHash, merkleHash, nonceToStr, previousBlockHash, algo, hash, difficultyToStr, amountToStr);
                                 Session sessionForMiner = NodeManager.getSession();
                                 NodeManager.pushBlock(block, sessionForMiner);
@@ -365,8 +363,8 @@ public class Miner {
                             String difficultyToStr = Integer.toString(difficulty);
                             String amountToStr = Float.toString(amount);
                             System.out.println("Adding block to chain...\n");
-                            if (cb.isBlockHashValid(index, currentTimeMillis, fromAddress, toAddress, txHash, Nonce, previousBlockHash, algo, hash, difficulty, amount)) {
-                                clientManager.connectAsClient("update");
+                            if (MainChain.isBlockHashValid(index, currentTimeMillis, fromAddress, toAddress, txHash, Nonce, previousBlockHash, algo, hash, difficulty, amount)) {
+                                endpointManager.connectAsClient("update");
                                 Block block = new Block(indexToStr, timeToStr, fromAddress, toAddress, txHash, merkleHash, nonceToStr, previousBlockHash, algo, hash, difficultyToStr, amountToStr);
                                 Session sessionForMiner = NodeManager.getSession();
                                 NodeManager.pushBlock(block, sessionForMiner);
@@ -404,8 +402,8 @@ public class Miner {
                             String difficultyToStr = Integer.toString(difficulty);
                             String amountToStr = Float.toString(amount);
                             System.out.println("Adding block to chain...\n");
-                            if (cb.isBlockHashValid(index, currentTimeMillis, fromAddress, toAddress, txHash, Nonce, previousBlockHash, algo, hash, difficulty, amount)) {
-                                clientManager.connectAsClient("update");
+                            if (MainChain.isBlockHashValid(index, currentTimeMillis, fromAddress, toAddress, txHash, Nonce, previousBlockHash, algo, hash, difficulty, amount)) {
+                                endpointManager.connectAsClient("update");
                                 Block block = new Block(indexToStr, timeToStr, fromAddress, toAddress, txHash, merkleHash, nonceToStr, previousBlockHash, algo, hash, difficultyToStr, amountToStr);
                                 Session sessionForMiner = NodeManager.getSession();
                                 NodeManager.pushBlock(block, sessionForMiner);
@@ -443,8 +441,8 @@ public class Miner {
                             String difficultyToStr = Integer.toString(difficulty);
                             String amountToStr = Float.toString(amount);
                             System.out.println("Adding block to chain...\n");
-                            if (cb.isBlockHashValid(index, currentTimeMillis, fromAddress, toAddress, txHash, Nonce, previousBlockHash, algo, hash, difficulty, amount)) {
-                                clientManager.connectAsClient("update");
+                            if (MainChain.isBlockHashValid(index, currentTimeMillis, fromAddress, toAddress, txHash, Nonce, previousBlockHash, algo, hash, difficulty, amount)) {
+                                endpointManager.connectAsClient("update");
                                 Block block = new Block(indexToStr, timeToStr, fromAddress, toAddress, txHash, merkleHash, nonceToStr, previousBlockHash, algo, hash, difficultyToStr, amountToStr);
                                 Session sessionForMiner = NodeManager.getSession();
                                 NodeManager.pushBlock(block, sessionForMiner);

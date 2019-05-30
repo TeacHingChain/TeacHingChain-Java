@@ -7,7 +7,7 @@ import com.thc.blockchain.network.decoders.AlertDecoder;
 import com.thc.blockchain.network.decoders.BlockDecoder;
 import com.thc.blockchain.network.encoders.AlertEncoder;
 import com.thc.blockchain.network.encoders.BlockEncoder;
-import com.thc.blockchain.network.nodes.ClientManager;
+import com.thc.blockchain.network.nodes.EndpointManager;
 import com.thc.blockchain.network.nodes.NodeManager;
 import com.thc.blockchain.network.objects.Alert;
 import com.thc.blockchain.util.WalletLogger;
@@ -57,7 +57,7 @@ public class SyncAlertServer {
 
     @OnMessage
     public void onAlertMessage(Alert alert, Session session) {
-        ClientManager clientManager = new ClientManager();
+        EndpointManager endpointManager = new EndpointManager();
         try {
             System.out.println("null path hit\n");
             FileInputStream fis = new FileInputStream("/home/dev-environment/Desktop/java_random/TeacHingChain/chain.dat");
@@ -79,7 +79,7 @@ public class SyncAlertServer {
             WalletLogger.logEvent("info", WalletLogger.getLogTimeStamp() + " received alert: \n" + "alert type: " + alert.getAlertType() + " alert message: " + alert.getAlertMessage() + " from session: " + session.getUserProperties().get("id"));
             String remoteCheckSum = alert.getAlertMessage();
             if (Consensus.compareChainChecksum(remoteChainSize, remoteCheckSum)) {
-                clientManager.connectAsClient("sync block");
+                endpointManager.connectAsClient("sync block");
             } else {
                 System.out.println("Refusing to connect to sync block client due to a consensus error!\n");
             }

@@ -4,7 +4,7 @@ import com.thc.blockchain.algos.SHA256;
 import com.thc.blockchain.consensus.Consensus;
 import com.thc.blockchain.network.decoders.AlertDecoder;
 import com.thc.blockchain.network.encoders.AlertEncoder;
-import com.thc.blockchain.network.nodes.ClientManager;
+import com.thc.blockchain.network.nodes.EndpointManager;
 import com.thc.blockchain.network.nodes.NodeManager;
 import com.thc.blockchain.network.objects.Alert;
 import com.thc.blockchain.util.WalletLogger;
@@ -41,24 +41,25 @@ public class SyncAlertClient {
             WalletLogger.logException(cnfe, "severe", WalletLogger.getLogTimeStamp() + " Class not found exception occurred while trying to read chain.dat in SyncAlertServer! See below:\n" + WalletLogger.exceptionStacktraceToString(cnfe));
         }
         System.out.println("ClientManager connected to sync client!\n");
-        NodeManager.registerNode(session, "sync-client");
-        int localChainSize = BlockChain.blockChain.size();
-        String sizeAsString = String.valueOf(localChainSize);
-        Alert sizeAlert = new Alert("sync size", sizeAsString);
-        NodeManager.pushAlert(sizeAlert, session);
-        for (Object o : BlockChain.blockChain) {
-            String blockAsString = o.toString();
-            sb.append(blockAsString);
+        if (NodeManager.registerNode(session, "sync-client")) {
+            int localChainSize = BlockChain.blockChain.size();
+            String sizeAsString = String.valueOf(localChainSize);
+            Alert sizeAlert = new Alert("sync size", sizeAsString);
+            NodeManager.pushAlert(sizeAlert, session);
+            for (Object o : BlockChain.blockChain) {
+                String blockAsString = o.toString();
+                sb.append(blockAsString);
+            }
+            String chainAsString = sb.toString();
+            String checksum = SHA256.generateSHA256Hash(chainAsString);
+            Alert checksumAlert = new Alert("sync checksum", checksum);
+            NodeManager.pushAlert(checksumAlert, session);
         }
-        String chainAsString = sb.toString();
-        String checksum = SHA256.generateSHA256Hash(chainAsString);
-        Alert checksumAlert = new Alert("sync checksum", checksum);
-        NodeManager.pushAlert(checksumAlert, session);
     }
 
     @OnMessage
     public void onAlertMessage(Alert alert, Session session) {
-        ClientManager clientManager = new ClientManager();
+        EndpointManager endpointManager = new EndpointManager();
         try {
             System.out.println("null path hit\n");
             FileInputStream fis = new FileInputStream("/home/dev-environment/Desktop/java_random/TeacHingChain/chain.dat");
@@ -79,7 +80,7 @@ public class SyncAlertClient {
         } else if (alert.getAlertType().contentEquals("sync checksum") && remoteChainSize < BlockChain.blockChain.size()) {
             String remoteCheckSum = alert.getAlertMessage();
             if (Consensus.compareChainChecksum(remoteChainSize, remoteCheckSum)) {
-                clientManager.connectAsClient("sync block");
+                endpointManager.connectAsClient("sync block");
             } else {
                 WalletLogger.logEvent("info", WalletLogger.getLogTimeStamp() + " Refusing to connect to sync block client due to a consensus error!\n");
                 System.out.println("Refusing to connect to sync block client due to a consensus error!\n");

@@ -3,7 +3,7 @@ package com.thc.blockchain.wallet;
 import com.thc.blockchain.algos.SHA256;
 import com.thc.blockchain.gui.WalletGui;
 import com.thc.blockchain.network.Constants;
-import com.thc.blockchain.network.nodes.ClientManager;
+import com.thc.blockchain.network.nodes.EndpointManager;
 import com.thc.blockchain.network.nodes.server.endpoints.GenesisChainServerEndpoint;
 import com.thc.blockchain.util.ConfigParser;
 import com.thc.blockchain.util.Miner;
@@ -21,25 +21,24 @@ public class Launcher {
     private static String algo;
     public static int difficulty;
 
-    public static void main(String[] args) throws MainChain.InsufficientBalanceException {
+    public static void main(String[] args) {
         // File rootDir = new File(baseDir);
         // Process proc = Runtime.getRuntime().exec("mvn cargo:run -e", null, rootDir);
         ConfigParser configParser = new ConfigParser();
         configParser.readConfigFile();
         MainChain mc = new MainChain();
-        ChainBuilder cb = new ChainBuilder();
         Miner miner = new Miner();
         File chainFile = new File(baseDir + "/chain.dat");
         if (!chainFile.exists()) {
             GenesisChainServerEndpoint gb = new GenesisChainServerEndpoint();
             gb.initChain();
-            ClientManager clientManager = new ClientManager();
-            clientManager.connectAsClient("init chain");
+            EndpointManager endpointManager = new EndpointManager();
+            endpointManager.connectAsClient("init chain");
         } else {
             mc.readKeyRing();
             mc.readAddressBook();
             mc.readBlockChain();
-            cb.readTxPool();
+            mc.readTxPool();
         }
         if (!chainFile.exists()) {
             difficulty = 5;
@@ -51,7 +50,7 @@ public class Launcher {
         System.out.println("\n");
         System.out.println("Welcome to the light-weight, PoC, java implementation of TeacHingChain!\n");
         while (true) {
-            ClientManager clientManager = new ClientManager();
+            EndpointManager endpointManager = new EndpointManager();
             Scanner input = new Scanner(System.in);
             System.out.println("\n");
             System.out.println("Enter command:\n");
@@ -66,10 +65,14 @@ public class Launcher {
                     System.out.println("\n");
                     System.out.println("Please enter amount: \n");
                     float amountInput = txData.nextFloat();
-                    if (amountInput > MainChain.balance) {
-                        throw new MainChain.InsufficientBalanceException("Insufficient balance for tx " + SHA256.generateSHA256Hash(fromAddress + toAddress + amountInput));
-                    } else {
-                        mc.sendTx(fromAddress, toAddress, amountInput);
+                    try {
+                        if (amountInput > MainChain.balance) {
+                            throw new MainChain.InsufficientBalanceException("Insufficient balance exception occurred! See log for details\n");
+                        } else {
+                            mc.sendTx(fromAddress, toAddress, amountInput);
+                        }
+                    } catch (MainChain.InsufficientBalanceException ibe) {
+                        WalletLogger.logException(ibe, "warning", WalletLogger.getLogTimeStamp() + "Insufficient balance for tx " + SHA256.generateSHA256Hash(fromAddress + toAddress + amountInput) + "\nAmount: " + amountInput + " Balance: " + MainChain.balance + "\n" + WalletLogger.exceptionStacktraceToString(ibe));
                     }
                     break;
                 }
@@ -132,8 +135,8 @@ public class Launcher {
                         algo = "scrypt";
                     }
                     while (howManyBlocks > numBlocksMined) {
-                        cb.readTxPool();
-                        cb.getTxPool();
+                        mc.readTxPool();
+                        mc.getTxPool();
                         File tempFile = new File(baseDir + "/tx-pool.dat");
                         if (!tempFile.exists() && BlockChain.blockChain.size() >= 3) {
                             TxPoolArray txPool = new TxPoolArray();
@@ -207,7 +210,7 @@ public class Launcher {
                                 TxPoolArray.TxPool.remove(txHash);
                                 System.out.println("removing: \n" + txHash);
                                 numBlocksMined++;
-                                cb.overwriteTxPool();
+                                mc.overwriteTxPool();
                                 TimeUnit.SECONDS.sleep(3);
                             } catch (InterruptedException ie) {
                                 WalletLogger.logException(ie, "severe", WalletLogger.getLogTimeStamp() + " Interrupted exception occurred during mining operation! See below:\n" + WalletLogger.exceptionStacktraceToString(ie));
@@ -222,7 +225,7 @@ public class Launcher {
                     break;
                 }
                 case "view tx pool": {
-                    cb.getTxPool();
+                    mc.getTxPool();
                     break;
                 }
                 case "view difficulty": {
@@ -230,7 +233,7 @@ public class Launcher {
                     break;
                 }
                 case "sync": {
-                    clientManager.connectAsClient("sync");
+                    endpointManager.connectAsClient("sync");
                     break;
                 }
                 case "start gui": {
@@ -287,7 +290,7 @@ TeacHingChain, a very simple crypto-currency implementation written in java for 
 Tx hash: 5d0b0f61a978470869b78136bf5acc40e07ec361ad3faeb5feb28597a644de53
 
 
-Merkle hash: c433108d65576596d46ae7840a06cb9f2bce102e0d5b2bfa32157d7675123d0f
+Merkle hash: c433108d65576596d46ae7840a06mc.f2bce102e0d5b2bfa32157d7675123d0f
 
 
 Previous none

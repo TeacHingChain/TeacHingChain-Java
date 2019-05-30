@@ -4,6 +4,8 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.thc.blockchain.algos.SHA256;
+import com.thc.blockchain.algos.SHA512;
+import com.thc.blockchain.algos.Scrypt;
 import com.thc.blockchain.network.Constants;
 import com.thc.blockchain.util.ConfigParser;
 import com.thc.blockchain.util.WalletLogger;
@@ -23,10 +25,56 @@ public class MainChain {
     public static final float nSubsidy = 50;
     private static String address;
     private static String privKey;
+    private static String checkHash;
+
 
     private ConfigParser config = new ConfigParser();
 
     public MainChain() {}
+
+    public static boolean isBlockHashValid(long index, long currentTimeMillis, String fromAddress, String toAddress, String txHash, long Nonce, String previousBlockHash, String algo, String currentHash, int difficulty, float amount) {
+        MainChain.difficulty = difficulty;
+        String blockHeader = (index + currentTimeMillis + fromAddress + toAddress + txHash + Nonce + previousBlockHash + algo + difficulty + amount);
+        if (algo.contentEquals("sha256")) {
+            checkHash = SHA256.generateSHA256Hash(blockHeader);
+        } else if (algo.contentEquals("sha512")) {
+            checkHash = SHA512.generateSHA512Hash(blockHeader);
+        } else if (algo.contentEquals("scrypt")) {
+            checkHash = Scrypt.generateScryptHash(blockHeader);
+        }
+        return (checkHash.contentEquals(currentHash));
+    }
+
+    private void writeTxPool(long blockIndex, String sendKey, String recvKey, float amount) {
+        String txHash = SHA256.generateSHA256Hash(blockIndex + sendKey + recvKey);
+        File tempFile = new File(baseDir + "/tx-pool.dat");
+        if (!tempFile.exists()) {
+            TxPoolArray txpool = new TxPoolArray();
+            String amountToStr = Float.toString(amount);
+            TxPoolArray.TxPool.add(sendKey);
+            TxPoolArray.TxPool.add(recvKey);
+            TxPoolArray.TxPool.add(amountToStr);
+            TxPoolArray.TxPool.add(txHash);
+        } else {
+            String amountToStr = Float.toString(amount);
+            TxPoolArray.TxPool.add(sendKey);
+            TxPoolArray.TxPool.add(recvKey);
+            TxPoolArray.TxPool.add(amountToStr);
+            TxPoolArray.TxPool.add(txHash);
+        }
+        try {
+            System.out.println("\n");
+            System.out.println("Writing to tx-pool...\n");
+            System.out.println("\n");
+            FileOutputStream fos = new FileOutputStream(baseDir + "/tx-pool.dat");
+            ObjectOutputStream oos = new ObjectOutputStream(fos);
+            oos.writeObject(TxPoolArray.TxPool);
+            oos.close();
+            fos.close();
+        } catch (IOException ioe) {
+            WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp() + " IO exception occurred while writing to tx-pool! See below:\n" + WalletLogger.exceptionStacktraceToString(ioe));
+        }
+    }
 
     String getBestHash() {
         String bestBlock = BlockChain.blockChain.get(BlockChain.blockChain.size() - 1).toString();
@@ -166,7 +214,7 @@ public class MainChain {
         }
     }
 
-    int getIndexOfBlockChain() {
+    public int getIndexOfBlockChain() {
         return BlockChain.blockChain.size() - 1;
     }
 
@@ -224,7 +272,6 @@ public class MainChain {
     }
 
     public String generateAddress(){
-
         if (KeyRing.keyRing.size() == 1) {
             String privKeyStr = KeyRing.keyRing.get(0).toString();
             byte[] privKeyBytes = privKeyStr.getBytes();
@@ -303,9 +350,49 @@ public class MainChain {
     }
 
     public void sendTx(String sendKeyTx, String recvKeyTx, float amount) {
-        ChainBuilder cb = new ChainBuilder();
         long blockIndex = (BlockChain.blockChain.size());
-        cb.writeTxPool(blockIndex, sendKeyTx, recvKeyTx, amount);
+        writeTxPool(blockIndex, sendKeyTx, recvKeyTx, amount);
+    }
+
+    public void overwriteTxPool() {
+        try {
+            FileOutputStream fos = new FileOutputStream(baseDir + "/tx-pool.dat");
+            ObjectOutputStream oos = new ObjectOutputStream(fos);
+            oos.writeObject(TxPoolArray.TxPool);
+            oos.close();
+            fos.close();
+            readTxPool();
+        } catch (IOException ioe) {
+            WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp() + " IO exception occurred while overwriting tx-pool! See below:\n" + WalletLogger.exceptionStacktraceToString(ioe));
+        }
+    }
+
+    public void readTxPool() {
+        try {
+            FileInputStream fis = new FileInputStream(baseDir + "/tx-pool.dat");
+            ObjectInputStream ois = new ObjectInputStream(fis);
+            TxPoolArray.TxPool = (ArrayList) ois.readObject();
+            ois.close();
+            fis.close();
+        } catch (FileNotFoundException e) {
+            TxPoolArray txpool = new TxPoolArray();
+            overwriteTxPool();
+        } catch (IOException ioe) {
+            WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp() + " IO exception occurred while reading tx-pool! See below:\n" + WalletLogger.exceptionStacktraceToString(ioe));
+        } catch (ClassNotFoundException cnfe) {
+            WalletLogger.logException(cnfe, "severe", WalletLogger.getLogTimeStamp() + " Class not found exception occurred while reading tx-pool! See below:\n" + WalletLogger.exceptionStacktraceToString(cnfe));
+        }
+    }
+
+    public void getTxPool() {
+        if (!TxPoolArray.TxPool.isEmpty()) {
+            System.out.println("tx pool: \n");
+            for (int i = 0; i < TxPoolArray.TxPool.size(); i++) {
+                System.out.println(TxPoolArray.TxPool.get(i));
+            }
+        } else {
+            System.out.println("tx pool: \n" + "[]");
+        }
     }
 
     long getDifficulty(){
@@ -341,8 +428,7 @@ public class MainChain {
 
     static class InsufficientBalanceException extends Exception {
         InsufficientBalanceException(String msg) {
-            System.out.println("Insufficient funds for transaction! See log for details\n");
-            WalletLogger.logEvent("warning", WalletLogger.getLogTimeStamp() + " " + msg);
+            System.out.println(msg);
         }
     }
 }

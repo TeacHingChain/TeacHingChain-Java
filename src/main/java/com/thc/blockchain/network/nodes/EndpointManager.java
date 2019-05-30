@@ -11,7 +11,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import static com.thc.blockchain.network.Constants.*;
 
-public class ClientManager {
+public final class EndpointManager {
 
     private final static CountDownLatch messageLatch = new CountDownLatch(1);
     public static String node1ConfigIP;
