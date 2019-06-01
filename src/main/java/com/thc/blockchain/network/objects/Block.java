@@ -2,6 +2,7 @@ package com.thc.blockchain.network.objects;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.Objects;
 
 public final class Block {
@@ -14,10 +15,10 @@ public final class Block {
     private String fromAddress;
     @JsonProperty("to address")
     private String toAddress;
-    @JsonProperty("tx hash")
-    private String txHash;
-    @JsonProperty ("merkle hash")
-    private String merkleHash;
+    @JsonProperty("transactions")
+    private String[] txs;
+    @JsonProperty ("merkle root")
+    private String merkleRoot;
     @JsonProperty("nonce")
     private String Nonce;
     @JsonProperty("previous block hash")
@@ -34,7 +35,7 @@ public final class Block {
     @JsonCreator
     public Block(@JsonProperty("index") String index, @JsonProperty("time stamp") String timeStamp,
                  @JsonProperty("from address") String fromAddress, @JsonProperty("to address") String toAddress,
-                 @JsonProperty("tx hash") String txHash, @JsonProperty("merkle hash") String merkleHash,
+                 @JsonProperty("transactions") String[] txs, @JsonProperty("merkle root") String merkleRoot,
                  @JsonProperty("nonce") String Nonce, @JsonProperty("previous block hash") String previousBlockHash,
                  @JsonProperty("algo") String algo, @JsonProperty("block hash") String blockHash,
                  @JsonProperty("difficulty") String difficulty, @JsonProperty("amount") String amount) {
@@ -42,8 +43,8 @@ public final class Block {
         Objects.requireNonNull(timeStamp);
         Objects.requireNonNull(fromAddress);
         Objects.requireNonNull(toAddress);
-        Objects.requireNonNull(txHash);
-        Objects.requireNonNull(merkleHash);
+        Objects.requireNonNull(txs);
+        Objects.requireNonNull(merkleRoot);
         Objects.requireNonNull(Nonce);
         Objects.requireNonNull(previousBlockHash);
         Objects.requireNonNull(algo);
@@ -54,18 +55,14 @@ public final class Block {
         this.timeStamp = timeStamp;
         this.fromAddress = fromAddress;
         this.toAddress = toAddress;
-        this.txHash = txHash;
-        this.merkleHash = merkleHash;
+        this.txs = txs;
+        this.merkleRoot = merkleRoot;
         this.Nonce = Nonce;
         this.previousBlockHash = previousBlockHash;
         this.algo = algo;
         this.blockHash = blockHash;
         this.difficulty = difficulty;
         this.amount = amount;
-    }
-
-    public Block() {
-        super();
     }
 
     public String getIndex() {
@@ -76,11 +73,11 @@ public final class Block {
     }
     public String getFromAddress() { return this.fromAddress; }
     public String getToAddress() { return this.toAddress; }
-    public String getTxHash() {
-        return this.txHash;
+    public String[] getTransactions() {
+        return this.txs;
     }
-    public String getMerkleHash() {
-        return this.merkleHash;
+    public String getMerkleRoot() {
+        return this.merkleRoot;
     }
     public String getNonce() {
         return this.Nonce;

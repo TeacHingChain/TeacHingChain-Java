@@ -12,35 +12,22 @@ import com.thc.blockchain.network.nodes.NodeManager;
 import com.thc.blockchain.network.objects.Alert;
 import com.thc.blockchain.util.WalletLogger;
 import com.thc.blockchain.wallet.BlockChain;
+import com.thc.blockchain.wallet.MainChain;
+
 import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.util.ArrayList;
 
 @ServerEndpoint(value = "/" + Constants.syncKey, encoders = { BlockEncoder.class, AlertEncoder.class }, decoders = { BlockDecoder.class, AlertDecoder.class })
 public class SyncAlertServer {
 
     public static int remoteChainSize;
+    private MainChain mc = new MainChain();
 
     @OnOpen
     public void onOpen(Session session) {
-        try {
-            FileInputStream fis = new FileInputStream("/home/dev-environment/Desktop/java_random/TeacHingChain/chain.dat");
-            ObjectInputStream ois = new ObjectInputStream(fis);
-            BlockChain.blockChain = (ArrayList) ois.readObject();
-            ois.close();
-            fis.close();
-        } catch (IOException ioe) {
-            System.out.println("An IO error occurred in SyncAlertServer:onAlertMessage, see log for details!");
-            WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp() + " IO exception occurred while trying to read chain.dat in SyncAlertServer! See below:\n" + WalletLogger.exceptionStacktraceToString(ioe));
-        } catch (ClassNotFoundException cnfe) {
-            System.out.println("A class not found error occurred in SyncAlertServer:onAlertMessage, see log for details!");
-            WalletLogger.logException(cnfe, "severe", WalletLogger.getLogTimeStamp() + " Class not found exception occurred while trying to read chain.dat in SyncAlertServer! See below:\n" + WalletLogger.exceptionStacktraceToString(cnfe));
-        }
+        mc.readBlockChain();
         System.out.println("ClientManager connected to sync client!\n");
         NodeManager.registerNode(session, "sync-server");
         int localChainSize = BlockChain.blockChain.size();
@@ -49,7 +36,7 @@ public class SyncAlertServer {
         NodeManager.pushAlert(sizeAlert, session);
         WalletLogger.logEvent("info", WalletLogger.getLogTimeStamp() + " pushed alert: \n" + "alert type: " + sizeAlert.getAlertType() + " alert message: " + sizeAlert.getAlertMessage() + " from session: " + session.getUserProperties().get("id"));
 
-        String chainChecksum = SHA256.generateSHA256Hash(BlockChain.blockChain.toString());
+        String chainChecksum = SHA256.SHA256HashString(BlockChain.blockChain.toString());
         Alert checksum = new Alert("sync checksum", chainChecksum);
         NodeManager.pushAlert(checksum, session);
         WalletLogger.logEvent("info", WalletLogger.getLogTimeStamp() + " pushed alert: \n" + "alert type: " + sizeAlert.getAlertType() + " alert message: " + sizeAlert.getAlertMessage() + " from session: " + session.getUserProperties().get("id"));
@@ -58,20 +45,7 @@ public class SyncAlertServer {
     @OnMessage
     public void onAlertMessage(Alert alert, Session session) {
         EndpointManager endpointManager = new EndpointManager();
-        try {
-            System.out.println("null path hit\n");
-            FileInputStream fis = new FileInputStream("/home/dev-environment/Desktop/java_random/TeacHingChain/chain.dat");
-            ObjectInputStream ois = new ObjectInputStream(fis);
-            BlockChain.blockChain = (ArrayList) ois.readObject();
-            ois.close();
-            fis.close();
-        } catch (IOException ioe) {
-            System.out.println("An IO error occurred in SyncAlertServer:onAlertMessage, see log for details!");
-            WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp() + " IO exception occurred while trying to read chain.dat in SyncAlertServer! See below:\n" + WalletLogger.exceptionStacktraceToString(ioe));
-        } catch (ClassNotFoundException cnfe) {
-            System.out.println("A class not found error occurred in SyncAlertServer:onAlertMessage, see log for details!");
-            WalletLogger.logException(cnfe, "severe", WalletLogger.getLogTimeStamp() + " Class not found exception occurred while trying to read chain.dat in SyncAlertServer! See below:\n" + WalletLogger.exceptionStacktraceToString(cnfe));
-        }
+        mc.readBlockChain();
         if (alert.getAlertType().contentEquals("sync size")) {
             WalletLogger.logEvent("info", WalletLogger.getLogTimeStamp() + " received alert: \n" + "alert type: " + alert.getAlertType() + " alert message: " + alert.getAlertMessage() + " from session: " + session.getUserProperties().get("id"));
             remoteChainSize = Integer.parseInt(alert.getAlertMessage());

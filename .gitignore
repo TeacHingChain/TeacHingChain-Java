@@ -17,7 +17,7 @@ addressBook.dat
 debug.log
 
 # Config file
-config.txt
+config/config.properties
 
 # User-specific stuff:
 .idea/workspace.xml

@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Objects;
 
-public class Alert {
+public final class Alert {
 
     @JsonProperty("alert type")
     private final String alertType;

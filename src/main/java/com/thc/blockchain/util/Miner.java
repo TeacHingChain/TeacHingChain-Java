@@ -2,14 +2,17 @@ package com.thc.blockchain.util;
 
 import com.thc.blockchain.algos.SHA256;
 import com.thc.blockchain.algos.SHA512;
-import com.thc.blockchain.algos.Scrypt;
+import com.thc.blockchain.consensus.Consensus;
+import com.thc.blockchain.network.encoders.BlockEncoder;
 import com.thc.blockchain.network.nodes.EndpointManager;
 import com.thc.blockchain.network.nodes.NodeManager;
 import com.thc.blockchain.network.objects.Block;
 import com.thc.blockchain.wallet.BlockChain;
 import com.thc.blockchain.wallet.MainChain;
-
+import javax.websocket.DecodeException;
+import javax.websocket.EncodeException;
 import javax.websocket.Session;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -22,10 +25,9 @@ public class Miner {
     private static long hashRate;
     private static Timer timer;
     private static int updatedIndex;
-    private String hash;
-    private String merkleHash;
+    private byte[] hash;
 
-    public void mine(long index, long currentTimeMillis, String fromAddress, String toAddress, String txHash, long Nonce, String previousBlockHash, String algo, int difficulty, float amount) {
+    public void mine(long index, long currentTimeMillis, String fromAddress, String toAddress, String[] txHash, String merkleRoot, long Nonce, String previousBlockHash, String algo, int difficulty, float amount) {
         try {
             System.out.println("Seeing if any configured nodes are up...\n");
             EndpointManager endpointManager = new EndpointManager();
@@ -40,30 +42,28 @@ public class Miner {
                 timer.schedule(new TimerTask() {
                     @Override
                     public void run() {
-                        mc.readBlockChain();
+                        mc.calculateBalance();
                         System.out.println("\n");
                         System.out.println("Current hash rate: " + hashRate + " " + "hash/s");
                         updatedIndex = BlockChain.blockChain.size();
                     }
                 }, 0, 3000);
                 while (true) {
-                    String blockHeader = (index + currentTimeMillis + fromAddress + toAddress + txHash + Nonce + previousBlockHash + algo + difficulty + amount);
+                    byte[] blockHeaderBytes = MainChain.swapEndianness(MainChain.hexStringToByteArray(MainChain.getHex((index + currentTimeMillis + fromAddress + toAddress + Arrays.toString(txHash) + merkleRoot + Nonce + previousBlockHash + algo + difficulty + amount).getBytes())));
                     if (algo.contentEquals("sha256")) {
-                        hash = SHA256.generateSHA256Hash(blockHeader);
-                        merkleHash = SHA256.generateSHA256Hash(txHash);
+                        hash = SHA256.SHA256HashByteArray(SHA256.SHA256HashByteArray(blockHeaderBytes));
                     } else if (algo.contentEquals("sha512")) {
-                        hash = SHA512.generateSHA512Hash(blockHeader);
-                        merkleHash = SHA512.generateSHA512Hash(txHash);
-                    } else if (algo.contentEquals("scrypt")) {
+                        hash = SHA512.SHA512HashByteArray(SHA512.SHA512HashByteArray(blockHeaderBytes));
+                   /* } else if (algo.contentEquals("scrypt")) {
                         hash = Scrypt.generateScryptHash(blockHeader);
                         merkleHash = Scrypt.generateScryptHash(txHash);
-                    }
+                   */ }
                     long deltaS;
                     long deltaN;
                     long endTime;
                     if (difficulty <= 1) {
                         difficulty = 1;
-                        if (!hash.startsWith("0")) {
+                        if (!MainChain.getHex(hash).startsWith("0")) {
                             Nonce++;
                             endTime = System.nanoTime();
                             deltaN = endTime - startTime;
@@ -73,14 +73,15 @@ public class Miner {
                                 previousBlockHash = mc.getPreviousBlockHash();
                                 currentTimeMillis = System.currentTimeMillis();
                                 Nonce = 0L;
-                                txHash = SHA256.generateSHA256Hash(updatedIndex + fromAddress + toAddress);
+                                byte[] txHashBytes = (fromAddress + toAddress + amount).getBytes();
+                                merkleRoot = MainChain.getHex(SHA256.SHA256HashByteArray(txHashBytes));
                                 difficulty = mc.calculateDifficulty();
-                                restartMiner(updatedIndex, currentTimeMillis, fromAddress, toAddress, txHash, Nonce, previousBlockHash, algo, difficulty, amount);
+                                restartMiner(updatedIndex, currentTimeMillis, fromAddress, toAddress, txHash, merkleRoot, Nonce, previousBlockHash, algo, difficulty, amount);
                                 break;
                             }
                         } else {
                             System.out.println("\n");
-                            System.out.println("[" + hash + "]");
+                            System.out.println("[" + MainChain.getHex(hash) + "]");
                             System.out.println("\n");
                             String indexToStr = Long.toString(index);
                             String timeToStr = Long.toString(currentTimeMillis);
@@ -88,13 +89,13 @@ public class Miner {
                             String difficultyToStr = Integer.toString(difficulty);
                             String amountToStr = Float.toString(amount);
                             System.out.println("Adding block to chain...\n");
-                            if (MainChain.isBlockHashValid(index, currentTimeMillis, fromAddress, toAddress, txHash, Nonce, previousBlockHash, algo, hash, difficulty, amount)) {
+                            if (MainChain.isBlockHashValid(index, currentTimeMillis, fromAddress, toAddress, txHash, merkleRoot, Nonce, previousBlockHash, algo, MainChain.getHex(hash), difficulty, amount)) {
                                 endpointManager.connectAsClient("update");
-                                Block block = new Block(indexToStr, timeToStr, fromAddress, toAddress, txHash, merkleHash, nonceToStr, previousBlockHash, algo, hash, difficultyToStr, amountToStr);
+                                Block block = new Block(indexToStr, timeToStr, fromAddress, toAddress, txHash, merkleRoot, nonceToStr, previousBlockHash, algo, MainChain.getHex(hash), difficultyToStr, amountToStr);
                                 Session sessionForMiner = NodeManager.getSession();
                                 NodeManager.pushBlock(block, sessionForMiner);
                                 WalletLogger.logEvent("info", new Date() + "A block was mined! See details below:");
-                                WalletLogger.logEvent("info", "Hash: " + hash + " New best height: " + index);
+                                WalletLogger.logEvent("info", "Hash: " + MainChain.getHex(hash) + " New best height: " + index);
                                 timer.cancel();
                                 break;
                             } else {
@@ -104,7 +105,7 @@ public class Miner {
                             }
                         }
                     } else if (difficulty == 2) {
-                        if (!hash.startsWith("00")) {
+                        if (!MainChain.getHex(hash).startsWith("00")) {
                             Nonce++;
                             endTime = System.nanoTime();
                             deltaN = endTime - startTime;
@@ -114,14 +115,15 @@ public class Miner {
                                 previousBlockHash = mc.getPreviousBlockHash();
                                 currentTimeMillis = System.currentTimeMillis();
                                 Nonce = 0L;
-                                txHash = SHA256.generateSHA256Hash(updatedIndex + fromAddress + toAddress);
+                                byte[] txHashBytes = (updatedIndex + fromAddress + toAddress).getBytes();
+                                merkleRoot = MainChain.getHex(SHA256.SHA256HashByteArray(txHashBytes));
                                 difficulty = mc.calculateDifficulty();
-                                restartMiner(updatedIndex, currentTimeMillis, fromAddress, toAddress, txHash, Nonce, previousBlockHash, algo, difficulty, amount);
+                                restartMiner(updatedIndex, currentTimeMillis, fromAddress, toAddress, txHash, merkleRoot, Nonce, previousBlockHash, algo, difficulty, amount);
                                 break;
                             }
                         } else {
                             System.out.println("\n");
-                            System.out.println("[" + hash + "]");
+                            System.out.println("[" + MainChain.getHex(hash) + "]");
                             System.out.println("\n");
                             String indexToStr = Long.toString(index);
                             String timeToStr = Long.toString(currentTimeMillis);
@@ -129,9 +131,9 @@ public class Miner {
                             String difficultyToStr = Integer.toString(difficulty);
                             String amountToStr = Float.toString(amount);
                             System.out.println("Adding block to chain...\n");
-                            if (MainChain.isBlockHashValid(index, currentTimeMillis, fromAddress, toAddress, txHash, Nonce, previousBlockHash, algo, hash, difficulty, amount)) {
+                            if (MainChain.isBlockHashValid(index, currentTimeMillis, fromAddress, toAddress, txHash, merkleRoot, Nonce, previousBlockHash, algo, MainChain.getHex(hash), difficulty, amount)) {
                                 endpointManager.connectAsClient("update");
-                                Block block = new Block(indexToStr, timeToStr, fromAddress, toAddress, txHash, merkleHash, nonceToStr, previousBlockHash, algo, hash, difficultyToStr, amountToStr);
+                                Block block = new Block(indexToStr, timeToStr, fromAddress, toAddress, txHash, merkleRoot, nonceToStr, previousBlockHash, algo, MainChain.getHex(hash), difficultyToStr, amountToStr);
                                 Session sessionForMiner = NodeManager.getSession();
                                 NodeManager.pushBlock(block, sessionForMiner);
                                 timer.cancel();
@@ -143,7 +145,7 @@ public class Miner {
                             }
                         }
                     } else if (difficulty == 3) {
-                        if (!hash.startsWith("000")) {
+                        if (!MainChain.getHex(hash).startsWith("000")) {
                             Nonce++;
                             endTime = System.nanoTime();
                             deltaN = endTime - startTime;
@@ -153,14 +155,15 @@ public class Miner {
                                 previousBlockHash = mc.getPreviousBlockHash();
                                 currentTimeMillis = System.currentTimeMillis();
                                 Nonce = 0L;
-                                txHash = SHA256.generateSHA256Hash(updatedIndex + fromAddress + toAddress);
+                                byte[] txHashBytes = (updatedIndex + fromAddress + toAddress).getBytes();
+                                merkleRoot = MainChain.getHex(SHA256.SHA256HashByteArray(txHashBytes));
                                 difficulty = mc.calculateDifficulty();
-                                restartMiner(updatedIndex, currentTimeMillis, fromAddress, toAddress, txHash, Nonce, previousBlockHash, algo, difficulty, amount);
+                                restartMiner(updatedIndex, currentTimeMillis, fromAddress, toAddress, txHash, merkleRoot, Nonce, previousBlockHash, algo, difficulty, amount);
                                 break;
                             }
                         } else {
                             System.out.println("\n");
-                            System.out.println("[" + hash + "]");
+                            System.out.println("[" + MainChain.getHex(hash) + "]");
                             System.out.println("\n");
                             String indexToStr = Long.toString(index);
                             String timeToStr = Long.toString(currentTimeMillis);
@@ -168,9 +171,9 @@ public class Miner {
                             String difficultyToStr = Integer.toString(difficulty);
                             String amountToStr = Float.toString(amount);
                             System.out.println("Adding block to chain...\n");
-                            if (MainChain.isBlockHashValid(index, currentTimeMillis, fromAddress, toAddress, txHash, Nonce, previousBlockHash, algo, hash, difficulty, amount)) {
+                            if (MainChain.isBlockHashValid(index, currentTimeMillis, fromAddress, toAddress, txHash, merkleRoot, Nonce, previousBlockHash, algo, MainChain.getHex(hash), difficulty, amount)) {
                                 endpointManager.connectAsClient("update");
-                                Block block = new Block(indexToStr, timeToStr, fromAddress, toAddress, txHash, merkleHash, nonceToStr, previousBlockHash, algo, hash, difficultyToStr, amountToStr);
+                                Block block = new Block(indexToStr, timeToStr, fromAddress, toAddress, txHash, merkleRoot, nonceToStr, previousBlockHash, algo, MainChain.getHex(hash), difficultyToStr, amountToStr);
                                 Session sessionForMiner = NodeManager.getSession();
                                 NodeManager.pushBlock(block, sessionForMiner);
                                 timer.cancel();
@@ -182,7 +185,7 @@ public class Miner {
                             }
                         }
                     } else if (difficulty == 4) {
-                        if (!hash.startsWith("0000")) {
+                        if (!MainChain.getHex(hash).startsWith("0000")) {
                             Nonce++;
                             endTime = System.nanoTime();
                             deltaN = endTime - startTime;
@@ -192,14 +195,15 @@ public class Miner {
                                 previousBlockHash = mc.getPreviousBlockHash();
                                 currentTimeMillis = System.currentTimeMillis();
                                 Nonce = 0L;
-                                txHash = SHA256.generateSHA256Hash(updatedIndex + fromAddress + toAddress);
+                                byte[] txHashBytes = (updatedIndex + fromAddress + toAddress).getBytes();
+                                merkleRoot = MainChain.getHex(SHA256.SHA256HashByteArray(txHashBytes));
                                 difficulty = mc.calculateDifficulty();
-                                restartMiner(updatedIndex, currentTimeMillis, fromAddress, toAddress, txHash, Nonce, previousBlockHash, algo, difficulty, amount);
+                                restartMiner(updatedIndex, currentTimeMillis, fromAddress, toAddress, txHash, merkleRoot, Nonce, previousBlockHash, algo, difficulty, amount);
                                 break;
                             }
                         } else {
                             System.out.println("\n");
-                            System.out.println("[" + hash + "]");
+                            System.out.println("[" + MainChain.getHex(hash) + "]");
                             System.out.println("\n");
                             String indexToStr = Long.toString(index);
                             String timeToStr = Long.toString(currentTimeMillis);
@@ -207,9 +211,9 @@ public class Miner {
                             String difficultyToStr = Integer.toString(difficulty);
                             String amountToStr = Float.toString(amount);
                             System.out.println("Adding block to chain...\n");
-                            if (MainChain.isBlockHashValid(index, currentTimeMillis, fromAddress, toAddress, txHash, Nonce, previousBlockHash, algo, hash, difficulty, amount)) {
+                            if (MainChain.isBlockHashValid(index, currentTimeMillis, fromAddress, toAddress, txHash, merkleRoot, Nonce, previousBlockHash, algo, MainChain.getHex(hash), difficulty, amount)) {
                                 endpointManager.connectAsClient("update");
-                                Block block = new Block(indexToStr, timeToStr, fromAddress, toAddress, txHash, merkleHash, nonceToStr, previousBlockHash, algo, hash, difficultyToStr, amountToStr);
+                                Block block = new Block(indexToStr, timeToStr, fromAddress, toAddress, txHash, merkleRoot, nonceToStr, previousBlockHash, algo, MainChain.getHex(hash), difficultyToStr, amountToStr);
                                 Session sessionForMiner = NodeManager.getSession();
                                 NodeManager.pushBlock(block, sessionForMiner);
                                 timer.cancel();
@@ -221,7 +225,7 @@ public class Miner {
                             }
                         }
                     } else if (difficulty == 5) {
-                        if (!hash.startsWith("00000")) {
+                        if (!MainChain.getHex(hash).startsWith("00000")) {
                             Nonce++;
                             endTime = System.nanoTime();
                             deltaN = endTime - startTime;
@@ -231,14 +235,15 @@ public class Miner {
                                 previousBlockHash = mc.getPreviousBlockHash();
                                 currentTimeMillis = System.currentTimeMillis();
                                 Nonce = 0L;
-                                txHash = SHA256.generateSHA256Hash(updatedIndex + fromAddress + toAddress);
+                                byte[] txHashBytes = (updatedIndex + fromAddress + toAddress).getBytes();
+                                merkleRoot = MainChain.getHex(SHA256.SHA256HashByteArray(txHashBytes));
                                 difficulty = mc.calculateDifficulty();
-                                restartMiner(updatedIndex, currentTimeMillis, fromAddress, toAddress, txHash, Nonce, previousBlockHash, algo, difficulty, amount);
+                                restartMiner(updatedIndex, currentTimeMillis, fromAddress, toAddress, txHash, merkleRoot, Nonce, previousBlockHash, algo, difficulty, amount);
                                 break;
                             }
                         } else {
                             System.out.println("\n");
-                            System.out.println("[" + hash + "]");
+                            System.out.println("[" + MainChain.getHex(hash) + "]");
                             System.out.println("\n");
                             String indexToStr = Long.toString(index);
                             String timeToStr = Long.toString(currentTimeMillis);
@@ -246,9 +251,9 @@ public class Miner {
                             String difficultyToStr = Integer.toString(difficulty);
                             String amountToStr = Float.toString(amount);
                             System.out.println("Adding block to chain...\n");
-                            if (MainChain.isBlockHashValid(index, currentTimeMillis, fromAddress, toAddress, txHash, Nonce, previousBlockHash, algo, hash, difficulty, amount)) {
+                            if (MainChain.isBlockHashValid(index, currentTimeMillis, fromAddress, toAddress, txHash, merkleRoot, Nonce, previousBlockHash, algo, MainChain.getHex(hash), difficulty, amount)) {
                                 endpointManager.connectAsClient("update");
-                                Block block = new Block(indexToStr, timeToStr, fromAddress, toAddress, txHash, merkleHash, nonceToStr, previousBlockHash, algo, hash, difficultyToStr, amountToStr);
+                                Block block = new Block(indexToStr, timeToStr, fromAddress, toAddress, txHash, merkleRoot, nonceToStr, previousBlockHash, algo, MainChain.getHex(hash), difficultyToStr, amountToStr);
                                 Session sessionForMiner = NodeManager.getSession();
                                 NodeManager.pushBlock(block, sessionForMiner);
                                 timer.cancel();
@@ -260,7 +265,7 @@ public class Miner {
                             }
                         }
                     } else if (difficulty == 6) {
-                        if (!hash.startsWith("000000")) {
+                        if (!MainChain.getHex(hash).startsWith("000000")) {
                             Nonce++;
                             endTime = System.nanoTime();
                             deltaN = endTime - startTime;
@@ -270,14 +275,15 @@ public class Miner {
                                 previousBlockHash = mc.getPreviousBlockHash();
                                 currentTimeMillis = System.currentTimeMillis();
                                 Nonce = 0L;
-                                txHash = SHA256.generateSHA256Hash(updatedIndex + fromAddress + toAddress);
+                                byte[] txHashBytes = (updatedIndex + fromAddress + toAddress).getBytes();
+                                merkleRoot = MainChain.getHex(SHA256.SHA256HashByteArray(txHashBytes));
                                 difficulty = mc.calculateDifficulty();
-                                restartMiner(updatedIndex, currentTimeMillis, fromAddress, toAddress, txHash, Nonce, previousBlockHash, algo, difficulty, amount);
+                                restartMiner(updatedIndex, currentTimeMillis, fromAddress, toAddress, txHash, merkleRoot, Nonce, previousBlockHash, algo, difficulty, amount);
                                 break;
                             }
                         } else {
                             System.out.println("\n");
-                            System.out.println("[" + hash + "]");
+                            System.out.println("[" + MainChain.getHex(hash) + "]");
                             System.out.println("\n");
                             String indexToStr = Long.toString(index);
                             String timeToStr = Long.toString(currentTimeMillis);
@@ -285,9 +291,16 @@ public class Miner {
                             String difficultyToStr = Integer.toString(difficulty);
                             String amountToStr = Float.toString(amount);
                             System.out.println("Adding block to chain...\n");
-                            if (MainChain.isBlockHashValid(index, currentTimeMillis, fromAddress, toAddress, txHash, Nonce, previousBlockHash, algo, hash, difficulty, amount)) {
+                            if (MainChain.isBlockHashValid(index, currentTimeMillis, fromAddress, toAddress, txHash, merkleRoot, Nonce, previousBlockHash, algo, MainChain.getHex(hash), difficulty, amount)) {
                                 endpointManager.connectAsClient("update");
-                                Block block = new Block(indexToStr, timeToStr, fromAddress, toAddress, txHash, merkleHash, nonceToStr, previousBlockHash, algo, hash, difficultyToStr, amountToStr);
+                                Block block = new Block(indexToStr, timeToStr, fromAddress, toAddress, txHash, merkleRoot, nonceToStr, previousBlockHash, algo, MainChain.getHex(hash), difficultyToStr, amountToStr);
+                                String encodedBlock = new BlockEncoder().encode(block);
+                                boolean verifyIndex = new Consensus().isBlockOrphan(Long.parseLong(block.getIndex()));
+                                if (verifyIndex) {
+                                    BlockChain.blockChain.add(encodedBlock);
+                                } else {
+                                    WalletLogger.logEvent("warning", WalletLogger.getLogTimeStamp() + " Detected orphan block, not adding to chain!\n");
+                                }
                                 Session sessionForMiner = NodeManager.getSession();
                                 NodeManager.pushBlock(block, sessionForMiner);
                                 timer.cancel();
@@ -299,7 +312,7 @@ public class Miner {
                             }
                         }
                     } else if (difficulty == 7) {
-                        if (!hash.startsWith("0000000")) {
+                        if (!MainChain.getHex(hash).startsWith("0000000")) {
                             Nonce++;
                             endTime = System.nanoTime();
                             deltaN = endTime - startTime;
@@ -309,14 +322,15 @@ public class Miner {
                                 previousBlockHash = mc.getPreviousBlockHash();
                                 currentTimeMillis = System.currentTimeMillis();
                                 Nonce = 0L;
-                                txHash = SHA256.generateSHA256Hash(updatedIndex + fromAddress + toAddress);
+                                byte[] txHashBytes = (updatedIndex + fromAddress + toAddress).getBytes();
+                                merkleRoot = MainChain.getHex(SHA256.SHA256HashByteArray(txHashBytes));
                                 difficulty = mc.calculateDifficulty();
-                                restartMiner(updatedIndex, currentTimeMillis, fromAddress, toAddress, txHash, Nonce, previousBlockHash, algo, difficulty, amount);
+                                restartMiner(updatedIndex, currentTimeMillis, fromAddress, toAddress, txHash, merkleRoot, Nonce, previousBlockHash, algo, difficulty, amount);
                                 break;
                             }
                         } else {
                             System.out.println("\n");
-                            System.out.println("[" + hash + "]");
+                            System.out.println("[" + MainChain.getHex(hash) + "]");
                             System.out.println("\n");
                             String indexToStr = Long.toString(index);
                             String timeToStr = Long.toString(currentTimeMillis);
@@ -324,9 +338,9 @@ public class Miner {
                             String difficultyToStr = Integer.toString(difficulty);
                             String amountToStr = Float.toString(amount);
                             System.out.println("Adding block to chain...\n");
-                            if (MainChain.isBlockHashValid(index, currentTimeMillis, fromAddress, toAddress, txHash, Nonce, previousBlockHash, algo, hash, difficulty, amount)) {
+                            if (MainChain.isBlockHashValid(index, currentTimeMillis, fromAddress, toAddress, txHash, merkleRoot, Nonce, previousBlockHash, algo, MainChain.getHex(hash), difficulty, amount)) {
                                 endpointManager.connectAsClient("update");
-                                Block block = new Block(indexToStr, timeToStr, fromAddress, toAddress, txHash, merkleHash, nonceToStr, previousBlockHash, algo, hash, difficultyToStr, amountToStr);
+                                Block block = new Block(indexToStr, timeToStr, fromAddress, toAddress, txHash, merkleRoot, nonceToStr, previousBlockHash, algo, MainChain.getHex(hash), difficultyToStr, amountToStr);
                                 Session sessionForMiner = NodeManager.getSession();
                                 NodeManager.pushBlock(block, sessionForMiner);
                                 timer.cancel();
@@ -338,7 +352,7 @@ public class Miner {
                             }
                         }
                     } else if (difficulty == 8) {
-                        if (!hash.startsWith("00000000")) {
+                        if (!MainChain.getHex(hash).startsWith("00000000")) {
                             Nonce++;
                             endTime = System.nanoTime();
                             deltaN = endTime - startTime;
@@ -348,14 +362,15 @@ public class Miner {
                                 previousBlockHash = mc.getPreviousBlockHash();
                                 currentTimeMillis = System.currentTimeMillis();
                                 Nonce = 0L;
-                                txHash = SHA256.generateSHA256Hash(updatedIndex + fromAddress + toAddress);
+                                byte[] txHashBytes = (updatedIndex + fromAddress + toAddress).getBytes();
+                                merkleRoot = MainChain.getHex(SHA256.SHA256HashByteArray(txHashBytes));
                                 difficulty = mc.calculateDifficulty();
-                                restartMiner(updatedIndex, currentTimeMillis, fromAddress, toAddress, txHash, Nonce, previousBlockHash, algo, difficulty, amount);
+                                restartMiner(updatedIndex, currentTimeMillis, fromAddress, toAddress, txHash, merkleRoot, Nonce, previousBlockHash, algo, difficulty, amount);
                                 break;
                             }
                         } else {
                             System.out.println("\n");
-                            System.out.println("[" + hash + "]");
+                            System.out.println("[" + MainChain.getHex(hash) + "]");
                             System.out.println("\n");
                             String indexToStr = Long.toString(index);
                             String timeToStr = Long.toString(currentTimeMillis);
@@ -363,9 +378,9 @@ public class Miner {
                             String difficultyToStr = Integer.toString(difficulty);
                             String amountToStr = Float.toString(amount);
                             System.out.println("Adding block to chain...\n");
-                            if (MainChain.isBlockHashValid(index, currentTimeMillis, fromAddress, toAddress, txHash, Nonce, previousBlockHash, algo, hash, difficulty, amount)) {
+                            if (MainChain.isBlockHashValid(index, currentTimeMillis, fromAddress, toAddress, txHash, merkleRoot, Nonce, previousBlockHash, algo, MainChain.getHex(hash), difficulty, amount)) {
                                 endpointManager.connectAsClient("update");
-                                Block block = new Block(indexToStr, timeToStr, fromAddress, toAddress, txHash, merkleHash, nonceToStr, previousBlockHash, algo, hash, difficultyToStr, amountToStr);
+                                Block block = new Block(indexToStr, timeToStr, fromAddress, toAddress, txHash, merkleRoot, nonceToStr, previousBlockHash, algo, MainChain.getHex(hash), difficultyToStr, amountToStr);
                                 Session sessionForMiner = NodeManager.getSession();
                                 NodeManager.pushBlock(block, sessionForMiner);
                                 timer.cancel();
@@ -377,7 +392,7 @@ public class Miner {
                             }
                         }
                     } else if (difficulty == 9) {
-                        if (!hash.startsWith("000000000")) {
+                        if (!MainChain.getHex(hash).startsWith("000000000")) {
                             Nonce++;
                             endTime = System.nanoTime();
                             deltaN = endTime - startTime;
@@ -387,14 +402,15 @@ public class Miner {
                                 previousBlockHash = mc.getPreviousBlockHash();
                                 currentTimeMillis = System.currentTimeMillis();
                                 Nonce = 0L;
-                                txHash = SHA256.generateSHA256Hash(updatedIndex + fromAddress + toAddress);
+                                byte[] txHashBytes = (updatedIndex + fromAddress + toAddress).getBytes();
+                                merkleRoot = MainChain.getHex(SHA256.SHA256HashByteArray(txHashBytes));
                                 difficulty = mc.calculateDifficulty();
-                                restartMiner(updatedIndex, currentTimeMillis, fromAddress, toAddress, txHash, Nonce, previousBlockHash, algo, difficulty, amount);
+                                restartMiner(updatedIndex, currentTimeMillis, fromAddress, toAddress, txHash, merkleRoot, Nonce, previousBlockHash, algo, difficulty, amount);
                                 break;
                             }
                         } else {
                             System.out.println("\n");
-                            System.out.println("[" + hash + "]");
+                            System.out.println("[" + MainChain.getHex(hash) + "]");
                             System.out.println("\n");
                             String indexToStr = Long.toString(index);
                             String timeToStr = Long.toString(currentTimeMillis);
@@ -402,9 +418,9 @@ public class Miner {
                             String difficultyToStr = Integer.toString(difficulty);
                             String amountToStr = Float.toString(amount);
                             System.out.println("Adding block to chain...\n");
-                            if (MainChain.isBlockHashValid(index, currentTimeMillis, fromAddress, toAddress, txHash, Nonce, previousBlockHash, algo, hash, difficulty, amount)) {
+                            if (MainChain.isBlockHashValid(index, currentTimeMillis, fromAddress, toAddress, txHash, merkleRoot, Nonce, previousBlockHash, algo, MainChain.getHex(hash), difficulty, amount)) {
                                 endpointManager.connectAsClient("update");
-                                Block block = new Block(indexToStr, timeToStr, fromAddress, toAddress, txHash, merkleHash, nonceToStr, previousBlockHash, algo, hash, difficultyToStr, amountToStr);
+                                Block block = new Block(indexToStr, timeToStr, fromAddress, toAddress, txHash, merkleRoot, nonceToStr, previousBlockHash, algo, MainChain.getHex(hash), difficultyToStr, amountToStr);
                                 Session sessionForMiner = NodeManager.getSession();
                                 NodeManager.pushBlock(block, sessionForMiner);
                                 timer.cancel();
@@ -416,7 +432,7 @@ public class Miner {
                             }
                         }
                     } else if (difficulty == 10) {
-                        if (!hash.startsWith("000000000000")) {
+                        if (!MainChain.getHex(hash).startsWith("0000000000")) {
                             Nonce++;
                             endTime = System.nanoTime();
                             deltaN = endTime - startTime;
@@ -426,14 +442,15 @@ public class Miner {
                                 previousBlockHash = mc.getPreviousBlockHash();
                                 currentTimeMillis = System.currentTimeMillis();
                                 Nonce = 0L;
-                                txHash = SHA256.generateSHA256Hash(updatedIndex + fromAddress + toAddress);
+                                byte[] txHashBytes = (updatedIndex + fromAddress + toAddress).getBytes();
+                                merkleRoot = MainChain.getHex(SHA256.SHA256HashByteArray(txHashBytes));
                                 difficulty = mc.calculateDifficulty();
-                                restartMiner(updatedIndex, currentTimeMillis, fromAddress, toAddress, txHash, Nonce, previousBlockHash, algo, difficulty, amount);
+                                restartMiner(updatedIndex, currentTimeMillis, fromAddress, toAddress, txHash, merkleRoot, Nonce, previousBlockHash, algo, difficulty, amount);
                                 break;
                             }
                         } else {
                             System.out.println("\n");
-                            System.out.println("[" + hash + "]");
+                            System.out.println("[" + MainChain.getHex(hash) + "]");
                             System.out.println("\n");
                             String indexToStr = Long.toString(index);
                             String timeToStr = Long.toString(currentTimeMillis);
@@ -441,9 +458,9 @@ public class Miner {
                             String difficultyToStr = Integer.toString(difficulty);
                             String amountToStr = Float.toString(amount);
                             System.out.println("Adding block to chain...\n");
-                            if (MainChain.isBlockHashValid(index, currentTimeMillis, fromAddress, toAddress, txHash, Nonce, previousBlockHash, algo, hash, difficulty, amount)) {
+                            if (MainChain.isBlockHashValid(index, currentTimeMillis, fromAddress, toAddress, txHash, merkleRoot, Nonce, previousBlockHash, algo, MainChain.getHex(hash), difficulty, amount)) {
                                 endpointManager.connectAsClient("update");
-                                Block block = new Block(indexToStr, timeToStr, fromAddress, toAddress, txHash, merkleHash, nonceToStr, previousBlockHash, algo, hash, difficultyToStr, amountToStr);
+                                Block block = new Block(indexToStr, timeToStr, fromAddress, toAddress, txHash, merkleRoot, nonceToStr, previousBlockHash, algo, MainChain.getHex(hash), difficultyToStr, amountToStr);
                                 Session sessionForMiner = NodeManager.getSession();
                                 NodeManager.pushBlock(block, sessionForMiner);
                                 timer.cancel();
@@ -461,13 +478,17 @@ public class Miner {
             }
         } catch (InterruptedException ie) {
             WalletLogger.logException(ie, "severe", WalletLogger.getLogTimeStamp() + " Interrupted exception occurred during mining operation! See below:\n" + WalletLogger.exceptionStacktraceToString(ie));
+        } catch (EncodeException ee) {
+            WalletLogger.logException(ee, "severe", WalletLogger.getLogTimeStamp() + " Encode exception occurred during mining operation! See below:\n" + WalletLogger.exceptionStacktraceToString(ee));
+        } catch (DecodeException de) {
+            WalletLogger.logException(de, "severe", WalletLogger.getLogTimeStamp() + " Decode exception occurred during mining operation! See below:\n" + WalletLogger.exceptionStacktraceToString(de));
         }
     }
 
-    private void restartMiner(long index, long currentTimeMillis, String fromAddress, String toAddress, String txHash, long Nonce, String previousBlockHash, String algo, int difficulty, float amount) {
+    private void restartMiner(long index, long currentTimeMillis, String fromAddress, String toAddress, String[] txHash, String merkleRoot, long Nonce, String previousBlockHash, String algo, int difficulty, float amount) {
         timer.cancel();
         System.out.println("Trying to restart miner!\n");
-        mine(index, currentTimeMillis, fromAddress, toAddress, txHash, Nonce, previousBlockHash, algo, difficulty, amount);
+        mine(index, currentTimeMillis, fromAddress, toAddress, txHash, merkleRoot, Nonce, previousBlockHash, algo, difficulty, amount);
     }
 }
 

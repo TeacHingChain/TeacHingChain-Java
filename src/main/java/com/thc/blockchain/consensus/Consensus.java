@@ -16,11 +16,11 @@ public class Consensus {
 
     public static Boolean compareChainChecksum(int remoteChainSize, String remoteChecksum) {
         for (int i = 0; i < remoteChainSize; i++) {
-            String blockAsString = BlockChain.blockChain.get(i).toString();
+            String blockAsString = BlockChain.blockChain.get(i);
             sb.append(blockAsString);
         }
         String chainAsString = sb.toString();
-        String checksum = SHA256.generateSHA256Hash(chainAsString);
+        String checksum = SHA256.SHA256HashString(SHA256.SHA256HashString(chainAsString));
         System.out.println("Remote checksum: " + remoteChecksum);
         System.out.println("Local checksum to remoteChainSize " + remoteChainSize + ": " + checksum);
 

@@ -10,14 +10,6 @@ import javax.websocket.EndpointConfig;
 public final class BlockEncoder implements Encoder.Text<Block> {
 
     @Override
-    public void destroy() {
-    }
-
-    @Override
-    public void init(final EndpointConfig arg0) {
-    }
-
-    @Override
     public String encode(final Block block) throws EncodeException {
         try {
             return Constants.OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(block);
@@ -25,5 +17,15 @@ public final class BlockEncoder implements Encoder.Text<Block> {
             throw new EncodeException(block, "Unable to encode block", e);
         }
     }
+
+    @Override
+    public void destroy() {
+    }
+
+    @Override
+    public void init(final EndpointConfig arg0) {
+    }
+
+
 }
 

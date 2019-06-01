@@ -3,7 +3,9 @@ package com.thc.blockchain.network.nodes;
 import com.thc.blockchain.network.objects.Alert;
 import com.thc.blockchain.network.objects.Block;
 import com.thc.blockchain.network.objects.GenesisBlock;
+import com.thc.blockchain.network.objects.Tx;
 import com.thc.blockchain.util.WalletLogger;
+
 import javax.websocket.CloseReason;
 import javax.websocket.CloseReason.CloseCodes;
 import javax.websocket.EncodeException;
@@ -44,13 +46,9 @@ public final class NodeManager {
                 try {
                     sid.getBasicRemote().sendObject(genesisBlock);
                 } catch (IOException ioe) {
-                    WalletLogger.logException(ioe, "severe", "IO exception occurred while trying to push genesis block! See below:\n");
-                    String stacktraceAsString = WalletLogger.exceptionStacktraceToString(ioe);
-                    WalletLogger.logException(ioe, "severe", stacktraceAsString);
+                    WalletLogger.logException(ioe, "severe",  WalletLogger.getLogTimeStamp() + " IO exception occurred while trying to push genesis block! See below:\n" + WalletLogger.exceptionStacktraceToString(ioe));
                 } catch (EncodeException ee) {
-                    WalletLogger.logException(ee, "severe", "Encode exception occurred while trying to push genesis block! See below:\n");
-                    String stacktraceAsString = WalletLogger.exceptionStacktraceToString(ee);
-                    WalletLogger.logException(ee, "severe", stacktraceAsString);
+                    WalletLogger.logException(ee, "severe",  WalletLogger.getLogTimeStamp() + " Encode exception occurred while trying to push genesis block! See below:\n" + WalletLogger.exceptionStacktraceToString(ee));
                 }
             }
         });
@@ -64,13 +62,24 @@ public final class NodeManager {
                 try {
                     sid.getBasicRemote().sendObject(alert);
                 } catch (IOException ioe) {
-                    WalletLogger.logException(ioe, "severe", "IO exception occurred while trying to push an alert to a peer! See below:\n");
-                    String stacktraceAsString = WalletLogger.exceptionStacktraceToString(ioe);
-                    WalletLogger.logException(ioe, "severe", stacktraceAsString);
+                    WalletLogger.logException(ioe, "severe",  WalletLogger.getLogTimeStamp() + " IO exception occurred while trying to push an alert to a peer! See below:\n" + WalletLogger.exceptionStacktraceToString(ioe));
                 } catch (EncodeException ee) {
-                    WalletLogger.logException(ee, "severe", "Encode exception occurred while trying to push an alert to a peer! See below:\n");
-                    String stacktraceAsString = WalletLogger.exceptionStacktraceToString(ee);
-                    WalletLogger.logException(ee, "severe", stacktraceAsString);
+                    WalletLogger.logException(ee, "severe",  WalletLogger.getLogTimeStamp() + " Encode exception occurred while trying to push an alert to a peer! See below:\n" + WalletLogger.exceptionStacktraceToString(ee));
+                }
+            }
+        });
+    }
+
+    public static void pushTx(final Tx tx, final Session sid) {
+        assert !Objects.isNull(tx) && !Objects.isNull(sid);
+        NODES.forEach(session -> {
+            if (sid.getUserProperties().get("id").toString().contentEquals("tx-client") || sid.getUserProperties().get("id").toString().contentEquals("tx-server")) {
+                try {
+                    sid.getBasicRemote().sendObject(tx);
+                } catch (IOException ioe) {
+                    WalletLogger.logException(ioe, "severe",  WalletLogger.getLogTimeStamp() + " IO exception occurred while trying to push an alert to a peer! See below:\n" + WalletLogger.exceptionStacktraceToString(ioe));
+                } catch (EncodeException ee) {
+                    WalletLogger.logException(ee, "severe",  WalletLogger.getLogTimeStamp() + " Encode exception occurred while trying to push an alert to a peer! See below:\n" + WalletLogger.exceptionStacktraceToString(ee));
                 }
             }
         });

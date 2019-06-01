@@ -14,8 +14,8 @@ public class Base58 {
 
     static {
         Arrays.fill(INDEXES, -1);
-        for (int i = 0; i < ALPHABET.length; i++) {
-            INDEXES[ALPHABET[i]] = i;
+        for (int i = 0; i < BASE58_ALPHABET.length; i++) {
+            INDEXES[BASE58_ALPHABET[i]] = i;
         }
     }
 
@@ -33,7 +33,7 @@ public class Base58 {
         char[] encoded = new char[input.length * 2]; // upper bound
         int outputStart = encoded.length;
         for (int inputStart = zeros; inputStart < input.length; ) {
-            encoded[--outputStart] = ALPHABET[divmod(input, inputStart, 256, 58)];
+            encoded[--outputStart] = BASE58_ALPHABET[divmod(input, inputStart, 256, 58)];
             if (input[inputStart] == 0) {
                 ++inputStart; // optimization - skip leading zeros
             }

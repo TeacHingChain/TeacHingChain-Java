@@ -9,7 +9,7 @@ public class BlockChain {
         initHashArray();
     }
 
-    public static List blockChain;
+    public static List<String> blockChain;
 
     private static void initHashArray() {
         blockChain = new ArrayList<>();

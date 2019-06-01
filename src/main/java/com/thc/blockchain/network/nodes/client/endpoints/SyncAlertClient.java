@@ -9,37 +9,24 @@ import com.thc.blockchain.network.nodes.NodeManager;
 import com.thc.blockchain.network.objects.Alert;
 import com.thc.blockchain.util.WalletLogger;
 import com.thc.blockchain.wallet.BlockChain;
+import com.thc.blockchain.wallet.MainChain;
 
 import javax.websocket.ClientEndpoint;
 import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
 import javax.websocket.Session;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.util.ArrayList;
 
 @ClientEndpoint(encoders = { AlertEncoder.class }, decoders = { AlertDecoder.class })
 public class SyncAlertClient {
 
     static int remoteChainSize;
     private StringBuilder sb = new StringBuilder();
+    private MainChain mc = new MainChain();
+
 
     @OnOpen
     public void onOpen(Session session) {
-        try {
-            FileInputStream fis = new FileInputStream("/home/dev-environment/Desktop/java_random/TeacHingChain/chain.dat");
-            ObjectInputStream ois = new ObjectInputStream(fis);
-            BlockChain.blockChain = (ArrayList) ois.readObject();
-            ois.close();
-            fis.close();
-        } catch (IOException ioe) {
-            System.out.println("An IO error occurred in SyncAlertClient:onAlertMessage, see log for details!");
-            WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp() + " IO exception occurred while trying to read chain.dat in SyncAlertServer! See below:\n" + WalletLogger.exceptionStacktraceToString(ioe));
-        } catch (ClassNotFoundException cnfe) {
-            System.out.println("A class not found error occurred in SyncAlertClient:onAlertMessage, see log for details!");
-            WalletLogger.logException(cnfe, "severe", WalletLogger.getLogTimeStamp() + " Class not found exception occurred while trying to read chain.dat in SyncAlertServer! See below:\n" + WalletLogger.exceptionStacktraceToString(cnfe));
-        }
+        mc.readBlockChain();
         System.out.println("ClientManager connected to sync client!\n");
         if (NodeManager.registerNode(session, "sync-client")) {
             int localChainSize = BlockChain.blockChain.size();
@@ -51,7 +38,7 @@ public class SyncAlertClient {
                 sb.append(blockAsString);
             }
             String chainAsString = sb.toString();
-            String checksum = SHA256.generateSHA256Hash(chainAsString);
+            String checksum = SHA256.SHA256HashString(chainAsString);
             Alert checksumAlert = new Alert("sync checksum", checksum);
             NodeManager.pushAlert(checksumAlert, session);
         }
@@ -60,20 +47,7 @@ public class SyncAlertClient {
     @OnMessage
     public void onAlertMessage(Alert alert, Session session) {
         EndpointManager endpointManager = new EndpointManager();
-        try {
-            System.out.println("null path hit\n");
-            FileInputStream fis = new FileInputStream("/home/dev-environment/Desktop/java_random/TeacHingChain/chain.dat");
-            ObjectInputStream ois = new ObjectInputStream(fis);
-            BlockChain.blockChain = (ArrayList) ois.readObject();
-            ois.close();
-            fis.close();
-        } catch (IOException ioe) {
-            System.out.println("An IO error occurred in SyncAlertServer:onAlertMessage, see log for details!");
-            WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp() + " IO exception occurred while trying to read chain.dat in SyncAlertServer! See below:\n" + WalletLogger.exceptionStacktraceToString(ioe));
-        } catch (ClassNotFoundException cnfe) {
-            System.out.println("A class not found error occurred in SyncAlertServer:onAlertMessage, see log for details!");
-            WalletLogger.logException(cnfe, "severe", WalletLogger.getLogTimeStamp() + " Class not found exception occurred while trying to read chain.dat in SyncAlertServer! See below:\n" + WalletLogger.exceptionStacktraceToString(cnfe));
-        }
+        mc.readBlockChain();
         WalletLogger.logEvent("info", WalletLogger.getLogTimeStamp() + " received alert: " + "alert type: " + alert.getAlertType() + " alert message: " + alert.getAlertMessage() + " from session: " + session.getUserProperties().get("id"));
         if (alert.getAlertType().contentEquals("sync size")) {
             remoteChainSize = Integer.parseInt(alert.getAlertMessage());

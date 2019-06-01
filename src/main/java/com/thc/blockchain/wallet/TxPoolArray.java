@@ -10,7 +10,7 @@ public class TxPoolArray {
 
     }
 
-    public static List TxPool;
+    public static List<String> TxPool;
 
     private static void initTxPoolArray() {
         TxPool = new ArrayList<>();

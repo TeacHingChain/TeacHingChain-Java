@@ -1,5 +1,6 @@
 package com.thc.blockchain.network.nodes;
 
+import com.thc.blockchain.util.NetworkConfigFields;
 import com.thc.blockchain.network.nodes.client.endpoints.*;
 import com.thc.blockchain.util.WalletLogger;
 import javax.websocket.ContainerProvider;
@@ -14,17 +15,16 @@ import static com.thc.blockchain.network.Constants.*;
 public final class EndpointManager {
 
     private final static CountDownLatch messageLatch = new CountDownLatch(1);
-    public static String node1ConfigIP;
-    public static String node2ConfigIP;
     private static String uri;
+    private NetworkConfigFields configFields = new NetworkConfigFields();
 
     public void connectAsClient(String reason) {
         WebSocketContainer container;
         if (reason.contentEquals("update")) {
-            if (node1ConfigIP != null) {
+            if (!configFields.updateNode1FQN.isEmpty()) {
                 try {
                     container = ContainerProvider.getWebSocketContainer();
-                    uri = updateNode1FQN;
+                    uri = configFields.updateNode1FQN;
                     System.out.println("Connecting to " + uri);
                     container.connectToServer(UpdateClientEndPoint.class, URI.create(uri));
                     messageLatch.await(5, TimeUnit.SECONDS);
@@ -36,12 +36,12 @@ public final class EndpointManager {
                     WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp() + " IO exception occurred while trying to connect to a peer as a client! See below:\n" + WalletLogger.exceptionStacktraceToString(ioe));
                 }
             } else {
-                System.out.println("No node 1 configured in config file!\n");
+                System.out.println("No node 1 configured!\n");
             }
-            if (node2ConfigIP != null) {
+            if (!configFields.updateNode2FQN.isEmpty()) {
                 try {
                     container = ContainerProvider.getWebSocketContainer();
-                    uri = updateNode2FQN;
+                    uri = configFields.updateNode2FQN;
                     System.out.println("Connecting to " + uri);
                     container.connectToServer(UpdateClientEndPoint.class, URI.create(uri));
                     messageLatch.await(5, TimeUnit.SECONDS);
@@ -53,13 +53,13 @@ public final class EndpointManager {
                     WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp() + " IO exception occurred while trying to connect to a peer as a client! See below:\n" + WalletLogger.exceptionStacktraceToString(ioe));
                 }
             } else {
-                System.out.println("No node 2 configured in config file!\n");
+                System.out.println("No node 2 configured!\n");
             }
         } else if (reason.contentEquals("hello")) {
-            if (node1ConfigIP != null) {
+            if (!configFields.helloNode1FQN.isEmpty()) {
                 try {
                     container = ContainerProvider.getWebSocketContainer();
-                    uri = helloNode1FQN;
+                    uri = configFields.helloNode1FQN;
                     System.out.println("Connecting to " + uri);
                     container.connectToServer(HelloClientEndpoint.class, URI.create(uri));
                     messageLatch.await(5, TimeUnit.SECONDS);
@@ -71,12 +71,12 @@ public final class EndpointManager {
                     WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp() + " IO exception occurred while trying to connect to a peer as a client! See below:\n" + WalletLogger.exceptionStacktraceToString(ioe));
                 }
             } else {
-                System.out.println("No node 1 configured in config file!\n");
+                System.out.println("No node 1 configured!\n");
             }
-            if (node2ConfigIP != null) {
+            if (!configFields.helloNode2FQN.isEmpty()) {
                 try {
                     container = ContainerProvider.getWebSocketContainer();
-                    uri = helloNode2FQN;
+                    uri = configFields.helloNode2FQN;
                     System.out.println("Connecting to " + uri);
                     container.connectToServer(HelloClientEndpoint.class, URI.create(uri));
                     messageLatch.await(5, TimeUnit.SECONDS);
@@ -87,50 +87,44 @@ public final class EndpointManager {
                 } catch (IOException ioe) {
                     WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp() + " IO exception occurred while trying to connect to a peer as a client! See below:\n" + WalletLogger.exceptionStacktraceToString(ioe));
                 }
+            } else {
+                System.out.println("No node 2 configured!\n");
             }
 
         } else if (reason.contentEquals("sync")) {
-            if (node1ConfigIP != null) {
-                if (isNodeConnected(1)) {
-                    try {
-                        container = ContainerProvider.getWebSocketContainer();
-                        uri = syncNode1FQN;
-                        System.out.println("Connecting to " + uri);
-                        container.connectToServer(SyncAlertClient.class, URI.create(uri));
-                        messageLatch.await(5, TimeUnit.SECONDS);
-                    } catch (DeploymentException de) {
-                        WalletLogger.logException(de, "severe", WalletLogger.getLogTimeStamp() + " Deployment exception occurred while trying to connect to a peer as a client! See below:\n" + WalletLogger.exceptionStacktraceToString(de));
-                    } catch (InterruptedException ie) {
-                        WalletLogger.logException(ie, "severe", WalletLogger.getLogTimeStamp() + " Interrupted exception occurred while trying to connect to a peer as a client! See below:\n" + WalletLogger.exceptionStacktraceToString(ie));
-                    } catch (IOException ioe) {
-                        WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp() + " IO exception occurred while trying to connect to a peer as a client! See below:\n" + WalletLogger.exceptionStacktraceToString(ioe));
-                    }
-                } else {
-                    System.out.println("Unable to reach hello server, please check your network connection!\n");
+            if (!configFields.syncNode1FQN.isEmpty()) {
+                try {
+                    container = ContainerProvider.getWebSocketContainer();
+                    uri = configFields.syncNode1FQN;
+                    System.out.println("Connecting to " + uri);
+                    container.connectToServer(SyncAlertClient.class, URI.create(uri));
+                    messageLatch.await(5, TimeUnit.SECONDS);
+                } catch (DeploymentException de) {
+                    WalletLogger.logException(de, "severe", WalletLogger.getLogTimeStamp() + " Deployment exception occurred while trying to connect to a peer as a client! See below:\n" + WalletLogger.exceptionStacktraceToString(de));
+                } catch (InterruptedException ie) {
+                    WalletLogger.logException(ie, "severe", WalletLogger.getLogTimeStamp() + " Interrupted exception occurred while trying to connect to a peer as a client! See below:\n" + WalletLogger.exceptionStacktraceToString(ie));
+                } catch (IOException ioe) {
+                    WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp() + " IO exception occurred while trying to connect to a peer as a client! See below:\n" + WalletLogger.exceptionStacktraceToString(ioe));
                 }
             } else {
-                System.out.println("No node 1 configured in config file!\n");
+                System.out.println("No node 1 configured!\n");
             }
-            if (node2ConfigIP != null) {
-                if (isNodeConnected(2)) {
-                    try {
-                        container = ContainerProvider.getWebSocketContainer();
-                        uri = syncNode1FQN;
-                        System.out.println("Connecting to " + uri);
-                        container.connectToServer(SyncAlertClient.class, URI.create(uri));
-                        messageLatch.await(5, TimeUnit.SECONDS);
-                    } catch (DeploymentException de) {
-                        WalletLogger.logException(de, "severe", WalletLogger.getLogTimeStamp() + " Deployment exception occurred while trying to connect to a peer as a client! See below:\n" + WalletLogger.exceptionStacktraceToString(de));
-                    } catch (InterruptedException ie) {
-                        WalletLogger.logException(ie, "severe", WalletLogger.getLogTimeStamp() + " Interrupted exception occurred while trying to connect to a peer as a client! See below:\n" + WalletLogger.exceptionStacktraceToString(ie));
-                    } catch (IOException ioe) {
-                        WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp() + " IO exception occurred while trying to connect to a peer as a client! See below:\n" + WalletLogger.exceptionStacktraceToString(ioe));
-                    }
-                } else {
-                    System.out.println("Unable to reach hello server, please check your network connection!\n");
+            if (!configFields.syncNode2FQN.isEmpty()) {
+                try {
+                    container = ContainerProvider.getWebSocketContainer();
+                    uri = configFields.syncNode2FQN;
+                    System.out.println("Connecting to " + uri);
+                    container.connectToServer(SyncAlertClient.class, URI.create(uri));
+                    messageLatch.await(5, TimeUnit.SECONDS);
+                } catch (DeploymentException de) {
+                    WalletLogger.logException(de, "severe", WalletLogger.getLogTimeStamp() + " Deployment exception occurred while trying to connect to a peer as a client! See below:\n" + WalletLogger.exceptionStacktraceToString(de));
+                } catch (InterruptedException ie) {
+                    WalletLogger.logException(ie, "severe", WalletLogger.getLogTimeStamp() + " Interrupted exception occurred while trying to connect to a peer as a client! See below:\n" + WalletLogger.exceptionStacktraceToString(ie));
+                } catch (IOException ioe) {
+                    WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp() + " IO exception occurred while trying to connect to a peer as a client! See below:\n" + WalletLogger.exceptionStacktraceToString(ioe));
                 }
             } else {
-                System.out.println("No node 2 configured in config file\n");
+                System.out.println("No node 2 configured!\n");
             }
         } else if (reason.contentEquals("init chain")) {
             try {
@@ -147,29 +141,10 @@ public final class EndpointManager {
                 WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp() + " IO exception occurred while trying to connect to a peer as a client! See below:\n" + WalletLogger.exceptionStacktraceToString(ioe));
             }
         } else if (reason.contentEquals("push-chain")) {
-            if (node1ConfigIP != null) {
-                if (isNodeConnected(1)) {
-                    try {
-                        container = ContainerProvider.getWebSocketContainer();
-                        uri = pushChainNode1FQN;
-                        System.out.println("Connecting to " + uri);
-                        container.connectToServer(SyncBlockClient.class, URI.create(uri));
-                        messageLatch.await(5, TimeUnit.SECONDS);
-                    } catch (DeploymentException de) {
-                        WalletLogger.logException(de, "severe", WalletLogger.getLogTimeStamp() + " Deployment exception occurred while trying to connect to a peer as a client! See below:\n" + WalletLogger.exceptionStacktraceToString(de));
-                    } catch (InterruptedException ie) {
-                        WalletLogger.logException(ie, "severe", WalletLogger.getLogTimeStamp() + " Interrupted exception occurred while trying to connect to a peer as a client! See below:\n" + WalletLogger.exceptionStacktraceToString(ie));
-                    } catch (IOException ioe) {
-                        WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp() + " IO exception occurred while trying to connect to a peer as a client! See below:\n" + WalletLogger.exceptionStacktraceToString(ioe));
-                    }
-                }
-            }
-        }
-        if (node2ConfigIP != null) {
-            if (isNodeConnected(2)) {
+            if (!configFields.pushChainNode1FQN.isEmpty()) {
                 try {
                     container = ContainerProvider.getWebSocketContainer();
-                    uri = pushChainNode2FQN;
+                    uri = configFields.pushChainNode1FQN;
                     System.out.println("Connecting to " + uri);
                     container.connectToServer(SyncBlockClient.class, URI.create(uri));
                     messageLatch.await(5, TimeUnit.SECONDS);
@@ -180,6 +155,60 @@ public final class EndpointManager {
                 } catch (IOException ioe) {
                     WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp() + " IO exception occurred while trying to connect to a peer as a client! See below:\n" + WalletLogger.exceptionStacktraceToString(ioe));
                 }
+            } else {
+                System.out.println("No node 1 configured!\n");
+            }
+            if (!configFields.pushChainNode2FQN.isEmpty()) {
+                try {
+                    container = ContainerProvider.getWebSocketContainer();
+                    uri = configFields.pushChainNode2FQN;
+                    System.out.println("Connecting to " + uri);
+                    container.connectToServer(SyncBlockClient.class, URI.create(uri));
+                    messageLatch.await(5, TimeUnit.SECONDS);
+                } catch (DeploymentException de) {
+                    WalletLogger.logException(de, "severe", WalletLogger.getLogTimeStamp() + " Deployment exception occurred while trying to connect to a peer as a client! See below:\n" + WalletLogger.exceptionStacktraceToString(de));
+                } catch (InterruptedException ie) {
+                    WalletLogger.logException(ie, "severe", WalletLogger.getLogTimeStamp() + " Interrupted exception occurred while trying to connect to a peer as a client! See below:\n" + WalletLogger.exceptionStacktraceToString(ie));
+                } catch (IOException ioe) {
+                    WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp() + " IO exception occurred while trying to connect to a peer as a client! See below:\n" + WalletLogger.exceptionStacktraceToString(ioe));
+                }
+            } else {
+                System.out.println("No node 2 configured!\n");
+            }
+        } else if (reason.contentEquals("push tx")) {
+            if (!configFields.pushTxNode1FQN.isEmpty()) {
+                try {
+                    container = ContainerProvider.getWebSocketContainer();
+                    uri = configFields.pushTxNode1FQN;
+                    System.out.println("Connecting to " + uri);
+                    container.connectToServer(TxClientEndpoint.class, URI.create(uri));
+                    messageLatch.await(5, TimeUnit.SECONDS);
+                } catch (DeploymentException de) {
+                    WalletLogger.logException(de, "severe", WalletLogger.getLogTimeStamp() + " Deployment exception occurred while trying to connect to a peer as a client! See below:\n" + WalletLogger.exceptionStacktraceToString(de));
+                } catch (InterruptedException ie) {
+                    WalletLogger.logException(ie, "severe", WalletLogger.getLogTimeStamp() + " Interrupted exception occurred while trying to connect to a peer as a client! See below:\n" + WalletLogger.exceptionStacktraceToString(ie));
+                } catch (IOException ioe) {
+                    WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp() + " IO exception occurred while trying to connect to a peer as a client! See below:\n" + WalletLogger.exceptionStacktraceToString(ioe));
+                }
+            } else {
+                System.out.println("No node 1 configured!\n");
+            }
+            if (!configFields.pushTxNode2FQN.isEmpty()) {
+                try {
+                    container = ContainerProvider.getWebSocketContainer();
+                    uri = configFields.pushTxNode2FQN;
+                    System.out.println("Connecting to " + uri);
+                    container.connectToServer(TxClientEndpoint.class, URI.create(uri));
+                    messageLatch.await(5, TimeUnit.SECONDS);
+                } catch (DeploymentException de) {
+                    WalletLogger.logException(de, "severe", WalletLogger.getLogTimeStamp() + " Deployment exception occurred while trying to connect to a peer as a client! See below:\n" + WalletLogger.exceptionStacktraceToString(de));
+                } catch (InterruptedException ie) {
+                    WalletLogger.logException(ie, "severe", WalletLogger.getLogTimeStamp() + " Interrupted exception occurred while trying to connect to a peer as a client! See below:\n" + WalletLogger.exceptionStacktraceToString(ie));
+                } catch (IOException ioe) {
+                    WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp() + " IO exception occurred while trying to connect to a peer as a client! See below:\n" + WalletLogger.exceptionStacktraceToString(ioe));
+                }
+            } else {
+                System.out.println("No node 2 configured!\n");
             }
         }
     }
@@ -187,10 +216,10 @@ public final class EndpointManager {
     public boolean isNodeConnected(int node) {
         WebSocketContainer container;
         if (node == 1) {
-            if (node1ConfigIP != null) {
+            if (!configFields.helloNode1FQN.isEmpty())
                 try {
                     container = ContainerProvider.getWebSocketContainer();
-                    uri = helloNode1FQN;
+                    uri = configFields.helloNode1FQN;
                     System.out.println("Connecting to " + uri);
                     container.connectToServer(HelloClientEndpoint.class, URI.create(uri));
                     messageLatch.await(500, TimeUnit.MILLISECONDS);
@@ -205,12 +234,12 @@ public final class EndpointManager {
             } else {
                 System.out.println("No node 1 configured!\n");
             }
-        }
+
         if (node == 2) {
-            if (node2ConfigIP != null) {
+            if (!configFields.helloNode2FQN.isEmpty()) {
                 try {
                     container = ContainerProvider.getWebSocketContainer();
-                    uri = helloNode2FQN;
+                    uri = configFields.helloNode2FQN;
                     System.out.println("Connecting to " + uri);
                     container.connectToServer(HelloClientEndpoint.class, URI.create(uri));
                     messageLatch.await(500, TimeUnit.MILLISECONDS);
@@ -222,7 +251,6 @@ public final class EndpointManager {
                 } catch (IOException ioe) {
                     WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp() + " IO exception occurred while trying to connect to a peer as a client! See below:\n" + WalletLogger.exceptionStacktraceToString(ioe));
                 }
-
             } else {
                 System.out.println("No node 2 configured!\n");
             }

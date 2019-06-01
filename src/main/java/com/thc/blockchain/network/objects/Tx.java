@@ -11,12 +11,12 @@ public final class Tx {
     @JsonProperty("to address")
     private String toAddress;
     @JsonProperty("amount")
-    private long amount;
+    private float amount;
     @JsonProperty("tx hash")
     private String txHash;
 
     @JsonCreator
-    public Tx(@JsonProperty("from address") String fromAddress, @JsonProperty("to address") String toAddress, @JsonProperty("amount")long amount, @JsonProperty String txHash) {
+    public Tx(@JsonProperty("from address") String fromAddress, @JsonProperty("to address") String toAddress, @JsonProperty("amount")float amount, @JsonProperty String txHash) {
         Objects.requireNonNull(fromAddress);
         Objects.requireNonNull(toAddress);
         Objects.requireNonNull(txHash);
@@ -28,6 +28,6 @@ public final class Tx {
 
     public String getFromAddress() { return this.fromAddress; }
     public String getToAddress() { return this.toAddress; }
-    public long getAmount() { return this.amount; }
+    public float getAmount() { return this.amount; }
     public String getTxHash() { return this.txHash; }
 }

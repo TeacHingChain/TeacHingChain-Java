@@ -14,9 +14,10 @@ public class UpdateClientEndPoint {
 
     @OnOpen
     public void onOpen(Session session) {
-        NodeManager.registerNode(session, "update-chain-client");
-        System.out.println("ClientManager connected to update server!\n" );
-        NodeManager.setSession(session);
+        if (NodeManager.registerNode(session, "update-chain-client")) {
+            System.out.println("ClientManager connected to update server!\n");
+            NodeManager.setSession(session);
+        }
     }
 
     @OnMessage

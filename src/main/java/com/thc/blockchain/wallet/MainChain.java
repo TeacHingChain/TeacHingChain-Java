@@ -5,18 +5,24 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.thc.blockchain.algos.SHA256;
 import com.thc.blockchain.algos.SHA512;
-import com.thc.blockchain.algos.Scrypt;
 import com.thc.blockchain.network.Constants;
-import com.thc.blockchain.util.ConfigParser;
+import com.thc.blockchain.network.decoders.BlockDecoder;
+import com.thc.blockchain.network.encoders.TxEncoder;
+import com.thc.blockchain.network.objects.Block;
+import com.thc.blockchain.network.objects.Tx;
 import com.thc.blockchain.util.WalletLogger;
 import com.thc.blockchain.util.addresses.AddressBook;
 import com.thc.blockchain.util.addresses.Base58;
+
+import javax.websocket.DecodeException;
+import javax.websocket.EncodeException;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import static com.thc.blockchain.network.Constants.baseDir;
+import java.util.Arrays;
+import java.util.Properties;
 
 public class MainChain {
 
@@ -25,185 +31,175 @@ public class MainChain {
     public static final float nSubsidy = 50;
     private static String address;
     private static String privKey;
-    private static String checkHash;
-
-
-    private ConfigParser config = new ConfigParser();
+    private static byte[] checkHash;
 
     public MainChain() {}
 
-    public static boolean isBlockHashValid(long index, long currentTimeMillis, String fromAddress, String toAddress, String txHash, long Nonce, String previousBlockHash, String algo, String currentHash, int difficulty, float amount) {
+    public static boolean isBlockHashValid(long index, long currentTimeMillis, String fromAddress, String toAddress, String[] txHash, String merkleRoot, long Nonce, String previousBlockHash, String algo, String currentHash, int difficulty, float amount) {
         MainChain.difficulty = difficulty;
-        String blockHeader = (index + currentTimeMillis + fromAddress + toAddress + txHash + Nonce + previousBlockHash + algo + difficulty + amount);
+        byte[] blockHeaderBytes = MainChain.swapEndianness(MainChain.hexStringToByteArray(MainChain.getHex((index + currentTimeMillis + fromAddress + toAddress + Arrays.toString(txHash) + merkleRoot + Nonce + previousBlockHash + algo + difficulty + amount).getBytes())));
         if (algo.contentEquals("sha256")) {
-            checkHash = SHA256.generateSHA256Hash(blockHeader);
+            checkHash = SHA256.SHA256HashByteArray(SHA256.SHA256HashByteArray(blockHeaderBytes));
         } else if (algo.contentEquals("sha512")) {
-            checkHash = SHA512.generateSHA512Hash(blockHeader);
-        } else if (algo.contentEquals("scrypt")) {
-            checkHash = Scrypt.generateScryptHash(blockHeader);
+            checkHash = SHA512.SHA512HashByteArray(SHA512.SHA512HashByteArray(blockHeaderBytes));
         }
-        return (checkHash.contentEquals(currentHash));
+        return (getHex(checkHash).contentEquals(currentHash));
     }
 
-    private void writeTxPool(long blockIndex, String sendKey, String recvKey, float amount) {
-        String txHash = SHA256.generateSHA256Hash(blockIndex + sendKey + recvKey);
-        File tempFile = new File(baseDir + "/tx-pool.dat");
-        if (!tempFile.exists()) {
-            TxPoolArray txpool = new TxPoolArray();
-            String amountToStr = Float.toString(amount);
-            TxPoolArray.TxPool.add(sendKey);
-            TxPoolArray.TxPool.add(recvKey);
-            TxPoolArray.TxPool.add(amountToStr);
-            TxPoolArray.TxPool.add(txHash);
-        } else {
-            String amountToStr = Float.toString(amount);
-            TxPoolArray.TxPool.add(sendKey);
-            TxPoolArray.TxPool.add(recvKey);
-            TxPoolArray.TxPool.add(amountToStr);
-            TxPoolArray.TxPool.add(txHash);
-        }
+    void writeTxPool(String fromAddress, String toAddress, float amount, String txHash) {
+        String configPath;
         try {
-            System.out.println("\n");
-            System.out.println("Writing to tx-pool...\n");
-            System.out.println("\n");
-            FileOutputStream fos = new FileOutputStream(baseDir + "/tx-pool.dat");
-            ObjectOutputStream oos = new ObjectOutputStream(fos);
-            oos.writeObject(TxPoolArray.TxPool);
-            oos.close();
-            fos.close();
-        } catch (IOException ioe) {
-            WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp() + " IO exception occurred while writing to tx-pool! See below:\n" + WalletLogger.exceptionStacktraceToString(ioe));
-        }
-    }
-
-    String getBestHash() {
-        String bestBlock = BlockChain.blockChain.get(BlockChain.blockChain.size() - 1).toString();
-        JsonElement jsonElement = new JsonParser().parse(bestBlock);
-        JsonObject jsonObject = jsonElement.getAsJsonObject();
-        JsonElement best_hash = jsonObject.get("block hash");
-        return best_hash.getAsString();
-    }
-
-    String getGenesisHash() {
-        String genesisBlock = BlockChain.blockChain.get(BlockChain.blockChain.size() - BlockChain.blockChain.size()).toString();
-        JsonElement jsonElement = new JsonParser().parse(genesisBlock);
-        JsonObject jsonObject = jsonElement.getAsJsonObject();
-        JsonElement genesis_hash = jsonObject.get("block hash");
-        return genesis_hash.getAsString();
-    }
-
-    public String getPreviousBlockHash() {
-        readBlockChain();
-        String previousBlock = BlockChain.blockChain.get(BlockChain.blockChain.size() - 1).toString();
-        JsonElement jsonElement = new JsonParser().parse(previousBlock);
-        JsonObject blockJSONObject = jsonElement.getAsJsonObject();
-        JsonElement je = blockJSONObject.get("block hash");
-        return je.getAsString();
-    }
-
-    void getBlockChain() {
-        try {
-            FileInputStream fis = new FileInputStream(baseDir + "/chain.dat");
-            ObjectInputStream ois = new ObjectInputStream(fis);
-            BlockChain.blockChain = (ArrayList) ois.readObject();
-            ois.close();
-            fis.close();
-            for (Object o : BlockChain.blockChain) {
-                System.out.println(o.toString());
+            if (Constants.baseDir.contains("apache-tomcat-8.5.23")) {
+                configPath = Constants.baseDir + "/../../config/config.properties";
+            } else {
+                configPath = Constants.baseDir + "/config/config.properties";
             }
-        } catch (ClassNotFoundException e) {
-            WalletLogger.logException(e, "severe", WalletLogger.getLogTimeStamp() + " Class not found exception occurred while fetching chain.dat! See below:\n" + WalletLogger.exceptionStacktraceToString(e));
+            Properties configProps = new Properties();
+            configProps.load(new FileInputStream(configPath));
+            File tempFile = new File(configProps.getProperty("datadir") + "/tx-pool.dat");
+            if (!tempFile.exists()) {
+                TxPoolArray txpool = new TxPoolArray();
+                Tx tx = new Tx(fromAddress, toAddress, amount, txHash);
+                try {
+                    String txPoolTX = new TxEncoder().encode(tx);
+                    TxPoolArray.TxPool.add(txPoolTX);
+                } catch (EncodeException ee) {
+                    WalletLogger.logException(ee, "warning", WalletLogger.getLogTimeStamp() + " Failed to encode tx! See details below:\n" + WalletLogger.exceptionStacktraceToString(ee));
+                }
+            } else {
+                Tx tx = new Tx(fromAddress, toAddress, amount, txHash);
+                TxEncoder encoder = new TxEncoder();
+                try {
+                    String txPoolTX = encoder.encode(tx);
+                    TxPoolArray.TxPool.add(txPoolTX);
+                } catch (EncodeException ee) {
+                    WalletLogger.logException(ee, "warning", WalletLogger.getLogTimeStamp() + " Failed to encode tx! See details below:\n" + WalletLogger.exceptionStacktraceToString(ee));
+                }
+            }
+            overwriteTxPool();
+        } catch (FileNotFoundException fnfe) {
+            WalletLogger.logException(fnfe, "severe", "Could not find specified file! See details below:\n" + WalletLogger.exceptionStacktraceToString(fnfe));
         } catch (IOException ioe) {
-            WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp() + " IO exception occurred while fetching chain.dat! See below:\n" + WalletLogger.exceptionStacktraceToString(ioe));
-        } catch (NullPointerException npe) {
-            WalletLogger.logException(npe, "severe", WalletLogger.getLogTimeStamp() + " Null pointer exception occurred while fetching chain.dat! See below:\n" + WalletLogger.exceptionStacktraceToString(npe));
+            WalletLogger.logException(ioe, "severe", "IOException occurred reading/writing tx-pool.dat! See details below:\n" + WalletLogger.exceptionStacktraceToString(ioe));
+        }
+    }
+
+    String getBestHash() throws DecodeException {
+        readBlockChain();
+        try {
+            return new BlockDecoder().decode(BlockChain.blockChain.get(getIndexOfBlockChain())).getBlockHash();
+        } catch (DecodeException de) {
+            throw new DecodeException(BlockChain.blockChain.get(getIndexOfBlockChain()), "Unable to decode text to Block", de);
+        }
+    }
+
+    String getGenesisHash() throws DecodeException {
+        readBlockChain();
+        try {
+            return new BlockDecoder().decode(BlockChain.blockChain.get(0)).getBlockHash();
+        } catch (DecodeException de) {
+            throw new DecodeException(BlockChain.blockChain.get(0), "Unable to decode text to Block", de);
+        }
+    }
+
+    public String getPreviousBlockHash() throws DecodeException {
+        readBlockChain();
+        try {
+            return new BlockDecoder().decode(BlockChain.blockChain.get(getIndexOfBlockChain())).getPreviousBlockHash();
+        } catch (DecodeException de) {
+            throw new DecodeException(BlockChain.blockChain.get(getIndexOfBlockChain()), "Unable to decode text to Block", de);
+        }
+    }
+
+    void viewBlockChain() {
+        readBlockChain();
+        for (String block : BlockChain.blockChain) {
+            System.out.println(block);
         }
     }
 
     public void readBlockChain() {
-        config.readConfigFile();
-        balance = 0;
         try {
-            FileInputStream fis = new FileInputStream(baseDir + "/chain.dat");
+            String configPath;
+            if (Constants.baseDir.contains("apache-tomcat-8.5.23")) {
+                configPath = Constants.baseDir + "/../../config/config.properties";
+            } else {
+                configPath = Constants.baseDir + "/config/config.properties";
+            }
+            Properties configProps = new Properties();
+            configProps.load(new FileInputStream(configPath));
+            FileInputStream fis = new FileInputStream(configProps.getProperty("datadir") + "/chain.dat");
             ObjectInputStream ois = new ObjectInputStream(fis);
-            BlockChain.blockChain = (ArrayList) ois.readObject();
+            BlockChain.blockChain = (ArrayList<String>) ois.readObject();
             ois.close();
             fis.close();
-            for (Object blockObj : BlockChain.blockChain) {
-                String block = blockObj.toString();
-                JsonElement jsonElement = new JsonParser().parse(block);
-                JsonObject blockJSONObject = jsonElement.getAsJsonObject();
-                JsonElement from_address = blockJSONObject.get("from address");
-                String fromAddress = from_address.getAsString();
-                JsonElement to_address = blockJSONObject.get("to address");
-                String toAddress = to_address.toString();
+        } catch (IOException ioe) {
+            WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp() + " IO exception occurred while fetching chain.dat! See below:\n" + WalletLogger.exceptionStacktraceToString(ioe));
+        } catch (ClassNotFoundException e) {
+            WalletLogger.logException(e, "severe", WalletLogger.getLogTimeStamp() + " Class not found exception occurred while fetching chain.dat! See below:\n" + WalletLogger.exceptionStacktraceToString(e));
+        }
+    }
+
+    public void calculateBalance() {
+        balance = 0;
+        try {
+            readBlockChain();
+            for (String block : BlockChain.blockChain) {
+                Block blockObject = new BlockDecoder().decode(block);
+                String[] txs = blockObject.getTransactions();
+                String toAddress = blockObject.getToAddress();
+                String fromAddress = blockObject.getFromAddress();
                 for (Object addressObj : AddressBook.addressBook) {
                     address = addressObj.toString();
                     System.out.println("ADDRESS TEST: " + address);
                     if (fromAddress.contentEquals(address)) {
-                        byte[] decodedAddressBytes = Base58.decode(fromAddress);
-                        String decodedAddress = new String(decodedAddressBytes, StandardCharsets.UTF_8);
                         for (Object o : KeyRing.keyRing) {
                             privKey = o.toString();
-                            if (SHA256.generateSHA256Hash(privKey).contentEquals(decodedAddress)) {
-                                JsonElement tx_hash = blockJSONObject.get("tx hash");
-                                String txHash = tx_hash.getAsString();
-                                JsonElement block_hash = blockJSONObject.get("block hash");
-                                String blockHash = block_hash.getAsString();
+                            if (MainChain.getHex(Base58.decode(fromAddress)).contentEquals(MainChain.getHex(SHA256.SHA256HashByteArray(SHA256.SHA256HashByteArray(privKey.getBytes()))))) {
+                                String txHash = txs[1];
+                                String blockHash = blockObject.getBlockHash();
                                 WalletLogger.logEvent("info", "Found sent transaction: \n" + txHash + "\n corresponding block: \n" + blockHash);
-                                JsonElement tx_amount = blockJSONObject.get("amount");
-                                float amount = tx_amount.getAsFloat();
+                                float amount = Float.parseFloat(blockObject.getAmount());
                                 balance -= amount;
                             }
                         }
                     } else if (toAddress.contentEquals(address)) {
-                        byte[] decodedAddressBytes = Base58.decode(toAddress);
-                        String decodedAddress = new String(decodedAddressBytes, StandardCharsets.UTF_8);
-                        for (Object o : KeyRing.keyRing) {
-                            privKey = o.toString();
-                            if (SHA256.generateSHA256Hash(privKey).contentEquals(decodedAddress)) {
-                                JsonElement tx_hash = blockJSONObject.get("tx hash");
-                                String txHash = tx_hash.getAsString();
-                                JsonElement block_hash = blockJSONObject.get("block hash");
-                                String blockHash = block_hash.getAsString();
-                                WalletLogger.logEvent("info", "Found received transaction: \n" + txHash + "\n corresponding block: \n" + blockHash);
-                                JsonElement tx_amount = blockJSONObject.get("amount");
-                                float amount = tx_amount.getAsFloat();
-                                balance += amount;
-                            }
+                        if (MainChain.getHex(Base58.decode(toAddress)).contentEquals(MainChain.getHex(SHA256.SHA256HashByteArray(SHA256.SHA256HashByteArray(privKey.getBytes()))))) {
+                            String txHash = txs[1];
+                            String blockHash = blockObject.getBlockHash();
+                            WalletLogger.logEvent("info", "Found received transaction: \n" + txHash + "\n corresponding block: \n" + blockHash);
+                            float amount = Float.parseFloat(blockObject.getAmount());
+                            balance += amount;
                         }
                     } else if (fromAddress.contentEquals(Constants.cbAddress) && toAddress.contentEquals(address)) {
-                        byte[] decodedAddressBytes = Base58.decode(toAddress);
-                        String decodedAddress = new String(decodedAddressBytes, StandardCharsets.UTF_8);
-                        for (Object o : KeyRing.keyRing) {
-                            privKey = o.toString();
-                            if (SHA256.generateSHA256Hash(privKey).contentEquals(decodedAddress)) {
-                                JsonElement tx_hash = blockJSONObject.get("tx hash");
-                                String txHash = tx_hash.getAsString();
-                                JsonElement block_hash = blockJSONObject.get("block hash");
-                                String blockHash = block_hash.getAsString();
-                                WalletLogger.logEvent("info", "Found mined transaction: \n" + txHash + "\n corresponding block: \n" + blockHash);
-                                JsonElement tx_amount = blockJSONObject.get("amount");
-                                float amount = tx_amount.getAsFloat();
-                                balance -= amount;
-                            }
+                        if (MainChain.getHex(Base58.decode(toAddress)).contentEquals(MainChain.getHex(SHA256.SHA256HashByteArray(SHA256.SHA256HashByteArray(privKey.getBytes()))))) {
+                            String txHash = txs[0];
+                            String blockHash = blockObject.getBlockHash();
+                            WalletLogger.logEvent("info", "Found mined transaction: \n" + txHash + "\n corresponding block: \n" + blockHash);
+                            float amount = Float.parseFloat(blockObject.getAmount());
+                            balance += amount;
                         }
                     }
                 }
             }
-        } catch (ClassNotFoundException e) {
-            WalletLogger.logException(e, "severe", WalletLogger.getLogTimeStamp() + " Class not found exception occurred while fetching chain.dat! See below:\n" + WalletLogger.exceptionStacktraceToString(e));
+        } catch (DecodeException de) {
+            WalletLogger.logException(de, "warning", WalletLogger.getLogTimeStamp() + " Failed to decode block fetching chain.dat! See below:\n" + WalletLogger.exceptionStacktraceToString(de));
         } catch (Base58.AddressFormatException afe) {
-            WalletLogger.logException(afe, "severe", WalletLogger.getLogTimeStamp() + " Address format exception occurred while encoding/decoding an address! See below:\n" + WalletLogger.exceptionStacktraceToString(afe));
-        } catch (IOException ioe) {
-            WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp() + " IO exception occurred while fetching chain.dat! See below:\n" + WalletLogger.exceptionStacktraceToString(ioe));
+            WalletLogger.logException(afe, "warning", WalletLogger.getLogTimeStamp() + " An error occurred trying to decode an address! See details below:\n" + WalletLogger.exceptionStacktraceToString(afe));
         }
     }
 
     public void writeBlockChain() {
         try {
-            System.out.println("Trying to serialize chain.dat...\n");
-            FileOutputStream fos = new FileOutputStream("/home/dev-environment/Desktop/java_random/TeacHingChain" + "/chain.dat");
+            String configPath;
+            if (Constants.baseDir.contains("apache-tomcat-8.5.23")) {
+                configPath = Constants.baseDir + "/../../config/config.properties";
+            } else {
+                configPath = Constants.baseDir + "/config/config.properties";
+            }
+            Properties configProps = new Properties();
+            configProps.load(new FileInputStream(configPath));
+            FileOutputStream fos = new FileOutputStream(configProps.getProperty("datadir") + "/chain.dat");
             ObjectOutputStream oos = new ObjectOutputStream(fos);
             oos.writeObject(BlockChain.blockChain);
             oos.close();
@@ -219,7 +215,7 @@ public class MainChain {
     }
 
     String getBlockAtIndex(int index) {
-        return BlockChain.blockChain.get(index).toString();
+        return BlockChain.blockChain.get(index);
     }
 
     public long getUnixTimestamp() {
@@ -237,79 +233,106 @@ public class MainChain {
     }
 
     public void generatePrivateKey() {
+        String configPath;
+        if (Constants.baseDir.contains("apache-tomcat-8.5.23")) {
+            configPath = Constants.baseDir + "/../../config/config.properties";
+        } else {
+            configPath = Constants.baseDir + "/config/config.properties";
+        }
+        Properties configProps = new Properties();
         try {
-            Process bash_script = Runtime.getRuntime().exec(baseDir + "/keygen.sh");
+            configProps.load(new FileInputStream(configPath));
+            Process bash_script = Runtime.getRuntime().exec(configProps.getProperty("datadir") + "/keygen.sh");
             bash_script.destroy();
+            System.out.println("Private key: " + readPrivateKey(configProps.getProperty("datadir") + "/THC_PRIVATE_KEY"));
         } catch (IOException ioe) {
             WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp() + " IO exception occurred while generating private key! See below:\n" + WalletLogger.exceptionStacktraceToString(ioe));
         }
-        System.out.println("Private key: " + readPrivateKey(baseDir + "/THC_PRIVATE_KEY"));
-        File keyRingFile = new File(baseDir + "keyring.dat");
-        if (!keyRingFile.exists()) {
-            KeyRing keyRing = new KeyRing();
-            try {
+        try {
+            configProps.load(new FileInputStream(configPath));
+            File keyRingFile = new File( configProps.getProperty("datadir") + "/keyring.dat");
+            if (!keyRingFile.exists()) {
+                KeyRing keyRing = new KeyRing();
+                try {
+                    configProps.load(new FileInputStream(configPath));
+                    KeyRing.keyRing.add(privKey);
+                    FileOutputStream fos = new FileOutputStream(configProps.getProperty("datadir") + "/keyring.dat");
+                    ObjectOutputStream oos = new ObjectOutputStream(fos);
+                    oos.writeObject(KeyRing.keyRing);
+                    oos.close();
+                    fos.close();
+                } catch (IOException ioe) {
+                    WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp() + " IO exception occurred while writing to keyring! See below:\n" + WalletLogger.exceptionStacktraceToString(ioe));
+                }
+            } else {
                 KeyRing.keyRing.add(privKey);
-                FileOutputStream fos = new FileOutputStream(baseDir + "/keyring.dat");
-                ObjectOutputStream oos = new ObjectOutputStream(fos);
-                oos.writeObject(KeyRing.keyRing);
-                oos.close();
-                fos.close();
-            } catch (IOException ioe) {
-                WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp() + " IO exception occurred while writing to keyring! See below:\n" + WalletLogger.exceptionStacktraceToString(ioe));
+                try {
+                    configProps.load(new FileInputStream(configPath));
+                    FileOutputStream fos = new FileOutputStream(configProps.getProperty("datadir") + "/keyring.dat");
+                    ObjectOutputStream oos = new ObjectOutputStream(fos);
+                    oos.writeObject(KeyRing.keyRing);
+                    oos.close();
+                    fos.close();
+                } catch (IOException ioe) {
+                    WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp() + " IO exception occurred while writing to keyring! See below:\n" + WalletLogger.exceptionStacktraceToString(ioe));
+                }
             }
-        } else {
-            KeyRing.keyRing.add(privKey);
-            try {
-                FileOutputStream fos = new FileOutputStream(baseDir + "/keyring.dat");
-                ObjectOutputStream oos = new ObjectOutputStream(fos);
-                oos.writeObject(KeyRing.keyRing);
-                oos.close();
-                fos.close();
-            } catch (IOException ioe) {
-                WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp() + " IO exception occurred while writing to keyring! See below:\n" + WalletLogger.exceptionStacktraceToString(ioe));
-            }
+        } catch (IOException ioe) {
+            WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp() + " IO exception occurred while generating private key! See below:\n" + WalletLogger.exceptionStacktraceToString(ioe));
         }
     }
 
     public String generateAddress(){
         if (KeyRing.keyRing.size() == 1) {
-            String privKeyStr = KeyRing.keyRing.get(0).toString();
-            byte[] privKeyBytes = privKeyStr.getBytes();
-            address = Base58.encode(privKeyBytes);
+            byte[] hashedPrivKeyBytes = SHA256.SHA256HashByteArray(SHA256.SHA256HashByteArray(KeyRing.keyRing.get(0).toString().getBytes()));
+            address = Base58.encode(hashedPrivKeyBytes);
         } else if (KeyRing.keyRing.size() >= 2) {
-            String privKeyStr = KeyRing.keyRing.get(0).toString();
-            byte[] privKeyBytes = privKeyStr.getBytes();
-            address = Base58.encode(privKeyBytes);
+            byte[] hashedPrivKeyBytes = SHA256.SHA256HashByteArray(SHA256.SHA256HashByteArray(KeyRing.keyRing.get(0).toString().getBytes()));
+            address = Base58.encode(hashedPrivKeyBytes);
         }
         addToAddressBook(address);
         return address;
     }
 
     private void addToAddressBook(String address) {
-        File abFile = new File(baseDir + "addressBook.dat");
-        if (!abFile.exists()) {
-            AddressBook addressBook = new AddressBook();
-            AddressBook.addressBook.add(address);
-            try {
-                FileOutputStream fos = new FileOutputStream(baseDir + "/addressBook.dat");
-                ObjectOutputStream oos = new ObjectOutputStream(fos);
-                oos.writeObject(AddressBook.addressBook);
-                oos.close();
-                fos.close();
-            } catch (IOException ioe) {
-                WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp() + " IO exception occurred while writing to address book! See below:\n" + WalletLogger.exceptionStacktraceToString(ioe));
-            }
+        String configPath;
+        if (Constants.baseDir.contains("apache-tomcat-8.5.23")) {
+            configPath = Constants.baseDir + "/../../config/config.properties";
         } else {
-            AddressBook.addressBook.add(address);
-            try {
-                FileOutputStream fos = new FileOutputStream(baseDir + "/addressBook.dat");
-                ObjectOutputStream oos = new ObjectOutputStream(fos);
-                oos.writeObject(AddressBook.addressBook);
-                oos.close();
-                fos.close();
-            } catch (IOException ioe) {
-                WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp() + " IO exception occurred while writing to address book! See below:\n" + WalletLogger.exceptionStacktraceToString(ioe));
+            configPath = Constants.baseDir + "/config/config.properties";
+        }
+        Properties configProps = new Properties();
+        try {
+            configProps.load(new FileInputStream(configPath));
+            File abFile = new File(configProps.getProperty("datadir") + "/addressBook.dat");
+            if (!abFile.exists()) {
+                AddressBook addressBook = new AddressBook();
+                AddressBook.addressBook.add(address);
+                try {
+                    configProps.load(new FileInputStream(configPath));
+                    FileOutputStream fos = new FileOutputStream(configProps.getProperty("datadir") + "/addressBook.dat");
+                    ObjectOutputStream oos = new ObjectOutputStream(fos);
+                    oos.writeObject(AddressBook.addressBook);
+                    oos.close();
+                    fos.close();
+                } catch (IOException ioe) {
+                    WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp() + " IO exception occurred while writing to address book! See below:\n" + WalletLogger.exceptionStacktraceToString(ioe));
+                }
+            } else {
+                AddressBook.addressBook.add(address);
+                try {
+                    configProps.load(new FileInputStream(configPath));
+                    FileOutputStream fos = new FileOutputStream(configProps.getProperty("datadir") + "/addressBook.dat");
+                    ObjectOutputStream oos = new ObjectOutputStream(fos);
+                    oos.writeObject(AddressBook.addressBook);
+                    oos.close();
+                    fos.close();
+                } catch (IOException ioe) {
+                    WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp() + " IO exception occurred while writing to address book! See below:\n" + WalletLogger.exceptionStacktraceToString(ioe));
+                }
             }
+        } catch (IOException ioe) {
+            WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp() + " IO exception occurred while writing to address book! See below:\n" + WalletLogger.exceptionStacktraceToString(ioe));
         }
     }
 
@@ -318,8 +341,16 @@ public class MainChain {
     }
     
     void readAddressBook() {
+        String configPath;
+        if (Constants.baseDir.contains("apache-tomcat-8.5.23")) {
+            configPath = Constants.baseDir + "/../../config/config.properties";
+        } else {
+            configPath = Constants.baseDir + "/config/config.properties";
+        }
+        Properties configProps = new Properties();
         try {
-            FileInputStream fis = new FileInputStream(baseDir + "/addressBook.dat");
+            configProps.load(new FileInputStream(configPath));
+            FileInputStream fis = new FileInputStream(configProps.getProperty("datadir") + "/addressBook.dat");
             ObjectInputStream ois = new ObjectInputStream(fis);
             AddressBook.addressBook = (ArrayList) ois.readObject();
             ois.close();
@@ -334,8 +365,16 @@ public class MainChain {
     }
     
     void readKeyRing() {
+        String configPath;
+        if (Constants.baseDir.contains("apache-tomcat-8.5.23")) {
+            configPath = Constants.baseDir + "/../../config/config.properties";
+        } else {
+            configPath = Constants.baseDir + "/config/config.properties";
+        }
+        Properties configProps = new Properties();
         try {
-            FileInputStream fis = new FileInputStream(baseDir + "/keyring.dat");
+            configProps.load(new FileInputStream(configPath));
+            FileInputStream fis = new FileInputStream(configProps.getProperty("datadir") + "/keyring.dat");
             ObjectInputStream ois = new ObjectInputStream(fis);
             KeyRing.keyRing = (ArrayList) ois.readObject();
             ois.close();
@@ -349,14 +388,23 @@ public class MainChain {
         }
     }
 
-    public void sendTx(String sendKeyTx, String recvKeyTx, float amount) {
-        long blockIndex = (BlockChain.blockChain.size());
-        writeTxPool(blockIndex, sendKeyTx, recvKeyTx, amount);
+    public void sendTx(String fromAddress, String toAddress, float amount) {
+        byte[] txHashBytes = MainChain.swapEndianness(MainChain.hexStringToByteArray(MainChain.getHex((fromAddress + toAddress + amount).getBytes())));
+        String txHash = MainChain.getHex(SHA256.SHA256HashByteArray(SHA256.SHA256HashByteArray(txHashBytes)));
+        writeTxPool(fromAddress, toAddress, amount, txHash);
     }
 
     public void overwriteTxPool() {
+        String configPath;
+        if (Constants.baseDir.contains("apache-tomcat-8.5.23")) {
+            configPath = Constants.baseDir + "/../../config/config.properties";
+        } else {
+            configPath = Constants.baseDir + "/config/config.properties";
+        }
+        Properties configProps = new Properties();
         try {
-            FileOutputStream fos = new FileOutputStream(baseDir + "/tx-pool.dat");
+            configProps.load(new FileInputStream(configPath));
+            FileOutputStream fos = new FileOutputStream(configProps.getProperty("datadir") + "/tx-pool.dat");
             ObjectOutputStream oos = new ObjectOutputStream(fos);
             oos.writeObject(TxPoolArray.TxPool);
             oos.close();
@@ -368,8 +416,16 @@ public class MainChain {
     }
 
     public void readTxPool() {
+        String configPath;
+        if (Constants.baseDir.contains("apache-tomcat-8.5.23")) {
+            configPath = Constants.baseDir + "/../../config/config.properties";
+        } else {
+            configPath = Constants.baseDir + "/config/config.properties";
+        }
+        Properties configProps = new Properties();
         try {
-            FileInputStream fis = new FileInputStream(baseDir + "/tx-pool.dat");
+            configProps.load(new FileInputStream(configPath));
+            FileInputStream fis = new FileInputStream(configProps.getProperty("datadir") + "/tx-pool.dat");
             ObjectInputStream ois = new ObjectInputStream(fis);
             TxPoolArray.TxPool = (ArrayList) ois.readObject();
             ois.close();
@@ -402,16 +458,16 @@ public class MainChain {
     }
 
     public int calculateDifficulty() {
-        readBlockChain();
+        calculateBalance();
         if (BlockChain.blockChain.size() >= 2) {
-            String mostRecentBlock = BlockChain.blockChain.get(BlockChain.blockChain.size() - 1).toString();
+            String mostRecentBlock = BlockChain.blockChain.get(BlockChain.blockChain.size() - 1);
             JsonElement parseLastBlock = new JsonParser().parse(mostRecentBlock);
             JsonObject latBlockObject = parseLastBlock.getAsJsonObject();
             JsonElement difficultyElement = latBlockObject.get("difficulty");
             difficulty = difficultyElement.getAsInt();
             JsonElement lastBlockTime = latBlockObject.get("time stamp");
             long lbtAsLong = lastBlockTime.getAsLong();
-            String blockBeforeLast = BlockChain.blockChain.get(BlockChain.blockChain.size() - 2).toString();
+            String blockBeforeLast = BlockChain.blockChain.get(BlockChain.blockChain.size() - 2);
             JsonElement jsonElement1 = new JsonParser().parse(blockBeforeLast);
             JsonObject jsonObject1 = jsonElement1.getAsJsonObject();
             JsonElement timeElement = jsonObject1.get("time stamp");
@@ -424,6 +480,43 @@ public class MainChain {
             }
         }
     return difficulty;
+    }
+
+    public static byte[] swapEndianness(byte[] hash) {
+        byte[] result = new byte[hash.length];
+        for (int i = 0; i < hash.length; i++) {
+            result[i] = hash[hash.length-i-1];
+        }
+        return result;
+    }
+
+    public static byte[] hexStringToByteArray(String s) {
+        int len = s.length();
+        byte[] data = new byte[len / 2];
+        for (int i = 0; i < len; i += 2) {
+            data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4)
+                    + Character.digit(s.charAt(i+1), 16));
+        }
+        return data;
+    }
+
+    public static String getHex(byte[] raw) {
+        final StringBuilder hex = new StringBuilder(2 * raw.length);
+        for (final byte b : raw) {
+            hex.append(Constants.HEXES.charAt((b & 0xF0) >> 4)).append(Constants.HEXES.charAt((b & 0x0F)));
+        }
+        return hex.toString();
+    }
+    public static String calculateMerkleRoot(String[] txs) {
+        String merkleRoot = null;
+        if (txs.length == 2) {
+            byte[] txABytes = (MainChain.swapEndianness(MainChain.hexStringToByteArray(txs[0])));
+            byte[] txBBytes = (MainChain.swapEndianness(MainChain.hexStringToByteArray(txs[1])));
+            byte[] txABBytes = Arrays.copyOf(txABytes, txABytes.length + txBBytes.length);
+            System.arraycopy(txBBytes, 0, txABBytes, txABytes.length, txABBytes.length);
+            merkleRoot = MainChain.getHex(MainChain.swapEndianness(SHA256.SHA256HashByteArray(SHA256.SHA256HashByteArray(txABBytes))));
+        }
+        return merkleRoot;
     }
 
     static class InsufficientBalanceException extends Exception {

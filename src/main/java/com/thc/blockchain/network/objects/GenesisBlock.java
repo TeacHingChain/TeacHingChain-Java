@@ -19,8 +19,8 @@ public final class GenesisBlock {
     private String toAddress;
     @JsonProperty("tx hash")
     private String txHash;
-    @JsonProperty ("merkle hash")
-    private String merkleHash;
+    @JsonProperty ("merkle root")
+    private String merkleRoot;
     @JsonProperty("nonce")
     private String Nonce;
     @JsonProperty("previous block hash")
@@ -38,7 +38,7 @@ public final class GenesisBlock {
     public GenesisBlock(@JsonProperty("index") String index, @JsonProperty("time stamp") String timeStamp,
                         @JsonProperty("pszTimestamp") String pszTimestamp, @JsonProperty("from address") String fromAddress,
                         @JsonProperty("to address") String toAddress, @JsonProperty("tx hash") String txHash,
-                        @JsonProperty("merkle hash") String merkleHash, @JsonProperty("nonce") String Nonce,
+                        @JsonProperty("merkle root") String merkleRoot, @JsonProperty("nonce") String Nonce,
                         @JsonProperty("previous block hash") String previousBlockHash, @JsonProperty("algo") String algo,
                         @JsonProperty("block hash") String blockHash, @JsonProperty("difficulty") String difficulty,
                         @JsonProperty("amount") String amount) {
@@ -48,7 +48,7 @@ public final class GenesisBlock {
         Objects.requireNonNull(fromAddress);
         Objects.requireNonNull(toAddress);
         Objects.requireNonNull(txHash);
-        Objects.requireNonNull(merkleHash);
+        Objects.requireNonNull(merkleRoot);
         Objects.requireNonNull(Nonce);
         Objects.requireNonNull(previousBlockHash);
         Objects.requireNonNull(algo);
@@ -61,7 +61,7 @@ public final class GenesisBlock {
         this.fromAddress = fromAddress;
         this.toAddress = toAddress;
         this.txHash = txHash;
-        this.merkleHash = merkleHash;
+        this.merkleRoot = merkleRoot;
         this.Nonce = Nonce;
         this.previousBlockHash = previousBlockHash;
         this.algo = algo;
@@ -86,8 +86,8 @@ public final class GenesisBlock {
     public String getTxHash() {
         return this.txHash;
     }
-    public String getMerkleHash() {
-        return this.merkleHash;
+    public String getMerkleRoot() {
+        return this.merkleRoot;
     }
     public String getNonce() {
         return this.Nonce;

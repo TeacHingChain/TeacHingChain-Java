@@ -1,9 +1,13 @@
 package com.thc.blockchain.util;
 
+import com.thc.blockchain.network.Constants;
+
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Properties;
 import java.util.logging.*;
 
 public class WalletLogger {
@@ -13,8 +17,16 @@ public class WalletLogger {
     public static void logException(Exception ex, String level, String msg) {
         LogManager.getLogManager().reset();
         FileHandler fh = null;
+        String configPath;
+        if (Constants.baseDir.contains("apache-tomcat-8.5.23")) {
+            configPath = Constants.baseDir + "/../../config/config.properties";
+        } else {
+            configPath = Constants.baseDir + "/config/config.properties";
+        }
+        Properties configProps = new Properties();
         try {
-            fh = new FileHandler("debug.log",true);
+            configProps.load(new FileInputStream(configPath));
+            fh = new FileHandler(configProps.getProperty("datadir") + "/debug.log",true);
             fh.setFormatter(new SimpleFormatter());
             logger.addHandler(fh);
             switch (level) {
@@ -46,8 +58,16 @@ public class WalletLogger {
     public static void logEvent(String level, String msg) {
         LogManager.getLogManager().reset();
         FileHandler fh = null;
+        String configPath;
+        if (Constants.baseDir.contains("apache-tomcat-8.5.23")) {
+            configPath = Constants.baseDir + "/../../config/config.properties";
+        } else {
+            configPath = Constants.baseDir + "/config/config.properties";
+        }
+        Properties configProps = new Properties();
         try {
-            fh = new FileHandler("debug.log", true);
+            configProps.load(new FileInputStream(configPath));
+            fh = new FileHandler(configProps.getProperty("datadir") + "/debug.log", true);
             fh.setFormatter(new SimpleFormatter());
             logger.addHandler(fh);
             switch (level) {
