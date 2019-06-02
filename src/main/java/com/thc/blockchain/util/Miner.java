@@ -92,14 +92,16 @@ public class Miner {
                             if (MainChain.isBlockHashValid(index, currentTimeMillis, fromAddress, toAddress, txHash, merkleRoot, Nonce, previousBlockHash, algo, MainChain.getHex(hash), difficulty, amount)) {
                                 endpointManager.connectAsClient("update");
                                 Block block = new Block(indexToStr, timeToStr, fromAddress, toAddress, txHash, merkleRoot, nonceToStr, previousBlockHash, algo, MainChain.getHex(hash), difficultyToStr, amountToStr);
+                                String encodedBlock = new BlockEncoder().encode(block);
+                                boolean verifyIndex = new Consensus().isBlockOrphan(Long.parseLong(block.getIndex()));
+                                if (verifyIndex) {
+                                    BlockChain.blockChain.add(encodedBlock);
+                                    mc.writeBlockChain();
+                                } else {
+                                    WalletLogger.logEvent("warning", WalletLogger.getLogTimeStamp() + " Detected orphan block, not adding to chain!\n");
+                                }
                                 Session sessionForMiner = NodeManager.getSession();
                                 NodeManager.pushBlock(block, sessionForMiner);
-                                WalletLogger.logEvent("info", WalletLogger.getLogTimeStamp() + " A block was mined! See details below:");
-                                WalletLogger.logEvent("info", "Hash: " + MainChain.getHex(hash) + " New best height: " + index);
-                                timer.cancel();
-                                break;
-                            } else {
-                                System.out.println("Error adding block to chain! Hash is not valid!\n");
                                 timer.cancel();
                                 break;
                             }
@@ -138,6 +140,7 @@ public class Miner {
                                 boolean verifyIndex = new Consensus().isBlockOrphan(Long.parseLong(block.getIndex()));
                                 if (verifyIndex) {
                                     BlockChain.blockChain.add(encodedBlock);
+                                    mc.writeBlockChain();
                                 } else {
                                     WalletLogger.logEvent("warning", WalletLogger.getLogTimeStamp() + " Detected orphan block, not adding to chain!\n");
                                 }
@@ -185,6 +188,7 @@ public class Miner {
                                 boolean verifyIndex = new Consensus().isBlockOrphan(Long.parseLong(block.getIndex()));
                                 if (verifyIndex) {
                                     BlockChain.blockChain.add(encodedBlock);
+                                    mc.writeBlockChain();
                                 } else {
                                     WalletLogger.logEvent("warning", WalletLogger.getLogTimeStamp() + " Detected orphan block, not adding to chain!\n");
                                 }
@@ -232,6 +236,7 @@ public class Miner {
                                 boolean verifyIndex = new Consensus().isBlockOrphan(Long.parseLong(block.getIndex()));
                                 if (verifyIndex) {
                                     BlockChain.blockChain.add(encodedBlock);
+                                    mc.writeBlockChain();
                                 } else {
                                     WalletLogger.logEvent("warning", WalletLogger.getLogTimeStamp() + " Detected orphan block, not adding to chain!\n");
                                 }
@@ -279,6 +284,7 @@ public class Miner {
                                 boolean verifyIndex = new Consensus().isBlockOrphan(Long.parseLong(block.getIndex()));
                                 if (verifyIndex) {
                                     BlockChain.blockChain.add(encodedBlock);
+                                    mc.writeBlockChain();
                                 } else {
                                     WalletLogger.logEvent("warning", WalletLogger.getLogTimeStamp() + " Detected orphan block, not adding to chain!\n");
                                 }
@@ -326,6 +332,7 @@ public class Miner {
                                 boolean verifyIndex = new Consensus().isBlockOrphan(Long.parseLong(block.getIndex()));
                                 if (verifyIndex) {
                                     BlockChain.blockChain.add(encodedBlock);
+                                    mc.writeBlockChain();
                                 } else {
                                     WalletLogger.logEvent("warning", WalletLogger.getLogTimeStamp() + " Detected orphan block, not adding to chain!\n");
                                 }
@@ -373,6 +380,7 @@ public class Miner {
                                 boolean verifyIndex = new Consensus().isBlockOrphan(Long.parseLong(block.getIndex()));
                                 if (verifyIndex) {
                                     BlockChain.blockChain.add(encodedBlock);
+                                    mc.writeBlockChain();
                                 } else {
                                     WalletLogger.logEvent("warning", WalletLogger.getLogTimeStamp() + " Detected orphan block, not adding to chain!\n");
                                 }
@@ -420,6 +428,7 @@ public class Miner {
                                 boolean verifyIndex = new Consensus().isBlockOrphan(Long.parseLong(block.getIndex()));
                                 if (verifyIndex) {
                                     BlockChain.blockChain.add(encodedBlock);
+                                    mc.writeBlockChain();
                                 } else {
                                     WalletLogger.logEvent("warning", WalletLogger.getLogTimeStamp() + " Detected orphan block, not adding to chain!\n");
                                 }
@@ -467,6 +476,7 @@ public class Miner {
                                 boolean verifyIndex = new Consensus().isBlockOrphan(Long.parseLong(block.getIndex()));
                                 if (verifyIndex) {
                                     BlockChain.blockChain.add(encodedBlock);
+                                    mc.writeBlockChain();
                                 } else {
                                     WalletLogger.logEvent("warning", WalletLogger.getLogTimeStamp() + " Detected orphan block, not adding to chain!\n");
                                 }
@@ -514,6 +524,7 @@ public class Miner {
                                 boolean verifyIndex = new Consensus().isBlockOrphan(Long.parseLong(block.getIndex()));
                                 if (verifyIndex) {
                                     BlockChain.blockChain.add(encodedBlock);
+                                    mc.writeBlockChain();
                                 } else {
                                     WalletLogger.logEvent("warning", WalletLogger.getLogTimeStamp() + " Detected orphan block, not adding to chain!\n");
                                 }
