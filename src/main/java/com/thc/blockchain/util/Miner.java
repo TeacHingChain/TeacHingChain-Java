@@ -54,494 +54,63 @@ public class Miner {
                         hash = SHA256.SHA256HashByteArray(SHA256.SHA256HashByteArray(blockHeaderBytes));
                     } else if (algo.contentEquals("sha512")) {
                         hash = SHA512.SHA512HashByteArray(SHA512.SHA512HashByteArray(blockHeaderBytes));
-                   /* } else if (algo.contentEquals("scrypt")) {
-                        hash = Scrypt.generateScryptHash(blockHeader);
-                        merkleHash = Scrypt.generateScryptHash(txHash);
-                   */ }
+                    }
+                    if (difficulty < 1) {
+                        difficulty = 1;
+                    }
                     long deltaS;
                     long deltaN;
                     long endTime;
-                    if (difficulty <= 1) {
-                        difficulty = 1;
-                        if (!MainChain.getHex(hash).startsWith("0")) {
-                            Nonce++;
-                            endTime = System.nanoTime();
-                            deltaN = endTime - startTime;
-                            deltaS = (deltaN / 1000000000);
-                            hashRate = (Nonce / deltaS);
-                            if (updatedIndex > indexAtStart) {
-                                previousBlockHash = mc.getPreviousBlockHash();
-                                currentTimeMillis = System.currentTimeMillis();
-                                Nonce = 0L;
-                                byte[] txHashBytes = (fromAddress + toAddress + amount).getBytes();
-                                merkleRoot = MainChain.getHex(SHA256.SHA256HashByteArray(txHashBytes));
-                                difficulty = mc.calculateDifficulty();
-                                restartMiner(updatedIndex, currentTimeMillis, fromAddress, toAddress, txHash, merkleRoot, Nonce, previousBlockHash, algo, difficulty, amount);
-                                break;
-                            }
-                        } else {
-                            System.out.println("\n");
-                            System.out.println("[" + MainChain.getHex(hash) + "]");
-                            System.out.println("\n");
-                            String indexToStr = Long.toString(index);
-                            String timeToStr = Long.toString(currentTimeMillis);
-                            String nonceToStr = Long.toString(Nonce);
-                            String difficultyToStr = Integer.toString(difficulty);
-                            String amountToStr = Float.toString(amount);
-                            System.out.println("Adding block to chain...\n");
-                            if (MainChain.isBlockHashValid(index, currentTimeMillis, fromAddress, toAddress, txHash, merkleRoot, Nonce, previousBlockHash, algo, MainChain.getHex(hash), difficulty, amount)) {
-                                endpointManager.connectAsClient("update");
-                                Block block = new Block(indexToStr, timeToStr, fromAddress, toAddress, txHash, merkleRoot, nonceToStr, previousBlockHash, algo, MainChain.getHex(hash), difficultyToStr, amountToStr);
-                                String encodedBlock = new BlockEncoder().encode(block);
-                                boolean verifyIndex = new Consensus().isBlockOrphan(Long.parseLong(block.getIndex()));
-                                if (verifyIndex) {
-                                    BlockChain.blockChain.add(encodedBlock);
-                                    mc.writeBlockChain();
-                                } else {
-                                    WalletLogger.logEvent("warning", WalletLogger.getLogTimeStamp() + " Detected orphan block, not adding to chain!\n");
-                                }
-                                Session sessionForMiner = NodeManager.getSession();
-                                NodeManager.pushBlock(block, sessionForMiner);
-                                timer.cancel();
-                                break;
-                            }
+                    StringBuilder sb = new StringBuilder();
+                    String difficultyPrefix = null;
+                    for (int i = 0; i < difficulty; i++) {
+                        sb.append("0");
+                        difficultyPrefix = sb.toString();
+                    }
+                    if (!MainChain.getHex(hash).startsWith(difficultyPrefix)) {
+                        Nonce++;
+                        endTime = System.nanoTime();
+                        deltaN = endTime - startTime;
+                        deltaS = (deltaN / 1000000000);
+                        hashRate = (Nonce / deltaS);
+                        if (updatedIndex > indexAtStart) {
+                            previousBlockHash = mc.getPreviousBlockHash();
+                            currentTimeMillis = System.currentTimeMillis();
+                            Nonce = 0L;
+                            byte[] txHashBytes = (fromAddress + toAddress + amount).getBytes();
+                            merkleRoot = MainChain.getHex(SHA256.SHA256HashByteArray(txHashBytes));
+                            difficulty = mc.calculateDifficulty();
+                            restartMiner(updatedIndex, currentTimeMillis, fromAddress, toAddress, txHash, merkleRoot, Nonce, previousBlockHash, algo, difficulty, amount);
+                            break;
                         }
-                    } else if (difficulty == 2) {
-                        if (!MainChain.getHex(hash).startsWith("00")) {
-                            Nonce++;
-                            endTime = System.nanoTime();
-                            deltaN = endTime - startTime;
-                            deltaS = (deltaN / 1000000000);
-                            hashRate = (Nonce / deltaS);
-                            if (updatedIndex > indexAtStart) {
-                                previousBlockHash = mc.getPreviousBlockHash();
-                                currentTimeMillis = System.currentTimeMillis();
-                                Nonce = 0L;
-                                byte[] txHashBytes = (updatedIndex + fromAddress + toAddress).getBytes();
-                                merkleRoot = MainChain.getHex(SHA256.SHA256HashByteArray(txHashBytes));
-                                difficulty = mc.calculateDifficulty();
-                                restartMiner(updatedIndex, currentTimeMillis, fromAddress, toAddress, txHash, merkleRoot, Nonce, previousBlockHash, algo, difficulty, amount);
-                                break;
-                            }
-                        } else {
-                            System.out.println("\n");
-                            System.out.println("[" + MainChain.getHex(hash) + "]");
-                            System.out.println("\n");
-                            String indexToStr = Long.toString(index);
-                            String timeToStr = Long.toString(currentTimeMillis);
-                            String nonceToStr = Long.toString(Nonce);
-                            String difficultyToStr = Integer.toString(difficulty);
-                            String amountToStr = Float.toString(amount);
-                            System.out.println("Adding block to chain...\n");
-                            if (MainChain.isBlockHashValid(index, currentTimeMillis, fromAddress, toAddress, txHash, merkleRoot, Nonce, previousBlockHash, algo, MainChain.getHex(hash), difficulty, amount)) {
-                                endpointManager.connectAsClient("update");
-                                Block block = new Block(indexToStr, timeToStr, fromAddress, toAddress, txHash, merkleRoot, nonceToStr, previousBlockHash, algo, MainChain.getHex(hash), difficultyToStr, amountToStr);
-                                String encodedBlock = new BlockEncoder().encode(block);
-                                boolean verifyIndex = new Consensus().isBlockOrphan(Long.parseLong(block.getIndex()));
-                                if (verifyIndex) {
-                                    BlockChain.blockChain.add(encodedBlock);
-                                    mc.writeBlockChain();
-                                } else {
-                                    WalletLogger.logEvent("warning", WalletLogger.getLogTimeStamp() + " Detected orphan block, not adding to chain!\n");
-                                }
-                                Session sessionForMiner = NodeManager.getSession();
-                                NodeManager.pushBlock(block, sessionForMiner);
-                                timer.cancel();
-                                break;
+                    } else {
+                        System.out.println("\n");
+                        System.out.println("[" + MainChain.getHex(hash) + "]");
+                        System.out.println("\n");
+                        String indexToStr = Long.toString(index);
+                        String timeToStr = Long.toString(currentTimeMillis);
+                        String nonceToStr = Long.toString(Nonce);
+                        String difficultyToStr = Integer.toString(difficulty);
+                        String amountToStr = Float.toString(amount);
+                        System.out.println("Adding block to chain...\n");
+                        if (MainChain.isBlockHashValid(index, currentTimeMillis, fromAddress, toAddress, txHash, merkleRoot, Nonce, previousBlockHash, algo, MainChain.getHex(hash), difficulty, amount)) {
+                            endpointManager.connectAsClient("update");
+                            Block block = new Block(indexToStr, timeToStr, fromAddress, toAddress, txHash, merkleRoot, nonceToStr, previousBlockHash, algo, MainChain.getHex(hash), difficultyToStr, amountToStr);
+                            String encodedBlock = new BlockEncoder().encode(block);
+                            boolean verifyIndex = new Consensus().isBlockOrphan(Long.parseLong(block.getIndex()));
+                            if (verifyIndex) {
+                                BlockChain.blockChain.add(encodedBlock);
+                                mc.writeBlockChain();
                             } else {
-                                System.out.println("Error adding block to chain! Hash is not valid!\n");
-                                timer.cancel();
-                                break;
+                                WalletLogger.logEvent("warning", WalletLogger.getLogTimeStamp() + " Detected orphan block, not adding to chain!\n");
                             }
-                        }
-                    } else if (difficulty == 3) {
-                        if (!MainChain.getHex(hash).startsWith("000")) {
-                            Nonce++;
-                            endTime = System.nanoTime();
-                            deltaN = endTime - startTime;
-                            deltaS = (deltaN / 1000000000);
-                            hashRate = (Nonce / deltaS);
-                            if (updatedIndex > indexAtStart) {
-                                previousBlockHash = mc.getPreviousBlockHash();
-                                currentTimeMillis = System.currentTimeMillis();
-                                Nonce = 0L;
-                                byte[] txHashBytes = (updatedIndex + fromAddress + toAddress).getBytes();
-                                merkleRoot = MainChain.getHex(SHA256.SHA256HashByteArray(txHashBytes));
-                                difficulty = mc.calculateDifficulty();
-                                restartMiner(updatedIndex, currentTimeMillis, fromAddress, toAddress, txHash, merkleRoot, Nonce, previousBlockHash, algo, difficulty, amount);
-                                break;
-                            }
-                        } else {
-                            System.out.println("\n");
-                            System.out.println("[" + MainChain.getHex(hash) + "]");
-                            System.out.println("\n");
-                            String indexToStr = Long.toString(index);
-                            String timeToStr = Long.toString(currentTimeMillis);
-                            String nonceToStr = Long.toString(Nonce);
-                            String difficultyToStr = Integer.toString(difficulty);
-                            String amountToStr = Float.toString(amount);
-                            System.out.println("Adding block to chain...\n");
-                            if (MainChain.isBlockHashValid(index, currentTimeMillis, fromAddress, toAddress, txHash, merkleRoot, Nonce, previousBlockHash, algo, MainChain.getHex(hash), difficulty, amount)) {
-                                endpointManager.connectAsClient("update");
-                                Block block = new Block(indexToStr, timeToStr, fromAddress, toAddress, txHash, merkleRoot, nonceToStr, previousBlockHash, algo, MainChain.getHex(hash), difficultyToStr, amountToStr);
-                                String encodedBlock = new BlockEncoder().encode(block);
-                                boolean verifyIndex = new Consensus().isBlockOrphan(Long.parseLong(block.getIndex()));
-                                if (verifyIndex) {
-                                    BlockChain.blockChain.add(encodedBlock);
-                                    mc.writeBlockChain();
-                                } else {
-                                    WalletLogger.logEvent("warning", WalletLogger.getLogTimeStamp() + " Detected orphan block, not adding to chain!\n");
-                                }
-                                Session sessionForMiner = NodeManager.getSession();
-                                NodeManager.pushBlock(block, sessionForMiner);
-                                timer.cancel();
-                                break;
-                            } else {
-                                System.out.println("Error adding block to chain! Hash is not valid!\n");
-                                timer.cancel();
-                                break;
-                            }
-                        }
-                    } else if (difficulty == 4) {
-                        if (!MainChain.getHex(hash).startsWith("0000")) {
-                            Nonce++;
-                            endTime = System.nanoTime();
-                            deltaN = endTime - startTime;
-                            deltaS = (deltaN / 1000000000);
-                            hashRate = (Nonce / deltaS);
-                            if (updatedIndex > indexAtStart) {
-                                previousBlockHash = mc.getPreviousBlockHash();
-                                currentTimeMillis = System.currentTimeMillis();
-                                Nonce = 0L;
-                                byte[] txHashBytes = (updatedIndex + fromAddress + toAddress).getBytes();
-                                merkleRoot = MainChain.getHex(SHA256.SHA256HashByteArray(txHashBytes));
-                                difficulty = mc.calculateDifficulty();
-                                restartMiner(updatedIndex, currentTimeMillis, fromAddress, toAddress, txHash, merkleRoot, Nonce, previousBlockHash, algo, difficulty, amount);
-                                break;
-                            }
-                        } else {
-                            System.out.println("\n");
-                            System.out.println("[" + MainChain.getHex(hash) + "]");
-                            System.out.println("\n");
-                            String indexToStr = Long.toString(index);
-                            String timeToStr = Long.toString(currentTimeMillis);
-                            String nonceToStr = Long.toString(Nonce);
-                            String difficultyToStr = Integer.toString(difficulty);
-                            String amountToStr = Float.toString(amount);
-                            System.out.println("Adding block to chain...\n");
-                            if (MainChain.isBlockHashValid(index, currentTimeMillis, fromAddress, toAddress, txHash, merkleRoot, Nonce, previousBlockHash, algo, MainChain.getHex(hash), difficulty, amount)) {
-                                endpointManager.connectAsClient("update");
-                                Block block = new Block(indexToStr, timeToStr, fromAddress, toAddress, txHash, merkleRoot, nonceToStr, previousBlockHash, algo, MainChain.getHex(hash), difficultyToStr, amountToStr);
-                                String encodedBlock = new BlockEncoder().encode(block);
-                                boolean verifyIndex = new Consensus().isBlockOrphan(Long.parseLong(block.getIndex()));
-                                if (verifyIndex) {
-                                    BlockChain.blockChain.add(encodedBlock);
-                                    mc.writeBlockChain();
-                                } else {
-                                    WalletLogger.logEvent("warning", WalletLogger.getLogTimeStamp() + " Detected orphan block, not adding to chain!\n");
-                                }
-                                Session sessionForMiner = NodeManager.getSession();
-                                NodeManager.pushBlock(block, sessionForMiner);
-                                timer.cancel();
-                                break;
-                            } else {
-                                System.out.println("Error adding block to chain! Hash is not valid!\n");
-                                timer.cancel();
-                                break;
-                            }
-                        }
-                    } else if (difficulty == 5) {
-                        if (!MainChain.getHex(hash).startsWith("00000")) {
-                            Nonce++;
-                            endTime = System.nanoTime();
-                            deltaN = endTime - startTime;
-                            deltaS = (deltaN / 1000000000);
-                            hashRate = (Nonce / deltaS);
-                            if (updatedIndex > indexAtStart) {
-                                previousBlockHash = mc.getPreviousBlockHash();
-                                currentTimeMillis = System.currentTimeMillis();
-                                Nonce = 0L;
-                                byte[] txHashBytes = (updatedIndex + fromAddress + toAddress).getBytes();
-                                merkleRoot = MainChain.getHex(SHA256.SHA256HashByteArray(txHashBytes));
-                                difficulty = mc.calculateDifficulty();
-                                restartMiner(updatedIndex, currentTimeMillis, fromAddress, toAddress, txHash, merkleRoot, Nonce, previousBlockHash, algo, difficulty, amount);
-                                break;
-                            }
-                        } else {
-                            System.out.println("\n");
-                            System.out.println("[" + MainChain.getHex(hash) + "]");
-                            System.out.println("\n");
-                            String indexToStr = Long.toString(index);
-                            String timeToStr = Long.toString(currentTimeMillis);
-                            String nonceToStr = Long.toString(Nonce);
-                            String difficultyToStr = Integer.toString(difficulty);
-                            String amountToStr = Float.toString(amount);
-                            System.out.println("Adding block to chain...\n");
-                            if (MainChain.isBlockHashValid(index, currentTimeMillis, fromAddress, toAddress, txHash, merkleRoot, Nonce, previousBlockHash, algo, MainChain.getHex(hash), difficulty, amount)) {
-                                endpointManager.connectAsClient("update");
-                                Block block = new Block(indexToStr, timeToStr, fromAddress, toAddress, txHash, merkleRoot, nonceToStr, previousBlockHash, algo, MainChain.getHex(hash), difficultyToStr, amountToStr);
-                                String encodedBlock = new BlockEncoder().encode(block);
-                                boolean verifyIndex = new Consensus().isBlockOrphan(Long.parseLong(block.getIndex()));
-                                if (verifyIndex) {
-                                    BlockChain.blockChain.add(encodedBlock);
-                                    mc.writeBlockChain();
-                                } else {
-                                    WalletLogger.logEvent("warning", WalletLogger.getLogTimeStamp() + " Detected orphan block, not adding to chain!\n");
-                                }
-                                Session sessionForMiner = NodeManager.getSession();
-                                NodeManager.pushBlock(block, sessionForMiner);
-                                timer.cancel();
-                                break;
-                            } else {
-                                System.out.println("Error adding block to chain! Hash is not valid!\n");
-                                timer.cancel();
-                                break;
-                            }
-                        }
-                    } else if (difficulty == 6) {
-                        if (!MainChain.getHex(hash).startsWith("000000")) {
-                            Nonce++;
-                            endTime = System.nanoTime();
-                            deltaN = endTime - startTime;
-                            deltaS = (deltaN / 1000000000);
-                            hashRate = (Nonce / deltaS);
-                            if (updatedIndex > indexAtStart) {
-                                previousBlockHash = mc.getPreviousBlockHash();
-                                currentTimeMillis = System.currentTimeMillis();
-                                Nonce = 0L;
-                                byte[] txHashBytes = (updatedIndex + fromAddress + toAddress).getBytes();
-                                merkleRoot = MainChain.getHex(SHA256.SHA256HashByteArray(txHashBytes));
-                                difficulty = mc.calculateDifficulty();
-                                restartMiner(updatedIndex, currentTimeMillis, fromAddress, toAddress, txHash, merkleRoot, Nonce, previousBlockHash, algo, difficulty, amount);
-                                break;
-                            }
-                        } else {
-                            System.out.println("\n");
-                            System.out.println("[" + MainChain.getHex(hash) + "]");
-                            System.out.println("\n");
-                            String indexToStr = Long.toString(index);
-                            String timeToStr = Long.toString(currentTimeMillis);
-                            String nonceToStr = Long.toString(Nonce);
-                            String difficultyToStr = Integer.toString(difficulty);
-                            String amountToStr = Float.toString(amount);
-                            System.out.println("Adding block to chain...\n");
-                            if (MainChain.isBlockHashValid(index, currentTimeMillis, fromAddress, toAddress, txHash, merkleRoot, Nonce, previousBlockHash, algo, MainChain.getHex(hash), difficulty, amount)) {
-                                endpointManager.connectAsClient("update");
-                                Block block = new Block(indexToStr, timeToStr, fromAddress, toAddress, txHash, merkleRoot, nonceToStr, previousBlockHash, algo, MainChain.getHex(hash), difficultyToStr, amountToStr);
-                                String encodedBlock = new BlockEncoder().encode(block);
-                                boolean verifyIndex = new Consensus().isBlockOrphan(Long.parseLong(block.getIndex()));
-                                if (verifyIndex) {
-                                    BlockChain.blockChain.add(encodedBlock);
-                                    mc.writeBlockChain();
-                                } else {
-                                    WalletLogger.logEvent("warning", WalletLogger.getLogTimeStamp() + " Detected orphan block, not adding to chain!\n");
-                                }
-                                Session sessionForMiner = NodeManager.getSession();
-                                NodeManager.pushBlock(block, sessionForMiner);
-                                timer.cancel();
-                                break;
-                            } else {
-                                System.out.println("Error adding block to chain! Hash is not valid!\n");
-                                timer.cancel();
-                                break;
-                            }
-                        }
-                    } else if (difficulty == 7) {
-                        if (!MainChain.getHex(hash).startsWith("0000000")) {
-                            Nonce++;
-                            endTime = System.nanoTime();
-                            deltaN = endTime - startTime;
-                            deltaS = (deltaN / 1000000000);
-                            hashRate = (Nonce / deltaS);
-                            if (updatedIndex > indexAtStart) {
-                                previousBlockHash = mc.getPreviousBlockHash();
-                                currentTimeMillis = System.currentTimeMillis();
-                                Nonce = 0L;
-                                byte[] txHashBytes = (updatedIndex + fromAddress + toAddress).getBytes();
-                                merkleRoot = MainChain.getHex(SHA256.SHA256HashByteArray(txHashBytes));
-                                difficulty = mc.calculateDifficulty();
-                                restartMiner(updatedIndex, currentTimeMillis, fromAddress, toAddress, txHash, merkleRoot, Nonce, previousBlockHash, algo, difficulty, amount);
-                                break;
-                            }
-                        } else {
-                            System.out.println("\n");
-                            System.out.println("[" + MainChain.getHex(hash) + "]");
-                            System.out.println("\n");
-                            String indexToStr = Long.toString(index);
-                            String timeToStr = Long.toString(currentTimeMillis);
-                            String nonceToStr = Long.toString(Nonce);
-                            String difficultyToStr = Integer.toString(difficulty);
-                            String amountToStr = Float.toString(amount);
-                            System.out.println("Adding block to chain...\n");
-                            if (MainChain.isBlockHashValid(index, currentTimeMillis, fromAddress, toAddress, txHash, merkleRoot, Nonce, previousBlockHash, algo, MainChain.getHex(hash), difficulty, amount)) {
-                                endpointManager.connectAsClient("update");
-                                Block block = new Block(indexToStr, timeToStr, fromAddress, toAddress, txHash, merkleRoot, nonceToStr, previousBlockHash, algo, MainChain.getHex(hash), difficultyToStr, amountToStr);
-                                String encodedBlock = new BlockEncoder().encode(block);
-                                boolean verifyIndex = new Consensus().isBlockOrphan(Long.parseLong(block.getIndex()));
-                                if (verifyIndex) {
-                                    BlockChain.blockChain.add(encodedBlock);
-                                    mc.writeBlockChain();
-                                } else {
-                                    WalletLogger.logEvent("warning", WalletLogger.getLogTimeStamp() + " Detected orphan block, not adding to chain!\n");
-                                }
-                                Session sessionForMiner = NodeManager.getSession();
-                                NodeManager.pushBlock(block, sessionForMiner);
-                                timer.cancel();
-                                break;
-                            } else {
-                                System.out.println("Error adding block to chain! Hash is not valid!\n");
-                                timer.cancel();
-                                break;
-                            }
-                        }
-                    } else if (difficulty == 8) {
-                        if (!MainChain.getHex(hash).startsWith("00000000")) {
-                            Nonce++;
-                            endTime = System.nanoTime();
-                            deltaN = endTime - startTime;
-                            deltaS = (deltaN / 1000000000);
-                            hashRate = (Nonce / deltaS);
-                            if (updatedIndex > indexAtStart) {
-                                previousBlockHash = mc.getPreviousBlockHash();
-                                currentTimeMillis = System.currentTimeMillis();
-                                Nonce = 0L;
-                                byte[] txHashBytes = (updatedIndex + fromAddress + toAddress).getBytes();
-                                merkleRoot = MainChain.getHex(SHA256.SHA256HashByteArray(txHashBytes));
-                                difficulty = mc.calculateDifficulty();
-                                restartMiner(updatedIndex, currentTimeMillis, fromAddress, toAddress, txHash, merkleRoot, Nonce, previousBlockHash, algo, difficulty, amount);
-                                break;
-                            }
-                        } else {
-                            System.out.println("\n");
-                            System.out.println("[" + MainChain.getHex(hash) + "]");
-                            System.out.println("\n");
-                            String indexToStr = Long.toString(index);
-                            String timeToStr = Long.toString(currentTimeMillis);
-                            String nonceToStr = Long.toString(Nonce);
-                            String difficultyToStr = Integer.toString(difficulty);
-                            String amountToStr = Float.toString(amount);
-                            System.out.println("Adding block to chain...\n");
-                            if (MainChain.isBlockHashValid(index, currentTimeMillis, fromAddress, toAddress, txHash, merkleRoot, Nonce, previousBlockHash, algo, MainChain.getHex(hash), difficulty, amount)) {
-                                endpointManager.connectAsClient("update");
-                                Block block = new Block(indexToStr, timeToStr, fromAddress, toAddress, txHash, merkleRoot, nonceToStr, previousBlockHash, algo, MainChain.getHex(hash), difficultyToStr, amountToStr);
-                                String encodedBlock = new BlockEncoder().encode(block);
-                                boolean verifyIndex = new Consensus().isBlockOrphan(Long.parseLong(block.getIndex()));
-                                if (verifyIndex) {
-                                    BlockChain.blockChain.add(encodedBlock);
-                                    mc.writeBlockChain();
-                                } else {
-                                    WalletLogger.logEvent("warning", WalletLogger.getLogTimeStamp() + " Detected orphan block, not adding to chain!\n");
-                                }
-                                Session sessionForMiner = NodeManager.getSession();
-                                NodeManager.pushBlock(block, sessionForMiner);
-                                timer.cancel();
-                                break;
-                            } else {
-                                System.out.println("Error adding block to chain! Hash is not valid!\n");
-                                timer.cancel();
-                                break;
-                            }
-                        }
-                    } else if (difficulty == 9) {
-                        if (!MainChain.getHex(hash).startsWith("000000000")) {
-                            Nonce++;
-                            endTime = System.nanoTime();
-                            deltaN = endTime - startTime;
-                            deltaS = (deltaN / 1000000000);
-                            hashRate = (Nonce / deltaS);
-                            if (updatedIndex > indexAtStart) {
-                                previousBlockHash = mc.getPreviousBlockHash();
-                                currentTimeMillis = System.currentTimeMillis();
-                                Nonce = 0L;
-                                byte[] txHashBytes = (updatedIndex + fromAddress + toAddress).getBytes();
-                                merkleRoot = MainChain.getHex(SHA256.SHA256HashByteArray(txHashBytes));
-                                difficulty = mc.calculateDifficulty();
-                                restartMiner(updatedIndex, currentTimeMillis, fromAddress, toAddress, txHash, merkleRoot, Nonce, previousBlockHash, algo, difficulty, amount);
-                                break;
-                            }
-                        } else {
-                            System.out.println("\n");
-                            System.out.println("[" + MainChain.getHex(hash) + "]");
-                            System.out.println("\n");
-                            String indexToStr = Long.toString(index);
-                            String timeToStr = Long.toString(currentTimeMillis);
-                            String nonceToStr = Long.toString(Nonce);
-                            String difficultyToStr = Integer.toString(difficulty);
-                            String amountToStr = Float.toString(amount);
-                            System.out.println("Adding block to chain...\n");
-                            if (MainChain.isBlockHashValid(index, currentTimeMillis, fromAddress, toAddress, txHash, merkleRoot, Nonce, previousBlockHash, algo, MainChain.getHex(hash), difficulty, amount)) {
-                                endpointManager.connectAsClient("update");
-                                Block block = new Block(indexToStr, timeToStr, fromAddress, toAddress, txHash, merkleRoot, nonceToStr, previousBlockHash, algo, MainChain.getHex(hash), difficultyToStr, amountToStr);
-                                String encodedBlock = new BlockEncoder().encode(block);
-                                boolean verifyIndex = new Consensus().isBlockOrphan(Long.parseLong(block.getIndex()));
-                                if (verifyIndex) {
-                                    BlockChain.blockChain.add(encodedBlock);
-                                    mc.writeBlockChain();
-                                } else {
-                                    WalletLogger.logEvent("warning", WalletLogger.getLogTimeStamp() + " Detected orphan block, not adding to chain!\n");
-                                }
-                                Session sessionForMiner = NodeManager.getSession();
-                                NodeManager.pushBlock(block, sessionForMiner);
-                                timer.cancel();
-                                break;
-                            } else {
-                                System.out.println("Error adding block to chain! Hash is not valid!\n");
-                                timer.cancel();
-                                break;
-                            }
-                        }
-                    } else if (difficulty == 10) {
-                        if (!MainChain.getHex(hash).startsWith("0000000000")) {
-                            Nonce++;
-                            endTime = System.nanoTime();
-                            deltaN = endTime - startTime;
-                            deltaS = (deltaN / 1000000000);
-                            hashRate = (Nonce / deltaS);
-                            if (updatedIndex > indexAtStart) {
-                                previousBlockHash = mc.getPreviousBlockHash();
-                                currentTimeMillis = System.currentTimeMillis();
-                                Nonce = 0L;
-                                byte[] txHashBytes = (updatedIndex + fromAddress + toAddress).getBytes();
-                                merkleRoot = MainChain.getHex(SHA256.SHA256HashByteArray(txHashBytes));
-                                difficulty = mc.calculateDifficulty();
-                                restartMiner(updatedIndex, currentTimeMillis, fromAddress, toAddress, txHash, merkleRoot, Nonce, previousBlockHash, algo, difficulty, amount);
-                                break;
-                            }
-                        } else {
-                            System.out.println("\n");
-                            System.out.println("[" + MainChain.getHex(hash) + "]");
-                            System.out.println("\n");
-                            String indexToStr = Long.toString(index);
-                            String timeToStr = Long.toString(currentTimeMillis);
-                            String nonceToStr = Long.toString(Nonce);
-                            String difficultyToStr = Integer.toString(difficulty);
-                            String amountToStr = Float.toString(amount);
-                            System.out.println("Adding block to chain...\n");
-                            if (MainChain.isBlockHashValid(index, currentTimeMillis, fromAddress, toAddress, txHash, merkleRoot, Nonce, previousBlockHash, algo, MainChain.getHex(hash), difficulty, amount)) {
-                                endpointManager.connectAsClient("update");
-                                Block block = new Block(indexToStr, timeToStr, fromAddress, toAddress, txHash, merkleRoot, nonceToStr, previousBlockHash, algo, MainChain.getHex(hash), difficultyToStr, amountToStr);
-                                String encodedBlock = new BlockEncoder().encode(block);
-                                boolean verifyIndex = new Consensus().isBlockOrphan(Long.parseLong(block.getIndex()));
-                                if (verifyIndex) {
-                                    BlockChain.blockChain.add(encodedBlock);
-                                    mc.writeBlockChain();
-                                } else {
-                                    WalletLogger.logEvent("warning", WalletLogger.getLogTimeStamp() + " Detected orphan block, not adding to chain!\n");
-                                }
-                                Session sessionForMiner = NodeManager.getSession();
-                                NodeManager.pushBlock(block, sessionForMiner);
-                                timer.cancel();
-                                break;
-                            } else {
-                                System.out.println("Error adding block to chain! Hash is not valid!\n");
-                                timer.cancel();
-                                break;
-                            }
+                            Session sessionForMiner = NodeManager.getSession();
+                            NodeManager.pushBlock(block, sessionForMiner);
+                            timer.cancel();
+                            break;
                         }
                     }
                 }
-            } else {
-                System.out.println("ERROR! You aren't connected to any node, therefore the network doesn't know if you're chain is in sync! Check your network connection, or try another node");
             }
         } catch (InterruptedException ie) {
             WalletLogger.logException(ie, "severe", WalletLogger.getLogTimeStamp() + " Interrupted exception occurred during mining operation! See below:\n" + WalletLogger.exceptionStacktraceToString(ie));
