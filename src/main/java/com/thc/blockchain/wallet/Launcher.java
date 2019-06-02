@@ -149,8 +149,7 @@ public class Launcher {
                             mc.writeTxPool(Constants.cbAddress, AddressBook.addressBook.get(rand.nextInt(AddressBook.addressBook.size())).toString(), MainChain.nSubsidy, cbTxHash);                            mc.readTxPool();
                             int indexValue = BlockChain.blockChain.size();
                             long timeStamp = mc.getUnixTimestamp();
-                            File tempFile = new File(configProps.getProperty("datadir") + "/tx-pool.dat");
-                            if (BlockChain.blockChain.size() < 3 && TxPoolArray.TxPool.size() == 1) {
+                            if (BlockChain.blockChain.size() < 2 && TxPoolArray.TxPool.size() == 1) {
                                 mc.readBlockChain();
                                 MainChain.difficulty = 5;
                                 String toAddress = AddressBook.addressBook.get(0).toString();
@@ -173,7 +172,7 @@ public class Launcher {
                                 numBlocksMined++;
                                 TxPoolArray.TxPool.remove(0);
                                 mc.overwriteTxPool();
-                            } else if (BlockChain.blockChain.size() >= 3 && TxPoolArray.TxPool.size() <= 1) {
+                            } else if (BlockChain.blockChain.size() >= 2 && TxPoolArray.TxPool.size() <= 1) {
                                 mc.readBlockChain();
                                 MainChain.difficulty = mc.calculateDifficulty();
                                 String toAddress = AddressBook.addressBook.get(0).toString();
@@ -191,7 +190,7 @@ public class Launcher {
                                 numBlocksMined++;
                                 TxPoolArray.TxPool.remove(0);
                                 mc.overwriteTxPool();
-                            } else if (BlockChain.blockChain.size() < 3 && TxPoolArray.TxPool.size() > 1) {
+                            } else if (BlockChain.blockChain.size() < 2 && TxPoolArray.TxPool.size() > 1) {
                                 mc.readBlockChain();
                                 MainChain.difficulty = 5;
                                 String toAddress = AddressBook.addressBook.get(0).toString();
@@ -260,12 +259,7 @@ public class Launcher {
                         break;
                     }
                     case "view difficulty": {
-                        if (BlockChain.blockChain.size() >= 3) {
-                            mc.calculateDifficulty();
-                            mc.getDifficulty();
-                        } else {
-                            mc.getDifficulty();
-                        }
+                        mc.getDifficulty();
                         break;
                     }
                     case "sync": {

@@ -254,7 +254,7 @@ public class MainChain {
             BufferedReader stdInput = new BufferedReader(new InputStreamReader(proc.getInputStream()));
             BufferedReader stdError = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
             System.out.println("Command output: \n");
-            String s = null;
+            String s;
             while ((s = stdInput.readLine()) != null) {
                 System.out.println(s);
             }
@@ -473,21 +473,17 @@ public class MainChain {
 
     public int calculateDifficulty() {
         try {
-            readBlockChain();
-            if (BlockChain.blockChain.size() >= 3) {
-                Block mostRecentBlock = new BlockDecoder().decode(BlockChain.blockChain.get(getIndexOfBlockChain()));
-                Block blockBeforeLast = new BlockDecoder().decode(BlockChain.blockChain.get(getIndexOfBlockChain() - 1));
-                long lbtAsLong = Long.parseLong(mostRecentBlock.getTimeStamp());
-                long bblTimeAsLong = Long.parseLong(blockBeforeLast.getTimeStamp());
-                long deltaT = lbtAsLong - bblTimeAsLong;
-                if (deltaT > 60000) {
-                    difficulty--;
-                } else if (deltaT < 60000) {
-                    difficulty++;
-                }
+            Block mostRecentBlock = new BlockDecoder().decode(BlockChain.blockChain.get(getIndexOfBlockChain()));
+            long currentTime = System.currentTimeMillis();
+            long lbtAsLong = Long.parseLong(mostRecentBlock.getTimeStamp());
+            long deltaT = currentTime - lbtAsLong;
+            if (deltaT > 60000) {
+                difficulty--;
+            } else if (deltaT < 60000) {
+                difficulty++;
             }
         } catch (DecodeException de) {
-            WalletLogger.logException(de, "severe", WalletLogger.getLogTimeStamp() + " Failed to decode block! See details below:\n" + WalletLogger.exceptionStacktraceToString(de));
+        WalletLogger.logException(de, "severe", WalletLogger.getLogTimeStamp() + " Failed to decode block! See details below:\n" + WalletLogger.exceptionStacktraceToString(de));
         }
         return difficulty;
     }
