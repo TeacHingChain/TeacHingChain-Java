@@ -9,11 +9,11 @@ import com.thc.blockchain.network.nodes.NodeManager;
 import com.thc.blockchain.network.objects.Block;
 import com.thc.blockchain.wallet.BlockChain;
 import com.thc.blockchain.wallet.MainChain;
+
 import javax.websocket.DecodeException;
 import javax.websocket.EncodeException;
 import javax.websocket.Session;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
@@ -94,7 +94,7 @@ public class Miner {
                                 Block block = new Block(indexToStr, timeToStr, fromAddress, toAddress, txHash, merkleRoot, nonceToStr, previousBlockHash, algo, MainChain.getHex(hash), difficultyToStr, amountToStr);
                                 Session sessionForMiner = NodeManager.getSession();
                                 NodeManager.pushBlock(block, sessionForMiner);
-                                WalletLogger.logEvent("info", new Date() + "A block was mined! See details below:");
+                                WalletLogger.logEvent("info", WalletLogger.getLogTimeStamp() + " A block was mined! See details below:");
                                 WalletLogger.logEvent("info", "Hash: " + MainChain.getHex(hash) + " New best height: " + index);
                                 timer.cancel();
                                 break;
@@ -134,6 +134,13 @@ public class Miner {
                             if (MainChain.isBlockHashValid(index, currentTimeMillis, fromAddress, toAddress, txHash, merkleRoot, Nonce, previousBlockHash, algo, MainChain.getHex(hash), difficulty, amount)) {
                                 endpointManager.connectAsClient("update");
                                 Block block = new Block(indexToStr, timeToStr, fromAddress, toAddress, txHash, merkleRoot, nonceToStr, previousBlockHash, algo, MainChain.getHex(hash), difficultyToStr, amountToStr);
+                                String encodedBlock = new BlockEncoder().encode(block);
+                                boolean verifyIndex = new Consensus().isBlockOrphan(Long.parseLong(block.getIndex()));
+                                if (verifyIndex) {
+                                    BlockChain.blockChain.add(encodedBlock);
+                                } else {
+                                    WalletLogger.logEvent("warning", WalletLogger.getLogTimeStamp() + " Detected orphan block, not adding to chain!\n");
+                                }
                                 Session sessionForMiner = NodeManager.getSession();
                                 NodeManager.pushBlock(block, sessionForMiner);
                                 timer.cancel();
@@ -174,6 +181,13 @@ public class Miner {
                             if (MainChain.isBlockHashValid(index, currentTimeMillis, fromAddress, toAddress, txHash, merkleRoot, Nonce, previousBlockHash, algo, MainChain.getHex(hash), difficulty, amount)) {
                                 endpointManager.connectAsClient("update");
                                 Block block = new Block(indexToStr, timeToStr, fromAddress, toAddress, txHash, merkleRoot, nonceToStr, previousBlockHash, algo, MainChain.getHex(hash), difficultyToStr, amountToStr);
+                                String encodedBlock = new BlockEncoder().encode(block);
+                                boolean verifyIndex = new Consensus().isBlockOrphan(Long.parseLong(block.getIndex()));
+                                if (verifyIndex) {
+                                    BlockChain.blockChain.add(encodedBlock);
+                                } else {
+                                    WalletLogger.logEvent("warning", WalletLogger.getLogTimeStamp() + " Detected orphan block, not adding to chain!\n");
+                                }
                                 Session sessionForMiner = NodeManager.getSession();
                                 NodeManager.pushBlock(block, sessionForMiner);
                                 timer.cancel();
@@ -214,6 +228,13 @@ public class Miner {
                             if (MainChain.isBlockHashValid(index, currentTimeMillis, fromAddress, toAddress, txHash, merkleRoot, Nonce, previousBlockHash, algo, MainChain.getHex(hash), difficulty, amount)) {
                                 endpointManager.connectAsClient("update");
                                 Block block = new Block(indexToStr, timeToStr, fromAddress, toAddress, txHash, merkleRoot, nonceToStr, previousBlockHash, algo, MainChain.getHex(hash), difficultyToStr, amountToStr);
+                                String encodedBlock = new BlockEncoder().encode(block);
+                                boolean verifyIndex = new Consensus().isBlockOrphan(Long.parseLong(block.getIndex()));
+                                if (verifyIndex) {
+                                    BlockChain.blockChain.add(encodedBlock);
+                                } else {
+                                    WalletLogger.logEvent("warning", WalletLogger.getLogTimeStamp() + " Detected orphan block, not adding to chain!\n");
+                                }
                                 Session sessionForMiner = NodeManager.getSession();
                                 NodeManager.pushBlock(block, sessionForMiner);
                                 timer.cancel();
@@ -254,6 +275,13 @@ public class Miner {
                             if (MainChain.isBlockHashValid(index, currentTimeMillis, fromAddress, toAddress, txHash, merkleRoot, Nonce, previousBlockHash, algo, MainChain.getHex(hash), difficulty, amount)) {
                                 endpointManager.connectAsClient("update");
                                 Block block = new Block(indexToStr, timeToStr, fromAddress, toAddress, txHash, merkleRoot, nonceToStr, previousBlockHash, algo, MainChain.getHex(hash), difficultyToStr, amountToStr);
+                                String encodedBlock = new BlockEncoder().encode(block);
+                                boolean verifyIndex = new Consensus().isBlockOrphan(Long.parseLong(block.getIndex()));
+                                if (verifyIndex) {
+                                    BlockChain.blockChain.add(encodedBlock);
+                                } else {
+                                    WalletLogger.logEvent("warning", WalletLogger.getLogTimeStamp() + " Detected orphan block, not adding to chain!\n");
+                                }
                                 Session sessionForMiner = NodeManager.getSession();
                                 NodeManager.pushBlock(block, sessionForMiner);
                                 timer.cancel();
@@ -341,6 +369,13 @@ public class Miner {
                             if (MainChain.isBlockHashValid(index, currentTimeMillis, fromAddress, toAddress, txHash, merkleRoot, Nonce, previousBlockHash, algo, MainChain.getHex(hash), difficulty, amount)) {
                                 endpointManager.connectAsClient("update");
                                 Block block = new Block(indexToStr, timeToStr, fromAddress, toAddress, txHash, merkleRoot, nonceToStr, previousBlockHash, algo, MainChain.getHex(hash), difficultyToStr, amountToStr);
+                                String encodedBlock = new BlockEncoder().encode(block);
+                                boolean verifyIndex = new Consensus().isBlockOrphan(Long.parseLong(block.getIndex()));
+                                if (verifyIndex) {
+                                    BlockChain.blockChain.add(encodedBlock);
+                                } else {
+                                    WalletLogger.logEvent("warning", WalletLogger.getLogTimeStamp() + " Detected orphan block, not adding to chain!\n");
+                                }
                                 Session sessionForMiner = NodeManager.getSession();
                                 NodeManager.pushBlock(block, sessionForMiner);
                                 timer.cancel();
@@ -381,6 +416,13 @@ public class Miner {
                             if (MainChain.isBlockHashValid(index, currentTimeMillis, fromAddress, toAddress, txHash, merkleRoot, Nonce, previousBlockHash, algo, MainChain.getHex(hash), difficulty, amount)) {
                                 endpointManager.connectAsClient("update");
                                 Block block = new Block(indexToStr, timeToStr, fromAddress, toAddress, txHash, merkleRoot, nonceToStr, previousBlockHash, algo, MainChain.getHex(hash), difficultyToStr, amountToStr);
+                                String encodedBlock = new BlockEncoder().encode(block);
+                                boolean verifyIndex = new Consensus().isBlockOrphan(Long.parseLong(block.getIndex()));
+                                if (verifyIndex) {
+                                    BlockChain.blockChain.add(encodedBlock);
+                                } else {
+                                    WalletLogger.logEvent("warning", WalletLogger.getLogTimeStamp() + " Detected orphan block, not adding to chain!\n");
+                                }
                                 Session sessionForMiner = NodeManager.getSession();
                                 NodeManager.pushBlock(block, sessionForMiner);
                                 timer.cancel();
@@ -421,6 +463,13 @@ public class Miner {
                             if (MainChain.isBlockHashValid(index, currentTimeMillis, fromAddress, toAddress, txHash, merkleRoot, Nonce, previousBlockHash, algo, MainChain.getHex(hash), difficulty, amount)) {
                                 endpointManager.connectAsClient("update");
                                 Block block = new Block(indexToStr, timeToStr, fromAddress, toAddress, txHash, merkleRoot, nonceToStr, previousBlockHash, algo, MainChain.getHex(hash), difficultyToStr, amountToStr);
+                                String encodedBlock = new BlockEncoder().encode(block);
+                                boolean verifyIndex = new Consensus().isBlockOrphan(Long.parseLong(block.getIndex()));
+                                if (verifyIndex) {
+                                    BlockChain.blockChain.add(encodedBlock);
+                                } else {
+                                    WalletLogger.logEvent("warning", WalletLogger.getLogTimeStamp() + " Detected orphan block, not adding to chain!\n");
+                                }
                                 Session sessionForMiner = NodeManager.getSession();
                                 NodeManager.pushBlock(block, sessionForMiner);
                                 timer.cancel();
@@ -461,6 +510,13 @@ public class Miner {
                             if (MainChain.isBlockHashValid(index, currentTimeMillis, fromAddress, toAddress, txHash, merkleRoot, Nonce, previousBlockHash, algo, MainChain.getHex(hash), difficulty, amount)) {
                                 endpointManager.connectAsClient("update");
                                 Block block = new Block(indexToStr, timeToStr, fromAddress, toAddress, txHash, merkleRoot, nonceToStr, previousBlockHash, algo, MainChain.getHex(hash), difficultyToStr, amountToStr);
+                                String encodedBlock = new BlockEncoder().encode(block);
+                                boolean verifyIndex = new Consensus().isBlockOrphan(Long.parseLong(block.getIndex()));
+                                if (verifyIndex) {
+                                    BlockChain.blockChain.add(encodedBlock);
+                                } else {
+                                    WalletLogger.logEvent("warning", WalletLogger.getLogTimeStamp() + " Detected orphan block, not adding to chain!\n");
+                                }
                                 Session sessionForMiner = NodeManager.getSession();
                                 NodeManager.pushBlock(block, sessionForMiner);
                                 timer.cancel();

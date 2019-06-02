@@ -241,9 +241,15 @@ public class Launcher {
                         }
                         break;
                     }
+                    case "generate private key": {
+                        mc.generatePrivateKey();
+                        break;
+                    }
 
                     case "generate address": {
-                        String address = mc.generateAddress();
+                        Scanner which = new Scanner(System.in);
+                        int whichKey = which.nextInt();
+                        String address = mc.generateAddress(whichKey);
                         System.out.println("Address generated: " + address);
                         break;
                     }
@@ -269,7 +275,9 @@ public class Launcher {
                         break;
                     }
                     case "view private key": {
-                        System.out.println("Private key: " + KeyRing.keyRing.get(0));
+                        for (Object o : KeyRing.keyRing) {
+                            System.out.println("Private key: " + o.toString());
+                        }
                         break;
                     }
                     case "view address": {
@@ -306,7 +314,10 @@ public class Launcher {
                         System.out.println(Arrays.toString(result));
                         System.out.println(MainChain.getHex(result));
                     }
-                    case "test config": {
+                    case "calc balance": {
+                        mc.calculateBalance();
+                        System.out.println("Balance: " + MainChain.balance);
+                        break;
                     }
 
 

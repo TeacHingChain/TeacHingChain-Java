@@ -43,6 +43,6 @@ public class GenesisChainServerEndpoint {
 
     public void initChain() {
         mc.generatePrivateKey();
-        System.out.println("Generated private key: " + KeyRing.keyRing.get(0) + " Generated address: " +  mc.generateAddress());
+        System.out.println("Generated private key: " + KeyRing.keyRing.get(0) + " Generated address: " +  mc.generateAddress(0));
     }
 }
