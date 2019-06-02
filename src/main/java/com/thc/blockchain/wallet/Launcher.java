@@ -142,16 +142,14 @@ public class Launcher {
                             algo = "sha512";
                         }
                         Random rand = new Random();
-                        byte[] cbTxHashBytes = MainChain.swapEndianness(MainChain.hexStringToByteArray(MainChain.getHex((Constants.cbAddress + AddressBook.addressBook.get(0).toString() + MainChain.nSubsidy).getBytes())));
-                        String cbTxHash = MainChain.getHex(SHA256.SHA256HashByteArray(SHA256.SHA256HashByteArray(cbTxHashBytes)));
-                        mc.writeTxPool(Constants.cbAddress, AddressBook.addressBook.get(rand.nextInt(AddressBook.addressBook.size())).toString(), MainChain.nSubsidy, cbTxHash);
                         while (howManyBlocks > numBlocksMined) {
-                            mc.readTxPool();
+                            byte[] cbTxHashBytes = MainChain.swapEndianness(MainChain.hexStringToByteArray(MainChain.getHex((Constants.cbAddress + AddressBook.addressBook.get(0).toString() + MainChain.nSubsidy).getBytes())));
+                            String cbTxHash = MainChain.getHex(SHA256.SHA256HashByteArray(SHA256.SHA256HashByteArray(cbTxHashBytes)));
+                            mc.writeTxPool(Constants.cbAddress, AddressBook.addressBook.get(rand.nextInt(AddressBook.addressBook.size())).toString(), MainChain.nSubsidy, cbTxHash);                            mc.readTxPool();
                             int indexValue = BlockChain.blockChain.size();
                             long timeStamp = mc.getUnixTimestamp();
                             File tempFile = new File(configProps.getProperty("datadir") + "/tx-pool.dat");
                             if (BlockChain.blockChain.size() < 3 && TxPoolArray.TxPool.size() == 1) {
-                                System.out.println("tx pool = 1 and blockchain < 3\n");
                                 mc.readBlockChain();
                                 MainChain.difficulty = 5;
                                 String toAddress = AddressBook.addressBook.get(0).toString();
@@ -174,7 +172,7 @@ public class Launcher {
                                 numBlocksMined++;
                                 TxPoolArray.TxPool.remove(0);
                                 mc.overwriteTxPool();
-                            } else if (BlockChain.blockChain.size() >= 3 && TxPoolArray.TxPool.size() == 1) {
+                            } else if (BlockChain.blockChain.size() >= 3 && TxPoolArray.TxPool.size() <= 1) {
                                 mc.readBlockChain();
                                 MainChain.difficulty = mc.calculateDifficulty();
                                 String toAddress = AddressBook.addressBook.get(0).toString();
@@ -194,7 +192,6 @@ public class Launcher {
                                 mc.overwriteTxPool();
                             } else if (BlockChain.blockChain.size() < 3 && TxPoolArray.TxPool.size() > 1) {
                                 mc.readBlockChain();
-                                System.out.println("");
                                 MainChain.difficulty = 5;
                                 String toAddress = AddressBook.addressBook.get(0).toString();
                                 String previousHash = mc.getPreviousBlockHash();
