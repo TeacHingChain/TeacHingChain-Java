@@ -42,7 +42,7 @@ public class Miner {
                 timer.schedule(new TimerTask() {
                     @Override
                     public void run() {
-                        mc.calculateBalance();
+                        mc.readBlockChain();
                         System.out.println("\n");
                         System.out.println("Current hash rate: " + hashRate + " " + "hash/s");
                         updatedIndex = BlockChain.blockChain.size();

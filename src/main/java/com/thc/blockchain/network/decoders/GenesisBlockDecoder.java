@@ -19,8 +19,6 @@ public final class GenesisBlockDecoder implements Decoder.Text<GenesisBlock> {
 
     @Override
     public GenesisBlock decode(String arg0) throws DecodeException {
-        System.out.println("Genesis Block Decoder activated!\n");
-        System.out.println("arg0 says: " + arg0);
         try {
             return Constants.OBJECT_MAPPER.readValue(arg0, GenesisBlock.class);
         } catch (IOException e) {

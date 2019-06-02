@@ -7,6 +7,7 @@ import com.thc.blockchain.algos.SHA256;
 import com.thc.blockchain.algos.SHA512;
 import com.thc.blockchain.network.Constants;
 import com.thc.blockchain.network.decoders.BlockDecoder;
+import com.thc.blockchain.network.decoders.GenesisBlockDecoder;
 import com.thc.blockchain.network.encoders.TxEncoder;
 import com.thc.blockchain.network.objects.Block;
 import com.thc.blockchain.network.objects.Tx;
@@ -48,6 +49,7 @@ public class MainChain {
 
     void writeTxPool(String fromAddress, String toAddress, float amount, String txHash) {
         String configPath;
+        MainChain mc = new MainChain();
         try {
             if (Constants.baseDir.contains("apache-tomcat-8.5.23")) {
                 configPath = Constants.baseDir + "/../../config/config.properties";
@@ -63,6 +65,7 @@ public class MainChain {
                 try {
                     String txPoolTX = new TxEncoder().encode(tx);
                     TxPoolArray.TxPool.add(txPoolTX);
+
                 } catch (EncodeException ee) {
                     WalletLogger.logException(ee, "warning", WalletLogger.getLogTimeStamp() + " Failed to encode tx! See details below:\n" + WalletLogger.exceptionStacktraceToString(ee));
                 }
@@ -96,7 +99,7 @@ public class MainChain {
     String getGenesisHash() throws DecodeException {
         readBlockChain();
         try {
-            return new BlockDecoder().decode(BlockChain.blockChain.get(0)).getBlockHash();
+            return new GenesisBlockDecoder().decode(BlockChain.blockChain.get(0)).getBlockHash();
         } catch (DecodeException de) {
             throw new DecodeException(BlockChain.blockChain.get(0), "Unable to decode text to Block", de);
         }

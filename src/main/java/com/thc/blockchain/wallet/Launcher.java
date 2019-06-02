@@ -48,7 +48,7 @@ public class Launcher {
             } else if (chainFile.exists()) {
                 mc.readKeyRing();
                 mc.readAddressBook();
-                mc.calculateBalance();
+                mc.readBlockChain();
                 mc.readTxPool();
                 if (BlockChain.blockChain.size() <= 1) {
                     MainChain.difficulty = 5;
@@ -141,22 +141,26 @@ public class Launcher {
                         } else if (algoIndex == 1) {
                             algo = "sha512";
                         }
+                        Random rand = new Random();
+                        byte[] cbTxHashBytes = MainChain.swapEndianness(MainChain.hexStringToByteArray(MainChain.getHex((Constants.cbAddress + AddressBook.addressBook.get(0).toString() + MainChain.nSubsidy).getBytes())));
+                        String cbTxHash = MainChain.getHex(SHA256.SHA256HashByteArray(SHA256.SHA256HashByteArray(cbTxHashBytes)));
+                        mc.writeTxPool(Constants.cbAddress, AddressBook.addressBook.get(rand.nextInt(AddressBook.addressBook.size())).toString(), MainChain.nSubsidy, cbTxHash);
                         while (howManyBlocks > numBlocksMined) {
                             mc.readTxPool();
-                            mc.getTxPool();
                             int indexValue = BlockChain.blockChain.size();
                             long timeStamp = mc.getUnixTimestamp();
-                            Random rand = new Random();
-                            byte[] cbTxHashBytes = MainChain.swapEndianness(MainChain.hexStringToByteArray(MainChain.getHex((Constants.cbAddress + AddressBook.addressBook.get(0).toString() + MainChain.nSubsidy).getBytes())));
-                            String cbTxHash = MainChain.getHex(SHA256.SHA256HashByteArray(SHA256.SHA256HashByteArray(cbTxHashBytes)));
-                            mc.writeTxPool(Constants.cbAddress, AddressBook.addressBook.get(rand.nextInt(AddressBook.addressBook.size())).toString(), MainChain.nSubsidy, cbTxHash);
                             File tempFile = new File(configProps.getProperty("datadir") + "/tx-pool.dat");
-                            if (!tempFile.exists() && TxPoolArray.TxPool == null && BlockChain.blockChain.size() >= 3 || TxPoolArray.TxPool == null) {
-                                TxPoolArray txPool = new TxPoolArray();
-                                mc.calculateBalance();
-                                MainChain.difficulty = mc.calculateDifficulty();
+                            if (BlockChain.blockChain.size() < 3 && TxPoolArray.TxPool.size() == 1) {
+                                System.out.println("tx pool = 1 and blockchain < 3\n");
+                                mc.readBlockChain();
+                                MainChain.difficulty = 5;
                                 String toAddress = AddressBook.addressBook.get(0).toString();
-                                String previousHash = mc.getPreviousBlockHash();
+                                String previousHash;
+                                if (BlockChain.blockChain.size() == 1) {
+                                    previousHash = mc.getGenesisHash();
+                                } else {
+                                    previousHash = mc.getPreviousBlockHash();
+                                }
                                 float amount = MainChain.nSubsidy;
                                 byte[] txHashBytes = (Constants.cbAddress + toAddress + amount).getBytes();
                                 byte[] txHash = SHA256.SHA256HashByteArray(SHA256.SHA256HashByteArray(txHashBytes));
@@ -168,7 +172,7 @@ public class Launcher {
                                     WalletLogger.logException(ie, "severe", WalletLogger.getLogTimeStamp() + " Interrupted exception occurred during mining operation! See below:\n" + WalletLogger.exceptionStacktraceToString(ie));
                                 }
                                 numBlocksMined++;
-                            } else if (tempFile.exists() && TxPoolArray.TxPool.size() == 1 && BlockChain.blockChain.size() >= 3) {
+                            } else if (BlockChain.blockChain.size() >= 3 && TxPoolArray.TxPool.size() == 1) {
                                 mc.readBlockChain();
                                 MainChain.difficulty = mc.calculateDifficulty();
                                 String toAddress = AddressBook.addressBook.get(0).toString();
@@ -184,15 +188,16 @@ public class Launcher {
                                     WalletLogger.logException(ie, "severe", WalletLogger.getLogTimeStamp() + " Interrupted exception occurred during mining operation! See below:\n" + WalletLogger.exceptionStacktraceToString(ie));
                                 }
                                 numBlocksMined++;
-                            } else if (tempFile.exists() && TxPoolArray.TxPool.size() == 1 && BlockChain.blockChain.size() < 3) {
-                                mc.calculateBalance();
-                                indexValue = BlockChain.blockChain.size();
-                                timeStamp = mc.getUnixTimestamp();
+                            } else if (BlockChain.blockChain.size() < 3 && TxPoolArray.TxPool.size() > 1) {
+                                mc.readBlockChain();
+                                System.out.println("");
                                 MainChain.difficulty = 5;
                                 String toAddress = AddressBook.addressBook.get(0).toString();
                                 String previousHash = mc.getPreviousBlockHash();
                                 float amount = MainChain.nSubsidy;
-                                String[] txs = {cbTxHash};
+                                byte[] txHashBytes = (Constants.cbAddress + toAddress + amount).getBytes();
+                                byte[] txHash = SHA256.SHA256HashByteArray(SHA256.SHA256HashByteArray(txHashBytes));
+                                String[] txs = {MainChain.getHex(txHash)};
                                 try {
                                     miner.mine(indexValue, timeStamp, Constants.cbAddress, toAddress, txs, txs[0], 0L, previousHash, algo, MainChain.difficulty, amount);
                                     TimeUnit.SECONDS.sleep(3);
@@ -200,10 +205,9 @@ public class Launcher {
                                     WalletLogger.logException(ie, "severe", WalletLogger.getLogTimeStamp() + " Interrupted exception occurred during mining operation! See below:\n" + WalletLogger.exceptionStacktraceToString(ie));
                                 }
                                 numBlocksMined++;
-                                TxPoolArray.TxPool.remove(0);
-                                mc.overwriteTxPool();
+                            }
 
-                                // not ready to send tx's yet
+                            // not ready to send tx's yet
                              /*} else {
                                 mc.calculateBalance();
                                 String parsedToAddress = null;
@@ -234,10 +238,10 @@ public class Launcher {
                             }
                         }
                         */
-                                break;
-                            }
                         }
+                        break;
                     }
+
                     case "generate address": {
                         String address = mc.generateAddress();
                         System.out.println("Address generated: " + address);
