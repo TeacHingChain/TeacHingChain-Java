@@ -172,6 +172,8 @@ public class Launcher {
                                     WalletLogger.logException(ie, "severe", WalletLogger.getLogTimeStamp() + " Interrupted exception occurred during mining operation! See below:\n" + WalletLogger.exceptionStacktraceToString(ie));
                                 }
                                 numBlocksMined++;
+                                TxPoolArray.TxPool.remove(0);
+                                mc.overwriteTxPool();
                             } else if (BlockChain.blockChain.size() >= 3 && TxPoolArray.TxPool.size() == 1) {
                                 mc.readBlockChain();
                                 MainChain.difficulty = mc.calculateDifficulty();
@@ -188,6 +190,8 @@ public class Launcher {
                                     WalletLogger.logException(ie, "severe", WalletLogger.getLogTimeStamp() + " Interrupted exception occurred during mining operation! See below:\n" + WalletLogger.exceptionStacktraceToString(ie));
                                 }
                                 numBlocksMined++;
+                                TxPoolArray.TxPool.remove(0);
+                                mc.overwriteTxPool();
                             } else if (BlockChain.blockChain.size() < 3 && TxPoolArray.TxPool.size() > 1) {
                                 mc.readBlockChain();
                                 System.out.println("");

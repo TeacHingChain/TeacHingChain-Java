@@ -38,7 +38,6 @@ public class UpdateServerEndPoint {
             WalletLogger.logException(ee, "severe", WalletLogger.getLogTimeStamp() + " Encode exception occurred during mining operation! See below:\n" + WalletLogger.exceptionStacktraceToString(ee));
         }
         NodeManager.remove(session);
-        NodeManager.close(session, CloseReason.CloseCodes.NORMAL_CLOSURE, "Closing session: " + session.getUserProperties().get("id").toString());
     }
 }
 
