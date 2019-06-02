@@ -129,6 +129,7 @@ public class Launcher {
                         break;
                     }
                     case "mine": {
+                        mc.readBlockChain();
                         Scanner howMany = new Scanner(System.in);
                         System.out.println("\n");
                         System.out.println("Enter number of blocks to mine: \n");
@@ -259,7 +260,12 @@ public class Launcher {
                         break;
                     }
                     case "view difficulty": {
-                        mc.getDifficulty();
+                        if (BlockChain.blockChain.size() >= 3) {
+                            mc.calculateDifficulty();
+                            mc.getDifficulty();
+                        } else {
+                            mc.getDifficulty();
+                        }
                         break;
                     }
                     case "sync": {
