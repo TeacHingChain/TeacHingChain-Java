@@ -474,6 +474,7 @@ public class MainChain {
     public int calculateDifficulty() {
         try {
             Block mostRecentBlock = new BlockDecoder().decode(BlockChain.blockChain.get(getIndexOfBlockChain()));
+            difficulty = Integer.parseInt(mostRecentBlock.getDifficulty());
             long currentTime = System.currentTimeMillis();
             long lbtAsLong = Long.parseLong(mostRecentBlock.getTimeStamp());
             long deltaT = currentTime - lbtAsLong;

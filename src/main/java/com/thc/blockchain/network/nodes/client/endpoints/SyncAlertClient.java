@@ -33,9 +33,8 @@ public class SyncAlertClient {
             String sizeAsString = String.valueOf(localChainSize);
             Alert sizeAlert = new Alert("sync size", sizeAsString);
             NodeManager.pushAlert(sizeAlert, session);
-            for (Object o : BlockChain.blockChain) {
-                String blockAsString = o.toString();
-                sb.append(blockAsString);
+            for (String block : BlockChain.blockChain) {
+                sb.append(block);
             }
             String chainAsString = sb.toString();
             String checksum = SHA256.SHA256HashString(chainAsString);

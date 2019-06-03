@@ -1,13 +1,20 @@
 package com.thc.blockchain.network.nodes;
 
+import com.thc.blockchain.network.Constants;
 import com.thc.blockchain.util.NetworkConfigFields;
 import com.thc.blockchain.network.nodes.client.endpoints.*;
 import com.thc.blockchain.util.WalletLogger;
 import javax.websocket.ContainerProvider;
 import javax.websocket.DeploymentException;
 import javax.websocket.WebSocketContainer;
-import java.io.IOException;
+import java.io.*;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import static com.thc.blockchain.network.Constants.*;
@@ -140,7 +147,7 @@ public final class EndpointManager {
             } catch (IOException ioe) {
                 WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp() + " IO exception occurred while trying to connect to a peer as a client! See below:\n" + WalletLogger.exceptionStacktraceToString(ioe));
             }
-        } else if (reason.contentEquals("push-chain")) {
+        } else if (reason.contentEquals("sync-block")) {
             if (!configFields.pushChainNode1FQN.isEmpty()) {
                 try {
                     container = ContainerProvider.getWebSocketContainer();

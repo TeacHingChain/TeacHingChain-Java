@@ -27,19 +27,22 @@ public class SyncAlertServer {
 
     @OnOpen
     public void onOpen(Session session) {
+        StringBuilder sb = new StringBuilder();
         mc.readBlockChain();
         System.out.println("ClientManager connected to sync client!\n");
-        NodeManager.registerNode(session, "sync-server");
-        int localChainSize = BlockChain.blockChain.size();
-        String sizeAsString = String.valueOf(localChainSize);
-        Alert sizeAlert = new Alert("sync size", sizeAsString);
-        NodeManager.pushAlert(sizeAlert, session);
-        WalletLogger.logEvent("info", WalletLogger.getLogTimeStamp() + " pushed alert: \n" + "alert type: " + sizeAlert.getAlertType() + " alert message: " + sizeAlert.getAlertMessage() + " from session: " + session.getUserProperties().get("id"));
-
-        String chainChecksum = SHA256.SHA256HashString(BlockChain.blockChain.toString());
-        Alert checksum = new Alert("sync checksum", chainChecksum);
-        NodeManager.pushAlert(checksum, session);
-        WalletLogger.logEvent("info", WalletLogger.getLogTimeStamp() + " pushed alert: \n" + "alert type: " + sizeAlert.getAlertType() + " alert message: " + sizeAlert.getAlertMessage() + " from session: " + session.getUserProperties().get("id"));
+        if (NodeManager.registerNode(session, "sync-client")) {
+            int localChainSize = BlockChain.blockChain.size();
+            String sizeAsString = String.valueOf(localChainSize);
+            Alert sizeAlert = new Alert("sync size", sizeAsString);
+            NodeManager.pushAlert(sizeAlert, session);
+            for (String block : BlockChain.blockChain) {
+                sb.append(block);
+            }
+            String chainAsString = sb.toString();
+            String checksum = SHA256.SHA256HashString(chainAsString);
+            Alert checksumAlert = new Alert("sync checksum", checksum);
+            NodeManager.pushAlert(checksumAlert, session);
+        }
     }
 
     @OnMessage
@@ -53,7 +56,7 @@ public class SyncAlertServer {
             WalletLogger.logEvent("info", WalletLogger.getLogTimeStamp() + " received alert: \n" + "alert type: " + alert.getAlertType() + " alert message: " + alert.getAlertMessage() + " from session: " + session.getUserProperties().get("id"));
             String remoteCheckSum = alert.getAlertMessage();
             if (Consensus.compareChainChecksum(remoteChainSize, remoteCheckSum)) {
-                endpointManager.connectAsClient("sync block");
+                endpointManager.connectAsClient("sync-block");
             } else {
                 System.out.println("Refusing to connect to sync block client due to a consensus error!\n");
             }

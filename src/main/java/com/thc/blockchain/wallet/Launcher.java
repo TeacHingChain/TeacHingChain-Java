@@ -315,9 +315,8 @@ public class Launcher {
                         System.out.println(Arrays.toString(result));
                         System.out.println(MainChain.getHex(result));
                     }
-                    case "calc balance": {
-                        mc.calculateBalance();
-                        System.out.println("Balance: " + MainChain.balance);
+                    case "test cargo": {
+
                         break;
                     }
 
