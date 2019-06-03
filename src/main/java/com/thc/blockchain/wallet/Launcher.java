@@ -8,12 +8,16 @@ import com.thc.blockchain.network.nodes.server.endpoints.GenesisChainServerEndpo
 import com.thc.blockchain.util.Miner;
 import com.thc.blockchain.util.WalletLogger;
 import com.thc.blockchain.util.addresses.AddressBook;
+import org.glassfish.grizzly.utils.Charsets;
+import sun.nio.cs.StandardCharsets;
+import sun.tools.java.BinaryCode;
 
 import javax.swing.*;
 import javax.websocket.DecodeException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Properties;
 import java.util.Random;
@@ -165,7 +169,7 @@ public class Launcher {
                                 String[] txs = {MainChain.getHex(txHash)};
                                 try {
                                     miner.mine(indexValue, timeStamp, Constants.cbAddress, toAddress, txs, txs[0], 0L, previousHash, algo, MainChain.difficulty, amount);
-                                    TimeUnit.SECONDS.sleep(3);
+                                    TimeUnit.SECONDS.sleep(1);
                                 } catch (InterruptedException ie) {
                                     WalletLogger.logException(ie, "severe", WalletLogger.getLogTimeStamp() + " Interrupted exception occurred during mining operation! See below:\n" + WalletLogger.exceptionStacktraceToString(ie));
                                 }
@@ -183,7 +187,7 @@ public class Launcher {
                                 String[] txs = {MainChain.getHex(txHash)};
                                 try {
                                     miner.mine(indexValue, timeStamp, Constants.cbAddress, toAddress, txs, txs[0], 0L, previousHash, algo, MainChain.difficulty, amount);
-                                    TimeUnit.SECONDS.sleep(3);
+                                    TimeUnit.SECONDS.sleep(1);
                                 } catch (InterruptedException ie) {
                                     WalletLogger.logException(ie, "severe", WalletLogger.getLogTimeStamp() + " Interrupted exception occurred during mining operation! See below:\n" + WalletLogger.exceptionStacktraceToString(ie));
                                 }
@@ -201,7 +205,7 @@ public class Launcher {
                                 String[] txs = {MainChain.getHex(txHash)};
                                 try {
                                     miner.mine(indexValue, timeStamp, Constants.cbAddress, toAddress, txs, txs[0], 0L, previousHash, algo, MainChain.difficulty, amount);
-                                    TimeUnit.SECONDS.sleep(3);
+                                    TimeUnit.SECONDS.sleep(1);
                                 } catch (InterruptedException ie) {
                                     WalletLogger.logException(ie, "severe", WalletLogger.getLogTimeStamp() + " Interrupted exception occurred during mining operation! See below:\n" + WalletLogger.exceptionStacktraceToString(ie));
                                 }
@@ -315,8 +319,8 @@ public class Launcher {
                         System.out.println(Arrays.toString(result));
                         System.out.println(MainChain.getHex(result));
                     }
-                    case "test cargo": {
-
+                    case "test hash rate": {
+                        System.out.println("Network hash rate: " + new Miner().calculateNetworkHashRate());
                         break;
                     }
 

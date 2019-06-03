@@ -9,18 +9,16 @@ import com.thc.blockchain.util.WalletLogger;
 import com.thc.blockchain.wallet.BlockChain;
 import com.thc.blockchain.wallet.MainChain;
 
-import javax.websocket.EncodeException;
-import javax.websocket.OnMessage;
-import javax.websocket.OnOpen;
-import javax.websocket.Session;
+import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
 
 @ServerEndpoint(value = "/" + Constants.pushChainKey, encoders = BlockEncoder.class, decoders = BlockDecoder.class)
 public class SyncBlockServer {
 
     @OnOpen
-    public void onOpen(Session session) {
+    public void onOpen(Session session, EndpointConfig config) {
         NodeManager.registerNode(session, "sync-block-server");
+        System.out.println("remote-chain-size: " + config.getUserProperties().get("remote-chain-size"));
         System.out.println("Session connected: " + session.getUserProperties().get("id").toString());
     }
 

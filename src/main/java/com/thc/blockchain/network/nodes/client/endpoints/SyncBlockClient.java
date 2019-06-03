@@ -14,14 +14,15 @@ import javax.websocket.*;
 @ClientEndpoint(encoders = { BlockEncoder.class }, decoders = { BlockDecoder.class })
 public class SyncBlockClient {
 
-    private int size;
     private MainChain mc = new MainChain();
 
     @OnOpen
-    public void initSyncBlock(Session session) {
+    public void initSyncBlock(Session session, EndpointConfig config) {
         NodeManager.registerNode(session, "sync-block-client");
+        System.out.println("Remote chain size from endpt config: " + config.getUserProperties().get("remote-chain-size"));
         try {
             mc.readBlockChain();
+            int size;
             if (BlockChain.blockChain.size() > SyncAlertServer.remoteChainSize) {
                 size = SyncAlertClient.remoteChainSize;
             } else {

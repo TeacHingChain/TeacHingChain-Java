@@ -118,7 +118,7 @@ public class WalletGui extends JFrame implements ActionListener {
                     String[] txs = {MainChain.getHex(txHash)};
                     try {
                         miner.mine(indexValue, timeStamp, Constants.cbAddress, toAddress, txs, MainChain.getHex(txHash), 0L, previousHash, algo, MainChain.difficulty, MainChain.nSubsidy);
-                        TimeUnit.SECONDS.sleep(3);
+                        TimeUnit.SECONDS.sleep(1);
                     } catch (InterruptedException ie) {
                         WalletLogger.logException(ie, "severe", WalletLogger.getLogTimeStamp() + " Interrupted exception occurred during mining operation! See below:\n" + WalletLogger.exceptionStacktraceToString(ie));
                     }
@@ -142,7 +142,7 @@ public class WalletGui extends JFrame implements ActionListener {
                     String[] txs = {MainChain.getHex(txHash)};
                     try {
                         miner.mine(indexValue, timeStamp, Constants.cbAddress, toAddress, txs, MainChain.getHex(txHashBytes), 0L, previousHash, algo, MainChain.difficulty, MainChain.nSubsidy);
-                        TimeUnit.SECONDS.sleep(3);
+                        TimeUnit.SECONDS.sleep(1);
                     } catch (InterruptedException ie) {
                         WalletLogger.logException(ie, "severe", WalletLogger.getLogTimeStamp() + " Interrupted exception occurred during mining operation! See below:\n" + WalletLogger.exceptionStacktraceToString(ie));
                     }
@@ -164,7 +164,7 @@ public class WalletGui extends JFrame implements ActionListener {
                     String[] txs = {MainChain.getHex(txHash)};
                     try {
                         miner.mine(indexValue, timeStamp, Constants.cbAddress, toAddress, txs, MainChain.getHex(txHashBytes), 0L, previousHash, algo, MainChain.difficulty, MainChain.nSubsidy);
-                        TimeUnit.SECONDS.sleep(3);
+                        TimeUnit.SECONDS.sleep(1);
                     } catch (InterruptedException ie) {
                         WalletLogger.logException(ie, "severe", WalletLogger.getLogTimeStamp() + " Interrupted exception occurred during mining operation! See below:\n" + WalletLogger.exceptionStacktraceToString(ie));
                     }
@@ -202,7 +202,7 @@ public class WalletGui extends JFrame implements ActionListener {
                         System.out.println("removing: \n" + txHash);
                         numBlocksMined++;
                         mc.overwriteTxPool();
-                        TimeUnit.SECONDS.sleep(3);
+                        TimeUnit.SECONDS.sleep(1);
                     } catch (InterruptedException ie) {
                         WalletLogger.logException(ie, "severe", WalletLogger.getLogTimeStamp() + " Interrupted exception occurred during mining operation! See below:\n" + WalletLogger.exceptionStacktraceToString(ie));
                     }

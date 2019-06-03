@@ -1,6 +1,7 @@
 package com.thc.blockchain.network;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.thc.blockchain.algos.SHA256;
 import com.thc.blockchain.util.addresses.Base58;
 import com.thc.blockchain.wallet.MainChain;
 
@@ -16,19 +17,16 @@ public final class Constants {
     public static final String HEXES = "0123456789abcdef";
     public static final char ENCODED_ZERO = BASE58_ALPHABET[0];
     public static final int[] INDEXES = new int[128];
-    public static final String cbAddress = Base58.encode(cbPubKey.getBytes());
+    public static final String cbAddress = Base58.encode(SHA256.SHA256HashByteArray(SHA256.SHA256HashByteArray(cbPubKey.getBytes())));
     public static final int maxClientConnections = 8;
     public static final String commPort = "7777";
     private static final String localNodeIP = "localhost:" + commPort;
-    public static String programDataDir;
     public static String baseDir = System.getProperty("user.dir");
-    public static String dataDir;
     public static final String syncKey = "sync";
     public static final String updateKey = "update";
     public static final String helloKey = "hello";
     public static final String pushChainKey = "push";
     public static String pushTxKey = "tx";
-    public String pushTxNode1FQN;
     public static final String genesisServerKey = "genesis";
     public static final String genesisNodeFQN = "ws://" + localNodeIP + "/server/" + genesisServerKey;
     public static final String genesisIndex = "0";

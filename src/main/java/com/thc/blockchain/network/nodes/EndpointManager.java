@@ -1,23 +1,18 @@
 package com.thc.blockchain.network.nodes;
 
-import com.thc.blockchain.network.Constants;
-import com.thc.blockchain.util.NetworkConfigFields;
 import com.thc.blockchain.network.nodes.client.endpoints.*;
+import com.thc.blockchain.util.NetworkConfigFields;
 import com.thc.blockchain.util.WalletLogger;
+
 import javax.websocket.ContainerProvider;
 import javax.websocket.DeploymentException;
 import javax.websocket.WebSocketContainer;
-import java.io.*;
+import java.io.IOException;
 import java.net.URI;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import static com.thc.blockchain.network.Constants.*;
+
+import static com.thc.blockchain.network.Constants.genesisNodeFQN;
 
 public final class EndpointManager {
 
@@ -34,7 +29,7 @@ public final class EndpointManager {
                     uri = configFields.updateNode1FQN;
                     System.out.println("Connecting to " + uri);
                     container.connectToServer(UpdateClientEndPoint.class, URI.create(uri));
-                    messageLatch.await(5, TimeUnit.SECONDS);
+                    messageLatch.await(1, TimeUnit.SECONDS);
                 } catch (DeploymentException de) {
                     WalletLogger.logException(de, "severe", WalletLogger.getLogTimeStamp() + " Deployment exception occurred while trying to connect to a peer as a client! See below:\n" + WalletLogger.exceptionStacktraceToString(de));
                 } catch (InterruptedException ie) {
@@ -51,7 +46,7 @@ public final class EndpointManager {
                     uri = configFields.updateNode2FQN;
                     System.out.println("Connecting to " + uri);
                     container.connectToServer(UpdateClientEndPoint.class, URI.create(uri));
-                    messageLatch.await(5, TimeUnit.SECONDS);
+                    messageLatch.await(1, TimeUnit.SECONDS);
                 } catch (DeploymentException de) {
                     WalletLogger.logException(de, "severe", WalletLogger.getLogTimeStamp() + " Deployment exception occurred while trying to connect to a peer as a client! See below:\n" + WalletLogger.exceptionStacktraceToString(de));
                 } catch (InterruptedException ie) {
@@ -69,7 +64,7 @@ public final class EndpointManager {
                     uri = configFields.helloNode1FQN;
                     System.out.println("Connecting to " + uri);
                     container.connectToServer(HelloClientEndpoint.class, URI.create(uri));
-                    messageLatch.await(5, TimeUnit.SECONDS);
+                    messageLatch.await(1, TimeUnit.SECONDS);
                 } catch (DeploymentException de) {
                     WalletLogger.logException(de, "severe", WalletLogger.getLogTimeStamp() + " Deployment exception occurred while trying to connect to a peer as a client! See below:\n" + WalletLogger.exceptionStacktraceToString(de));
                 } catch (InterruptedException ie) {
@@ -86,7 +81,7 @@ public final class EndpointManager {
                     uri = configFields.helloNode2FQN;
                     System.out.println("Connecting to " + uri);
                     container.connectToServer(HelloClientEndpoint.class, URI.create(uri));
-                    messageLatch.await(5, TimeUnit.SECONDS);
+                    messageLatch.await(1, TimeUnit.SECONDS);
                 } catch (DeploymentException de) {
                     WalletLogger.logException(de, "severe", WalletLogger.getLogTimeStamp() + " Deployment exception occurred while trying to connect to a peer as a client! See below:\n" + WalletLogger.exceptionStacktraceToString(de));
                 } catch (InterruptedException ie) {
@@ -105,7 +100,7 @@ public final class EndpointManager {
                     uri = configFields.syncNode1FQN;
                     System.out.println("Connecting to " + uri);
                     container.connectToServer(SyncAlertClient.class, URI.create(uri));
-                    messageLatch.await(5, TimeUnit.SECONDS);
+                    messageLatch.await(1, TimeUnit.SECONDS);
                 } catch (DeploymentException de) {
                     WalletLogger.logException(de, "severe", WalletLogger.getLogTimeStamp() + " Deployment exception occurred while trying to connect to a peer as a client! See below:\n" + WalletLogger.exceptionStacktraceToString(de));
                 } catch (InterruptedException ie) {
@@ -122,7 +117,7 @@ public final class EndpointManager {
                     uri = configFields.syncNode2FQN;
                     System.out.println("Connecting to " + uri);
                     container.connectToServer(SyncAlertClient.class, URI.create(uri));
-                    messageLatch.await(5, TimeUnit.SECONDS);
+                    messageLatch.await(1, TimeUnit.SECONDS);
                 } catch (DeploymentException de) {
                     WalletLogger.logException(de, "severe", WalletLogger.getLogTimeStamp() + " Deployment exception occurred while trying to connect to a peer as a client! See below:\n" + WalletLogger.exceptionStacktraceToString(de));
                 } catch (InterruptedException ie) {
@@ -139,7 +134,7 @@ public final class EndpointManager {
                 uri = genesisNodeFQN;
                 System.out.println("Connecting to " + uri);
                 container.connectToServer(GenesisChainClientEndpoint.class, URI.create(uri));
-                messageLatch.await(5, TimeUnit.SECONDS);
+                messageLatch.await(1, TimeUnit.SECONDS);
             } catch (DeploymentException de) {
                 WalletLogger.logException(de, "severe", WalletLogger.getLogTimeStamp() + " Deployment exception occurred while trying to connect to a peer as a client! See below:\n" + WalletLogger.exceptionStacktraceToString(de));
             } catch (InterruptedException ie) {
@@ -154,7 +149,7 @@ public final class EndpointManager {
                     uri = configFields.pushChainNode1FQN;
                     System.out.println("Connecting to " + uri);
                     container.connectToServer(SyncBlockClient.class, URI.create(uri));
-                    messageLatch.await(5, TimeUnit.SECONDS);
+                    messageLatch.await(1, TimeUnit.SECONDS);
                 } catch (DeploymentException de) {
                     WalletLogger.logException(de, "severe", WalletLogger.getLogTimeStamp() + " Deployment exception occurred while trying to connect to a peer as a client! See below:\n" + WalletLogger.exceptionStacktraceToString(de));
                 } catch (InterruptedException ie) {
@@ -171,7 +166,7 @@ public final class EndpointManager {
                     uri = configFields.pushChainNode2FQN;
                     System.out.println("Connecting to " + uri);
                     container.connectToServer(SyncBlockClient.class, URI.create(uri));
-                    messageLatch.await(5, TimeUnit.SECONDS);
+                    messageLatch.await(1, TimeUnit.SECONDS);
                 } catch (DeploymentException de) {
                     WalletLogger.logException(de, "severe", WalletLogger.getLogTimeStamp() + " Deployment exception occurred while trying to connect to a peer as a client! See below:\n" + WalletLogger.exceptionStacktraceToString(de));
                 } catch (InterruptedException ie) {
@@ -189,7 +184,7 @@ public final class EndpointManager {
                     uri = configFields.pushTxNode1FQN;
                     System.out.println("Connecting to " + uri);
                     container.connectToServer(TxClientEndpoint.class, URI.create(uri));
-                    messageLatch.await(5, TimeUnit.SECONDS);
+                    messageLatch.await(1, TimeUnit.SECONDS);
                 } catch (DeploymentException de) {
                     WalletLogger.logException(de, "severe", WalletLogger.getLogTimeStamp() + " Deployment exception occurred while trying to connect to a peer as a client! See below:\n" + WalletLogger.exceptionStacktraceToString(de));
                 } catch (InterruptedException ie) {
@@ -206,7 +201,7 @@ public final class EndpointManager {
                     uri = configFields.pushTxNode2FQN;
                     System.out.println("Connecting to " + uri);
                     container.connectToServer(TxClientEndpoint.class, URI.create(uri));
-                    messageLatch.await(5, TimeUnit.SECONDS);
+                    messageLatch.await(1, TimeUnit.SECONDS);
                 } catch (DeploymentException de) {
                     WalletLogger.logException(de, "severe", WalletLogger.getLogTimeStamp() + " Deployment exception occurred while trying to connect to a peer as a client! See below:\n" + WalletLogger.exceptionStacktraceToString(de));
                 } catch (InterruptedException ie) {

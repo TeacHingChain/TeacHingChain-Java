@@ -3,10 +3,13 @@ package com.thc.blockchain.util;
 import com.thc.blockchain.algos.SHA256;
 import com.thc.blockchain.algos.SHA512;
 import com.thc.blockchain.consensus.Consensus;
+import com.thc.blockchain.network.decoders.BlockDecoder;
+import com.thc.blockchain.network.decoders.GenesisBlockDecoder;
 import com.thc.blockchain.network.encoders.BlockEncoder;
 import com.thc.blockchain.network.nodes.EndpointManager;
 import com.thc.blockchain.network.nodes.NodeManager;
 import com.thc.blockchain.network.objects.Block;
+import com.thc.blockchain.network.objects.GenesisBlock;
 import com.thc.blockchain.wallet.BlockChain;
 import com.thc.blockchain.wallet.MainChain;
 
@@ -125,6 +128,27 @@ public class Miner {
         timer.cancel();
         System.out.println("Trying to restart miner!\n");
         mine(index, currentTimeMillis, fromAddress, toAddress, txHash, merkleRoot, Nonce, previousBlockHash, algo, difficulty, amount);
+    }
+
+    public long calculateNetworkHashRate() {
+        long totalHashes = 0;
+        long deltaS = 0;
+        try {
+            GenesisBlock genesisBlock = new GenesisBlockDecoder().decode(BlockChain.blockChain.get(0));
+            long genesisTimeNano = Long.parseLong(genesisBlock.getTimeStamp()) * 1000000;
+            long currentTimeNano = System.nanoTime();
+            for (int i = 1; i < BlockChain.blockChain.size(); i++) {
+                Block decodedBlock = new BlockDecoder().decode(BlockChain.blockChain.get(i));
+                long parsedNonce  = Long.parseLong(decodedBlock.getNonce());
+                totalHashes += parsedNonce;
+            }
+            System.out.println("Genesis time nano: " + genesisTimeNano + " current time nano: " + currentTimeNano + " total hashes: " + totalHashes);
+            deltaS = (currentTimeNano - genesisTimeNano) / 1000000000;
+            System.out.println("delta s: " + deltaS);
+        } catch (DecodeException de) {
+            WalletLogger.logException(de, "severe", WalletLogger.getLogTimeStamp() + " Decode exception occurred during mining operation! See below:\n" + WalletLogger.exceptionStacktraceToString(de));
+        }
+        return (totalHashes / deltaS);
     }
 }
 

@@ -14,6 +14,7 @@ import com.thc.blockchain.util.WalletLogger;
 import com.thc.blockchain.wallet.BlockChain;
 import com.thc.blockchain.wallet.MainChain;
 
+import javax.websocket.EndpointConfig;
 import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
 import javax.websocket.Session;
@@ -26,7 +27,7 @@ public class SyncAlertServer {
     private MainChain mc = new MainChain();
 
     @OnOpen
-    public void onOpen(Session session) {
+    public void onOpen(Session session, EndpointConfig config) {
         StringBuilder sb = new StringBuilder();
         mc.readBlockChain();
         System.out.println("ClientManager connected to sync client!\n");
@@ -34,6 +35,7 @@ public class SyncAlertServer {
             int localChainSize = BlockChain.blockChain.size();
             String sizeAsString = String.valueOf(localChainSize);
             Alert sizeAlert = new Alert("sync size", sizeAsString);
+            config.getUserProperties().put("remote-chain-size", remoteChainSize);
             NodeManager.pushAlert(sizeAlert, session);
             for (String block : BlockChain.blockChain) {
                 sb.append(block);

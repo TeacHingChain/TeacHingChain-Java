@@ -294,7 +294,7 @@ public class MainChain {
     }
 
     public String generateAddress(int keyIndex){
-        byte[] hashedPrivKeyBytes = MainChain.hexStringToByteArray(MainChain.getHex(SHA256.SHA256HashByteArray(SHA256.SHA256HashByteArray(KeyRing.keyRing.get(keyIndex).toString().getBytes()))));
+        byte[] hashedPrivKeyBytes = SHA256.SHA256HashByteArray(SHA256.SHA256HashByteArray(KeyRing.keyRing.get(keyIndex).toString().getBytes()));
         address = Base58.encode(hashedPrivKeyBytes);
         addToAddressBook(address);
         return address;
