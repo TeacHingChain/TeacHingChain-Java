@@ -3,6 +3,7 @@ package com.thc.blockchain.network.nodes.server.endpoints;
 import com.thc.blockchain.network.Constants;
 import com.thc.blockchain.network.decoders.BlockDecoder;
 import com.thc.blockchain.network.encoders.BlockEncoder;
+import com.thc.blockchain.network.nodes.NodeManager;
 import com.thc.blockchain.network.objects.Block;
 import com.thc.blockchain.util.WalletLogger;
 import com.thc.blockchain.wallet.BlockChain;
@@ -19,6 +20,7 @@ public class SyncBlockServer {
 
     @OnOpen
     public void onOpen(Session session) {
+        NodeManager.registerNode(session, "sync-block-server");
         System.out.println("Session connected: " + session.getUserProperties().get("id").toString());
     }
 

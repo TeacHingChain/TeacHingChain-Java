@@ -19,11 +19,12 @@ public class SyncBlockClient {
 
     @OnOpen
     public void initSyncBlock(Session session) {
+        NodeManager.registerNode(session, "sync-block-client");
         try {
             mc.readBlockChain();
-            if (session.getUserProperties().get("id").toString().contentEquals("sync-client")) {
+            if (BlockChain.blockChain.size() > SyncAlertServer.remoteChainSize) {
                 size = SyncAlertClient.remoteChainSize;
-            } else if (session.getUserProperties().get("id").toString().contentEquals("sync-server")) {
+            } else {
                 size = SyncAlertServer.remoteChainSize;
             }
             for (int i = size; i < BlockChain.blockChain.size(); i++) {
