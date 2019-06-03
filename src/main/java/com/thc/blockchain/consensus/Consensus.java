@@ -15,9 +15,14 @@ public class Consensus {
     }
 
     public static Boolean compareChainChecksum(int remoteChainSize, String remoteChecksum) {
-        for (int i = 0; i < remoteChainSize; i++) {
-            String blockAsString = BlockChain.blockChain.get(i);
+        if (remoteChainSize == 1) {
+            String blockAsString = BlockChain.blockChain.get(0);
             sb.append(blockAsString);
+        } else {
+            for (int i = 0; i < remoteChainSize; i++) {
+                String blockAsString = BlockChain.blockChain.get(i);
+                sb.append(blockAsString);
+            }
         }
         String chainAsString = sb.toString();
         String checksum = SHA256.SHA256HashString(SHA256.SHA256HashString(chainAsString));

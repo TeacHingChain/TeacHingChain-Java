@@ -30,7 +30,7 @@ public class SyncAlertServer {
         StringBuilder sb = new StringBuilder();
         mc.readBlockChain();
         System.out.println("ClientManager connected to sync client!\n");
-        if (NodeManager.registerNode(session, "sync-client")) {
+        if (NodeManager.registerNode(session, "sync-server")) {
             int localChainSize = BlockChain.blockChain.size();
             String sizeAsString = String.valueOf(localChainSize);
             Alert sizeAlert = new Alert("sync size", sizeAsString);
@@ -39,7 +39,7 @@ public class SyncAlertServer {
                 sb.append(block);
             }
             String chainAsString = sb.toString();
-            String checksum = SHA256.SHA256HashString(chainAsString);
+            String checksum = SHA256.SHA256HashString(SHA256.SHA256HashString(chainAsString));
             Alert checksumAlert = new Alert("sync checksum", checksum);
             NodeManager.pushAlert(checksumAlert, session);
         }

@@ -37,7 +37,7 @@ public class SyncAlertClient {
                 sb.append(block);
             }
             String chainAsString = sb.toString();
-            String checksum = SHA256.SHA256HashString(chainAsString);
+            String checksum = SHA256.SHA256HashString(SHA256.SHA256HashString(chainAsString));
             Alert checksumAlert = new Alert("sync checksum", checksum);
             NodeManager.pushAlert(checksumAlert, session);
         }
