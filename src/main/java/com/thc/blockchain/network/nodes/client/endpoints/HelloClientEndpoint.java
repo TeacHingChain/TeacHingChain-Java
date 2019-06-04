@@ -7,14 +7,22 @@ import com.thc.blockchain.network.nodes.NodeManager;
 import javax.websocket.*;
 
 
-@ClientEndpoint (encoders = BlockEncoder.class, decoders = BlockDecoder.class)
+@ClientEndpoint (encoders = Encoder.Text.class, decoders = Decoder.Text.class)
 public class HelloClientEndpoint {
 
     @OnOpen
     public void onOpen(Session session) {
+        NodeManager.registerNode(session, "hello-client");
         System.out.println("Was able to reach hello-server!\n");
-        NodeManager.close(session, CloseReason.CloseCodes.NORMAL_CLOSURE, "closing session..");
+        NodeManager.sendHello("hello", session);
 
+    }
+
+    @OnMessage
+    public void onMessage(Session session, String message) {
+        System.out.println("Received " + message + " from " + session.getUserProperties().get("id").toString());
+        NodeManager.remove(session);
+        NodeManager.close(session, CloseReason.CloseCodes.NORMAL_CLOSURE, "closing session...");
     }
 
     @OnError
