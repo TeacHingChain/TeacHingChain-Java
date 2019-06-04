@@ -130,9 +130,9 @@ public class Miner {
         mine(index, currentTimeMillis, fromAddress, toAddress, txHash, merkleRoot, Nonce, previousBlockHash, algo, difficulty, amount);
     }
 
-    public long calculateNetworkHashRate() {
+    public double calculateNetworkHashRate() {
         long totalHashes = 0;
-        long deltaS = 0;
+        double deltaS = 0;
         try {
             GenesisBlock genesisBlock = new GenesisBlockDecoder().decode(BlockChain.blockChain.get(0));
             long genesisTime = Long.parseLong(genesisBlock.getTimeStamp());

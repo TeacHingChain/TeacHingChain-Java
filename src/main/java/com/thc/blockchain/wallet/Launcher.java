@@ -4,6 +4,7 @@ import com.thc.blockchain.algos.SHA256;
 import com.thc.blockchain.gui.WalletGui;
 import com.thc.blockchain.network.Constants;
 import com.thc.blockchain.network.nodes.EndpointManager;
+import com.thc.blockchain.network.nodes.NodeManager;
 import com.thc.blockchain.network.nodes.server.endpoints.GenesisChainServerEndpoint;
 import com.thc.blockchain.util.Miner;
 import com.thc.blockchain.util.WalletLogger;
@@ -321,6 +322,10 @@ public class Launcher {
                     }
                     case "test hash rate": {
                         System.out.println("Network hash rate: " + new Miner().calculateNetworkHashRate());
+                        break;
+                    }
+                    case "get peer count": {
+                        System.out.println("Number of connected peers: " + NodeManager.getPeerCount());
                         break;
                     }
 

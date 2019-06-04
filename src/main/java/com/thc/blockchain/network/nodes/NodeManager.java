@@ -85,6 +85,17 @@ public final class NodeManager {
         });
     }
 
+    public static int getPeerCount() {
+        int connectedNodes = 0;
+        if (new EndpointManager().isNodeConnected(1)) {
+            connectedNodes++;
+        }
+        if (new EndpointManager().isNodeConnected(2)) {
+            connectedNodes++;
+        }
+        return connectedNodes;
+    }
+
     public static boolean registerNode(final Session session, final String id) {
         assert !Objects.isNull(session);
         assert !Objects.isNull(id);

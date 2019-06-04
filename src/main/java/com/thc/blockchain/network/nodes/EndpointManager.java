@@ -222,10 +222,10 @@ public final class EndpointManager {
                 try {
                     container = ContainerProvider.getWebSocketContainer();
                     uri = configFields.helloNode1FQN;
-                    System.out.println("Connecting to " + uri);
                     container.connectToServer(HelloClientEndpoint.class, URI.create(uri));
                     messageLatch.await(500, TimeUnit.MILLISECONDS);
                     return container.connectToServer(HelloClientEndpoint.class, URI.create(uri)).isOpen();
+
                 } catch (DeploymentException de) {
                     WalletLogger.logException(de, "severe", WalletLogger.getLogTimeStamp() + " Deployment exception occurred while trying to connect to a peer as a client! See below:\n" + WalletLogger.exceptionStacktraceToString(de));
                 } catch (InterruptedException ie) {
@@ -242,7 +242,6 @@ public final class EndpointManager {
                 try {
                     container = ContainerProvider.getWebSocketContainer();
                     uri = configFields.helloNode2FQN;
-                    System.out.println("Connecting to " + uri);
                     container.connectToServer(HelloClientEndpoint.class, URI.create(uri));
                     messageLatch.await(500, TimeUnit.MILLISECONDS);
                     return container.connectToServer(HelloClientEndpoint.class, URI.create(uri)).isOpen();
