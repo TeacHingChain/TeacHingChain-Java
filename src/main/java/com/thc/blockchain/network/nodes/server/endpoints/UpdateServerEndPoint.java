@@ -39,6 +39,7 @@ public class UpdateServerEndPoint {
         }
         NodeManager.remove(session);
         mc.calculateDifficulty();
+        NodeManager.close(session, CloseReason.CloseCodes.NORMAL_CLOSURE, "closing session..");
     }
 }
 
