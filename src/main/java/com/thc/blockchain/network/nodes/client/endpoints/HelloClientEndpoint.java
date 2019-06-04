@@ -14,6 +14,7 @@ public class HelloClientEndpoint {
     public void onOpen(Session session) {
         NodeManager.registerNode(session, "hello-client");
         System.out.println("Was able to reach hello-server!\n");
+        session.setMaxIdleTimeout(5000);
         NodeManager.sendHello("hello", session);
 
     }
@@ -22,7 +23,6 @@ public class HelloClientEndpoint {
     public void onMessage(Session session, String message) {
         System.out.println("Received " + message + " from " + session.getUserProperties().get("id").toString());
         NodeManager.remove(session);
-        NodeManager.close(session, CloseReason.CloseCodes.NORMAL_CLOSURE, "closing session...");
     }
 
     @OnError

@@ -14,6 +14,7 @@ public class UpdateClientEndPoint {
     public void onOpen(Session session) {
         if (NodeManager.registerNode(session, "update-chain-client")) {
             System.out.println("ClientManager connected to update server!\n");
+            session.setMaxIdleTimeout(5000);
             NodeManager.setSession(session);
         }
     }
@@ -22,6 +23,5 @@ public class UpdateClientEndPoint {
     public void onBlockMessage(Block block, Session session) {
         System.out.println("Processing block number: " + block.getIndex());
         NodeManager.remove(session);
-        NodeManager.close(session, CloseReason.CloseCodes.NORMAL_CLOSURE, "closing session..");
     }
 }
