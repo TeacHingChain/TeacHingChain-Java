@@ -135,15 +135,15 @@ public class Miner {
         long deltaS = 0;
         try {
             GenesisBlock genesisBlock = new GenesisBlockDecoder().decode(BlockChain.blockChain.get(0));
-            long genesisTimeNano = Long.parseLong(genesisBlock.getTimeStamp()) * 1000000;
-            long currentTimeNano = System.nanoTime();
+            long genesisTime = Long.parseLong(genesisBlock.getTimeStamp());
+            long currentTime = System.currentTimeMillis();
             for (int i = 1; i < BlockChain.blockChain.size(); i++) {
                 Block decodedBlock = new BlockDecoder().decode(BlockChain.blockChain.get(i));
                 long parsedNonce  = Long.parseLong(decodedBlock.getNonce());
                 totalHashes += parsedNonce;
             }
-            System.out.println("Genesis time nano: " + genesisTimeNano + " current time nano: " + currentTimeNano + " total hashes: " + totalHashes);
-            deltaS = (currentTimeNano - genesisTimeNano) / 1000000000;
+            System.out.println("Genesis time nano: " + genesisTime + " current time nano: " + currentTime + " total hashes: " + totalHashes);
+            deltaS = (currentTime - genesisTime) / 1000;
             System.out.println("delta s: " + deltaS);
         } catch (DecodeException de) {
             WalletLogger.logException(de, "severe", WalletLogger.getLogTimeStamp() + " Decode exception occurred during mining operation! See below:\n" + WalletLogger.exceptionStacktraceToString(de));
