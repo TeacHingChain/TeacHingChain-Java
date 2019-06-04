@@ -19,7 +19,6 @@ public class UpdateServerEndPoint {
     public void onOpen(Session session) {
         System.out.println("A client connected to the server!\n");
         NodeManager.registerNode(session, "update-chain-server");
-        session.setMaxIdleTimeout(5000);
     }
 
     @OnMessage

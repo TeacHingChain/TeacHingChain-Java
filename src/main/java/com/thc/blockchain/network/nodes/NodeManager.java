@@ -85,20 +85,6 @@ public final class NodeManager {
         });
     }
 
-    public static void sendHello(final String message, final Session sid) {
-        assert !Objects.isNull(message) && !Objects.isNull(sid);
-        NODES.forEach(session -> {
-            if (sid.getUserProperties().get("id").toString().contentEquals("hello-client") || sid.getUserProperties().get("id").toString().contentEquals("hello-server")) {
-                try {
-                    sid.getBasicRemote().sendText(message);
-                } catch (IOException ioe) {
-                    WalletLogger.logException(ioe, "severe",  WalletLogger.getLogTimeStamp() + " IO exception occurred while trying to push an alert to a peer! See below:\n" + WalletLogger.exceptionStacktraceToString(ioe));
-                }
-            }
-        });
-    }
-
-
     public static boolean registerNode(final Session session, final String id) {
         assert !Objects.isNull(session);
         assert !Objects.isNull(id);

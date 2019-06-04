@@ -4,8 +4,10 @@ import com.thc.blockchain.network.decoders.BlockDecoder;
 import com.thc.blockchain.network.encoders.BlockEncoder;
 import com.thc.blockchain.network.nodes.NodeManager;
 import com.thc.blockchain.network.objects.Block;
-
-import javax.websocket.*;
+import javax.websocket.ClientEndpoint;
+import javax.websocket.OnMessage;
+import javax.websocket.OnOpen;
+import javax.websocket.Session;
 
 @ClientEndpoint(encoders = BlockEncoder.class, decoders = BlockDecoder.class)
 public class UpdateClientEndPoint {
@@ -14,7 +16,6 @@ public class UpdateClientEndPoint {
     public void onOpen(Session session) {
         if (NodeManager.registerNode(session, "update-chain-client")) {
             System.out.println("ClientManager connected to update server!\n");
-            session.setMaxIdleTimeout(5000);
             NodeManager.setSession(session);
         }
     }
