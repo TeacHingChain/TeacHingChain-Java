@@ -22,7 +22,6 @@ public class HelloClientEndpoint {
     @OnMessage
     public void onMessage(Session session, String message) {
         System.out.println("Received " + message + " from " + session.getUserProperties().get("id").toString());
-        NodeManager.remove(session);
     }
 
     @OnError
