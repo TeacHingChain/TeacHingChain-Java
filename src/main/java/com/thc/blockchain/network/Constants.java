@@ -21,12 +21,12 @@ public final class Constants {
     public static final int MAX_CLIENT_CONNECTIONS = 8;
     public static final String COMM_PORT = "7777";
     private static final String LOCAL_NODE_IP = "localhost:" + COMM_PORT;
-    public static String BASEDIR = System.getProperty("user.dir");
+    public static final String BASEDIR = System.getProperty("user.dir");
     public static final String SYNC_KEY = "sync";
     public static final String UPDATE_KEY = "update";
     public static final String HELLO_KEY = "hello";
     public static final String PUSH_CHAIN_KEY = "push";
-    public static String PUSH_TX_KEY = "tx";
+    public static final String PUSH_TX_KEY = "tx";
     public static final String GENESIS_SERVER_KEY = "genesis";
     public static final String GENESIS_NODE_FQN = "ws://" + LOCAL_NODE_IP + "/server/" + GENESIS_SERVER_KEY;
     public static final String GENESIS_INDEX = "0";

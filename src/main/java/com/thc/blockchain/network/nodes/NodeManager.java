@@ -21,7 +21,7 @@ public final class NodeManager {
 
     private static final Lock LOCK = new ReentrantLock();
     private static final Set<Session> NODES = new CopyOnWriteArraySet<>();
-    public static Session session;
+    private static Session session;
 
     public static void pushBlock(final Block block, final Session sid) {
         assert !Objects.isNull(block) && !Objects.isNull(sid);

@@ -8,29 +8,29 @@ import java.util.Objects;
 public final class Block {
 
     @JsonProperty("index")
-    private String index;
+    private final String index;
     @JsonProperty("time stamp")
-    private String timeStamp;
+    private final String timeStamp;
     @JsonProperty("from address")
-    private String fromAddress;
+    private final String fromAddress;
     @JsonProperty("to address")
-    private String toAddress;
+    private final String toAddress;
     @JsonProperty("transactions")
-    private String[] txs;
+    private final String[] txs;
     @JsonProperty ("merkle root")
-    private String merkleRoot;
+    private final String merkleRoot;
     @JsonProperty("nonce")
-    private String Nonce;
+    private final String Nonce;
     @JsonProperty("previous block hash")
-    private String previousBlockHash;
+    private final String previousBlockHash;
     @JsonProperty("algo")
-    private String algo;
+    private final String algo;
     @JsonProperty("block hash")
-    private String blockHash;
+    private final String blockHash;
     @JsonProperty("target")
-    private String target;
+    private final String target;
     @JsonProperty("amount")
-    private String amount;
+    private final String amount;
 
     @JsonCreator
     public Block(@JsonProperty("index") String index, @JsonProperty("time stamp") String timeStamp,

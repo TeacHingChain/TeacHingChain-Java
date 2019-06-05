@@ -6,7 +6,7 @@ import javax.websocket.server.ServerEndpoint;
 
 
 @ServerEndpoint(value = "/hello")
-public class HelloServerEndpoint {
+class HelloServerEndpoint {
 
     @OnOpen
     public void onOpen () {

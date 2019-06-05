@@ -5,7 +5,7 @@ import java.util.List;
 
 public class TxPoolArray {
 
-    public TxPoolArray() {
+    TxPoolArray() {
         initTxPoolArray();
 
     }

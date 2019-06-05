@@ -24,7 +24,7 @@ import javax.websocket.server.ServerEndpoint;
 public class SyncAlertServer {
 
     public static int remoteChainSize;
-    private MainChain mc = new MainChain();
+    private final MainChain mc = new MainChain();
 
     @OnOpen
     public void onOpen(Session session, EndpointConfig config) {

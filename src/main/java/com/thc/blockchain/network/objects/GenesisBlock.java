@@ -8,31 +8,31 @@ import java.util.Objects;
 public final class GenesisBlock {
 
     @JsonProperty("index")
-    private String index;
+    private final String index;
     @JsonProperty("time stamp")
-    private String timeStamp;
+    private final String timeStamp;
     @JsonProperty("pszTimestamp")
-    private String pszTimestamp;
+    private final String pszTimestamp;
     @JsonProperty("from address")
-    private String fromAddress;
+    private final String fromAddress;
     @JsonProperty("to address")
-    private String toAddress;
+    private final String toAddress;
     @JsonProperty("tx hash")
-    private String txHash;
+    private final String txHash;
     @JsonProperty ("merkle root")
-    private String merkleRoot;
+    private final String merkleRoot;
     @JsonProperty("nonce")
-    private String Nonce;
+    private final String Nonce;
     @JsonProperty("previous block hash")
-    private String previousBlockHash;
+    private final String previousBlockHash;
     @JsonProperty("algo")
-    private String algo;
+    private final String algo;
     @JsonProperty("block hash")
-    private String blockHash;
+    private final String blockHash;
     @JsonProperty("target")
-    private String target;
+    private final String target;
     @JsonProperty("amount")
-    private String amount;
+    private final String amount;
     
     @JsonCreator
     public GenesisBlock(@JsonProperty("index") String index, @JsonProperty("time stamp") String timeStamp,

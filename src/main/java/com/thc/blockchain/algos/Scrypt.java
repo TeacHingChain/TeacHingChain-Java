@@ -3,7 +3,7 @@ package com.thc.blockchain.algos;
 import com.lambdaworks.crypto.SCryptUtil;
 import java.nio.charset.StandardCharsets;
 
-public class Scrypt {
+class Scrypt {
 
     public static String generateScryptHash(String value) {
         String scryptHash = SCryptUtil.scrypt(value, 100, 50, 50);

@@ -1,31 +1,13 @@
 package com.thc.blockchain.gui;
 
-import com.thc.blockchain.algos.SHA256;
-import com.thc.blockchain.network.Constants;
-import com.thc.blockchain.util.Miner;
-import com.thc.blockchain.util.WalletLogger;
-import com.thc.blockchain.util.addresses.AddressBook;
-import com.thc.blockchain.wallet.BlockChain;
 import com.thc.blockchain.wallet.MainChain;
-import com.thc.blockchain.wallet.TxPoolArray;
 
 import javax.swing.*;
-import javax.websocket.DecodeException;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.io.File;
-import java.util.Random;
-import java.util.concurrent.TimeUnit;
-
-import static com.thc.blockchain.wallet.MainChain.difficulty;
 
 public class WalletGui extends JFrame {
 
     private static String algo;
-    private static JTextField numberOfBlocks;
-    private static JTextField txAmount;
-    private static JTextField txToAddress;
 
     public WalletGui() {
         super("TeacHingChain Wallet");
@@ -35,9 +17,9 @@ public class WalletGui extends JFrame {
         JLabel numBlockToMine = new JLabel("Number of blocks: ");
         JButton sendTxButton = new JButton("Send Tx");
         JButton mineButton = new JButton("Mine");
-        numberOfBlocks = new JTextField(3);
-        txAmount = new JTextField(5);
-        txToAddress = new JTextField(32);
+        JTextField numberOfBlocks = new JTextField(3);
+        JTextField txAmount = new JTextField(5);
+        JTextField txToAddress = new JTextField(32);
         JPanel newPanel = new JPanel(new GridBagLayout());
         GridBagConstraints constraints = new GridBagConstraints();
         constraints.anchor = GridBagConstraints.WEST;

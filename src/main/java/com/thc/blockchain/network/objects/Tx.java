@@ -7,13 +7,13 @@ import java.util.Objects;
 public final class Tx {
 
     @JsonProperty("from address")
-    private String fromAddress;
+    private final String fromAddress;
     @JsonProperty("to address")
-    private String toAddress;
+    private final String toAddress;
     @JsonProperty("amount")
-    private float amount;
+    private final float amount;
     @JsonProperty("tx hash")
-    private String txHash;
+    private final String txHash;
 
     @JsonCreator
     public Tx(@JsonProperty("from address") String fromAddress, @JsonProperty("to address") String toAddress, @JsonProperty("amount")float amount, @JsonProperty String txHash) {
