@@ -69,7 +69,7 @@ public class Miner {
                     if (MainChain.difficulty <= 1) {
                         MainChain.difficulty = 1;
                         targetAsBigDec = new BigDecimal(new BigInteger(
-                                "00000eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee", 16));
+                                "0000eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee", 16));
                     }
                     if (new BigDecimal(new BigInteger(MainChain.getHex(blockHeaderBytes), 16)).subtract(targetAsBigDec).compareTo(
                             new BigDecimal(0)) <= 0) {
@@ -112,9 +112,10 @@ public class Miner {
                             Nonce = 0L;
                             byte[] txHashBytes = (fromAddress + toAddress + amount).getBytes();
                             merkleRoot = MainChain.getHex(SHA256.SHA256HashByteArray(txHashBytes));
-                            target = MainChain.getHex(String.valueOf((MainChain.calculateTarget(deltaS, target))).getBytes());
+                            MainChain.targetAsBigDec = MainChain.getHex(String.valueOf((MainChain.calculateTarget(deltaS, target))).getBytes());
                             restartMiner(updatedIndex, currentTimeMillis, fromAddress, toAddress, txHash, merkleRoot,
-                                    Nonce, previousBlockHash, algo, target, amount);
+                                    Nonce, previousBlockHash, algo, MainChain.getHex(String.valueOf((MainChain.calculateTarget(
+                                            deltaS, target))).getBytes()), amount);
                             break;
                         }
                     }

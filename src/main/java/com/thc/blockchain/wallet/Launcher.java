@@ -9,6 +9,7 @@ import com.thc.blockchain.network.nodes.NodeManager;
 import com.thc.blockchain.network.nodes.server.endpoints.GenesisChainServerEndpoint;
 import com.thc.blockchain.network.objects.Block;
 import com.thc.blockchain.util.Miner;
+import com.thc.blockchain.util.NetworkConfigFields;
 import com.thc.blockchain.util.WalletLogger;
 import com.thc.blockchain.util.addresses.AddressBook;
 
@@ -36,6 +37,7 @@ class Launcher {
             configPath = Constants.BASEDIR + "/config/config.properties";
         }
         Properties configProps = new Properties();
+        new NetworkConfigFields();
         try {
             configProps.load(new FileInputStream(configPath));
             MainChain mc = new MainChain();
@@ -378,6 +380,7 @@ class Launcher {
                     }
                     case "get target": {
                         System.out.println("Target: " + MainChain.getTargetAsBigDec());
+                        break;
                     }
                     case "quit": {
                         System.exit(1);
