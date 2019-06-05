@@ -20,7 +20,7 @@ import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
-@ServerEndpoint(value = "/" + Constants.syncKey, encoders = { BlockEncoder.class, AlertEncoder.class }, decoders = { BlockDecoder.class, AlertDecoder.class })
+@ServerEndpoint(value = "/" + Constants.SYNC_KEY, encoders = { BlockEncoder.class, AlertEncoder.class }, decoders = { BlockDecoder.class, AlertDecoder.class })
 public class SyncAlertServer {
 
     public static int remoteChainSize;

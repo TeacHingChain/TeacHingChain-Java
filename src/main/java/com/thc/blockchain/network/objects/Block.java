@@ -27,8 +27,8 @@ public final class Block {
     private String algo;
     @JsonProperty("block hash")
     private String blockHash;
-    @JsonProperty("difficulty")
-    private String difficulty;
+    @JsonProperty("target")
+    private String target;
     @JsonProperty("amount")
     private String amount;
 
@@ -38,7 +38,7 @@ public final class Block {
                  @JsonProperty("transactions") String[] txs, @JsonProperty("merkle root") String merkleRoot,
                  @JsonProperty("nonce") String Nonce, @JsonProperty("previous block hash") String previousBlockHash,
                  @JsonProperty("algo") String algo, @JsonProperty("block hash") String blockHash,
-                 @JsonProperty("difficulty") String difficulty, @JsonProperty("amount") String amount) {
+                 @JsonProperty("target") String target, @JsonProperty("amount") String amount) {
         Objects.requireNonNull(index);
         Objects.requireNonNull(timeStamp);
         Objects.requireNonNull(fromAddress);
@@ -49,7 +49,7 @@ public final class Block {
         Objects.requireNonNull(previousBlockHash);
         Objects.requireNonNull(algo);
         Objects.requireNonNull(blockHash);
-        Objects.requireNonNull(difficulty);
+        Objects.requireNonNull(target);
         Objects.requireNonNull(amount);
         this.index = index;
         this.timeStamp = timeStamp;
@@ -61,7 +61,7 @@ public final class Block {
         this.previousBlockHash = previousBlockHash;
         this.algo = algo;
         this.blockHash = blockHash;
-        this.difficulty = difficulty;
+        this.target = target;
         this.amount = amount;
     }
 
@@ -89,8 +89,8 @@ public final class Block {
         return this.algo;
     }
     public String getBlockHash() { return this.blockHash; }
-    public String getDifficulty() {
-        return this.difficulty;
+    public String getTarget() {
+        return this.target;
     }
     public String getAmount() {
         return this.amount;
@@ -101,5 +101,5 @@ public final class Block {
 }
 
 /*
-long index, long currentTimeMillis, String sendKey, String recvKey, String coinbaseAddress, String txHash, long Nonce, String previousBlockHash, String algo, int difficulty, float amount
+long index, long currentTimeMillis, String sendKey, String recvKey, String coinbaseAddress, String txHash, long Nonce, String previousBlockHash, String algo, int targetHex, float amount
  */

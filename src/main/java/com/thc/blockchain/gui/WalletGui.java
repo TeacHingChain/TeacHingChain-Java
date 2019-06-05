@@ -20,7 +20,7 @@ import java.util.concurrent.TimeUnit;
 
 import static com.thc.blockchain.wallet.MainChain.difficulty;
 
-public class WalletGui extends JFrame implements ActionListener {
+public class WalletGui extends JFrame {
 
     private static String algo;
     private static JTextField numberOfBlocks;
@@ -71,10 +71,10 @@ public class WalletGui extends JFrame implements ActionListener {
         constraints.gridx = 2;
         constraints.gridy = 2;
         newPanel.add(numberOfBlocks, constraints);
-        mineButton.addActionListener(this);
-        mineButton.setActionCommand("mine");
-        sendTxButton.addActionListener(this);
-        sendTxButton.setActionCommand("send tx");
+       // mineButton.addActionListener(this);
+       // mineButton.setActionCommand("mine");
+       // sendTxButton.addActionListener(this);
+       // sendTxButton.setActionCommand("send tx");
         newPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "TeacHingChain Wallet"));
         constraints.anchor = GridBagConstraints.CENTER;
         add(newPanel);
@@ -82,7 +82,7 @@ public class WalletGui extends JFrame implements ActionListener {
         setLocationRelativeTo(null);
     }
 
-    @Override
+    /*@Override
     public void actionPerformed(ActionEvent actionEvent) {
         Miner miner = new Miner();
         MainChain mc = new MainChain();
@@ -113,11 +113,11 @@ public class WalletGui extends JFrame implements ActionListener {
                         e.printStackTrace();
                     }
                     String toAddress = AddressBook.addressBook.get(0).toString();
-                    byte[] txHashBytes = (indexValue + Constants.cbAddress + toAddress).getBytes();
+                    byte[] txHashBytes = (indexValue + Constants.CB_ADDRESS + toAddress).getBytes();
                     byte[] txHash = SHA256.SHA256HashByteArray(txHashBytes);
                     String[] txs = {MainChain.getHex(txHash)};
                     try {
-                        miner.mine(indexValue, timeStamp, Constants.cbAddress, toAddress, txs, MainChain.getHex(txHash), 0L, previousHash, algo, MainChain.difficulty, MainChain.nSubsidy);
+                        miner.mine(indexValue, timeStamp, Constants.CB_ADDRESS, toAddress, txs, MainChain.getHex(txHash), 0L, previousHash, algo, MainChain.difficulty, MainChain.nSubsidy);
                         TimeUnit.SECONDS.sleep(1);
                     } catch (InterruptedException ie) {
                         WalletLogger.logException(ie, "severe", WalletLogger.getLogTimeStamp() + " Interrupted exception occurred during mining operation! See below:\n" + WalletLogger.exceptionStacktraceToString(ie));
@@ -137,11 +137,11 @@ public class WalletGui extends JFrame implements ActionListener {
                     } catch (DecodeException e) {
                         e.printStackTrace();
                     }
-                    byte[] txHashBytes = (indexValue + Constants.cbAddress + toAddress).getBytes();
+                    byte[] txHashBytes = (indexValue + Constants.CB_ADDRESS + toAddress).getBytes();
                     byte[] txHash = SHA256.SHA256HashByteArray(txHashBytes);
                     String[] txs = {MainChain.getHex(txHash)};
                     try {
-                        miner.mine(indexValue, timeStamp, Constants.cbAddress, toAddress, txs, MainChain.getHex(txHashBytes), 0L, previousHash, algo, MainChain.difficulty, MainChain.nSubsidy);
+                        miner.mine(indexValue, timeStamp, Constants.CB_ADDRESS, toAddress, txs, MainChain.getHex(txHashBytes), 0L, previousHash, algo, MainChain.difficulty, MainChain.nSubsidy);
                         TimeUnit.SECONDS.sleep(1);
                     } catch (InterruptedException ie) {
                         WalletLogger.logException(ie, "severe", WalletLogger.getLogTimeStamp() + " Interrupted exception occurred during mining operation! See below:\n" + WalletLogger.exceptionStacktraceToString(ie));
@@ -159,11 +159,11 @@ public class WalletGui extends JFrame implements ActionListener {
                     } catch (DecodeException e) {
                         e.printStackTrace();
                     }
-                    byte[] txHashBytes = (indexValue + Constants.cbAddress + toAddress).getBytes();
+                    byte[] txHashBytes = (indexValue + Constants.CB_ADDRESS + toAddress).getBytes();
                     byte[] txHash = SHA256.SHA256HashByteArray(txHashBytes);
                     String[] txs = {MainChain.getHex(txHash)};
                     try {
-                        miner.mine(indexValue, timeStamp, Constants.cbAddress, toAddress, txs, MainChain.getHex(txHashBytes), 0L, previousHash, algo, MainChain.difficulty, MainChain.nSubsidy);
+                        miner.mine(indexValue, timeStamp, Constants.CB_ADDRESS, toAddress, txs, MainChain.getHex(txHashBytes), 0L, previousHash, algo, MainChain.getTargetHex(), MainChain.nSubsidy);
                         TimeUnit.SECONDS.sleep(1);
                     } catch (InterruptedException ie) {
                         WalletLogger.logException(ie, "severe", WalletLogger.getLogTimeStamp() + " Interrupted exception occurred during mining operation! See below:\n" + WalletLogger.exceptionStacktraceToString(ie));
@@ -187,11 +187,11 @@ public class WalletGui extends JFrame implements ActionListener {
                     } catch (DecodeException e) {
                         e.printStackTrace();
                     }
-                    byte[] txHashBytes = (indexValue + Constants.cbAddress + toAddress).getBytes();
+                    byte[] txHashBytes = (indexValue + Constants.CB_ADDRESS + toAddress).getBytes();
                     byte[] txHash = SHA256.SHA256HashByteArray(txHashBytes);
                     String[] txs = {MainChain.getHex(txHash)};
                     try {
-                        miner.mine(indexValue, timeStamp, Constants.cbAddress, toAddress, txs, MainChain.getHex(txHashBytes), 0L, previousHash, algo, MainChain.difficulty, MainChain.nSubsidy);
+                        miner.mine(indexValue, timeStamp, Constants.CB_ADDRESS, toAddress, txs, MainChain.getHex(txHashBytes), 0L, previousHash, algo, MainChain.difficulty, MainChain.nSubsidy);
                         TxPoolArray.TxPool.remove(fromAddress);
                         System.out.println("removing: \n" + fromAddress);
                         TxPoolArray.TxPool.remove(toAddress);
@@ -218,4 +218,4 @@ public class WalletGui extends JFrame implements ActionListener {
             }
         }
     }
-}
+*/}

@@ -29,8 +29,8 @@ public final class GenesisBlock {
     private String algo;
     @JsonProperty("block hash")
     private String blockHash;
-    @JsonProperty("difficulty")
-    private String difficulty;
+    @JsonProperty("target")
+    private String target;
     @JsonProperty("amount")
     private String amount;
     
@@ -40,7 +40,7 @@ public final class GenesisBlock {
                         @JsonProperty("to address") String toAddress, @JsonProperty("tx hash") String txHash,
                         @JsonProperty("merkle root") String merkleRoot, @JsonProperty("nonce") String Nonce,
                         @JsonProperty("previous block hash") String previousBlockHash, @JsonProperty("algo") String algo,
-                        @JsonProperty("block hash") String blockHash, @JsonProperty("difficulty") String difficulty,
+                        @JsonProperty("block hash") String blockHash, @JsonProperty("target") String target,
                         @JsonProperty("amount") String amount) {
         Objects.requireNonNull(index);
         Objects.requireNonNull(timeStamp);
@@ -53,7 +53,7 @@ public final class GenesisBlock {
         Objects.requireNonNull(previousBlockHash);
         Objects.requireNonNull(algo);
         Objects.requireNonNull(blockHash);
-        Objects.requireNonNull(difficulty);
+        Objects.requireNonNull(target);
         Objects.requireNonNull(amount);
         this.index = index;
         this.timeStamp = timeStamp;
@@ -66,7 +66,7 @@ public final class GenesisBlock {
         this.previousBlockHash = previousBlockHash;
         this.algo = algo;
         this.blockHash = blockHash;
-        this.difficulty = difficulty;
+        this.target = target;
         this.amount = amount;
     }
 
@@ -99,8 +99,8 @@ public final class GenesisBlock {
         return this.algo;
     }
     public String getBlockHash() { return this.blockHash; }
-    public String getDifficulty() {
-        return this.difficulty;
+    public String getTarget() {
+        return this.target;
     }
     public String getAmount() {
         return this.amount;

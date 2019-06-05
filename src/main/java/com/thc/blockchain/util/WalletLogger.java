@@ -18,10 +18,10 @@ public class WalletLogger {
         LogManager.getLogManager().reset();
         FileHandler fh = null;
         String configPath;
-        if (Constants.baseDir.contains("apache-tomcat-8.5.23")) {
-            configPath = Constants.baseDir + "/../../config/config.properties";
+        if (Constants.BASEDIR.contains("apache-tomcat-8.5.23")) {
+            configPath = Constants.BASEDIR + "/../../config/config.properties";
         } else {
-            configPath = Constants.baseDir + "/config/config.properties";
+            configPath = Constants.BASEDIR + "/config/config.properties";
         }
         Properties configProps = new Properties();
         try {
@@ -59,10 +59,10 @@ public class WalletLogger {
         LogManager.getLogManager().reset();
         FileHandler fh = null;
         String configPath;
-        if (Constants.baseDir.contains("apache-tomcat-8.5.23")) {
-            configPath = Constants.baseDir + "/../../config/config.properties";
+        if (Constants.BASEDIR.contains("apache-tomcat-8.5.23")) {
+            configPath = Constants.BASEDIR + "/../../config/config.properties";
         } else {
-            configPath = Constants.baseDir + "/config/config.properties";
+            configPath = Constants.BASEDIR + "/config/config.properties";
         }
         Properties configProps = new Properties();
         try {

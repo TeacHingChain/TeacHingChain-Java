@@ -17,7 +17,7 @@ import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
 
-@ServerEndpoint(value = "/" + Constants.genesisServerKey, encoders =  { GenesisBlockEncoder.class }, decoders = { GenesisBlockDecoder.class })
+@ServerEndpoint(value = "/" + Constants.GENESIS_SERVER_KEY, encoders =  { GenesisBlockEncoder.class }, decoders = { GenesisBlockDecoder.class })
 public class GenesisChainServerEndpoint {
 
     private MainChain mc = new MainChain();

@@ -12,7 +12,7 @@ import java.net.URI;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import static com.thc.blockchain.network.Constants.genesisNodeFQN;
+import static com.thc.blockchain.network.Constants.GENESIS_NODE_FQN;
 
 public final class EndpointManager {
 
@@ -131,7 +131,7 @@ public final class EndpointManager {
         } else if (reason.contentEquals("init chain")) {
             try {
                 container = ContainerProvider.getWebSocketContainer();
-                uri = genesisNodeFQN;
+                uri = GENESIS_NODE_FQN;
                 System.out.println("Connecting to " + uri);
                 container.connectToServer(GenesisChainClientEndpoint.class, URI.create(uri));
                 messageLatch.await(1, TimeUnit.SECONDS);

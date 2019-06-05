@@ -12,7 +12,7 @@ import com.thc.blockchain.wallet.MainChain;
 import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
 
-@ServerEndpoint(value = "/" + Constants.pushChainKey, encoders = BlockEncoder.class, decoders = BlockDecoder.class)
+@ServerEndpoint(value = "/" + Constants.PUSH_CHAIN_KEY, encoders = BlockEncoder.class, decoders = BlockDecoder.class)
 public class SyncBlockServer {
 
     @OnOpen

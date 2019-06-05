@@ -12,7 +12,7 @@ INSTRUCTIONS FOR BUILDING/RUNNING PROJECT
 
     If you're building your own genesis block, navigate to the GenesisBlock.java class in com.thc.blockchain.wallet
 
-    Replace the appropriate values (algo (only sha256 works right now), timestamp, pszTimestamp, genesis hash, difficulty)
+    Replace the appropriate values (algo (only sha256 works right now), timestamp, pszTimestamp, genesis hash, target)
 
     On first run, the blockchain will be initialized and all of the appropriate keys will be generated and the program will exit
 
@@ -34,7 +34,7 @@ IN THE WORKS
 
     Adding support for SHA512 and scrypt algorithms
 
-    Rewriting the difficulty adjustment (which is very granular and not at all reminiscent of an actual difficulty adjustment algorithm)
+    Rewriting the target adjustment (which is very granular and not at all reminiscent of an actual target adjustment algorithm)
 
     Updating the miner class to allow for the discovery of tx's in the tx-pool, as well as the ability to throw away stale work
 

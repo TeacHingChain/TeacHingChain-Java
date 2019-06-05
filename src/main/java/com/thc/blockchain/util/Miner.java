@@ -12,10 +12,13 @@ import com.thc.blockchain.network.objects.Block;
 import com.thc.blockchain.network.objects.GenesisBlock;
 import com.thc.blockchain.wallet.BlockChain;
 import com.thc.blockchain.wallet.MainChain;
+import sun.rmi.rmic.Main;
 
 import javax.websocket.DecodeException;
 import javax.websocket.EncodeException;
 import javax.websocket.Session;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -30,14 +33,15 @@ public class Miner {
     private static int updatedIndex;
     private byte[] hash;
 
-    public void mine(long index, long currentTimeMillis, String fromAddress, String toAddress, String[] txHash, String merkleRoot, long Nonce, String previousBlockHash, String algo, int difficulty, float amount) {
+    public void mine(long index, long currentTimeMillis, String fromAddress, String toAddress, String[] txHash, String merkleRoot, long Nonce, String previousBlockHash, String algo, String target, float amount) {
         try {
             System.out.println("Seeing if any configured nodes are up...\n");
             EndpointManager endpointManager = new EndpointManager();
             if (endpointManager.isNodeConnected(1) || endpointManager.isNodeConnected(2)) {
                 int indexAtStart = BlockChain.blockChain.size();
                 MainChain mc = new MainChain();
-                MainChain.difficulty = difficulty;
+                MainChain.targetHex = target;
+                BigDecimal targetAsBigDec = new BigDecimal(new BigInteger(target, 16));
                 System.out.println("difficulty says: \n" + MainChain.difficulty);
                 long startTime = System.nanoTime();
                 TimeUnit.SECONDS.sleep(1);
@@ -52,25 +56,52 @@ public class Miner {
                     }
                 }, 0, 3000);
                 while (true) {
-                    byte[] blockHeaderBytes = MainChain.swapEndianness(MainChain.hexStringToByteArray(MainChain.getHex((index + currentTimeMillis + fromAddress + toAddress + Arrays.toString(txHash) + merkleRoot + Nonce + previousBlockHash + algo + difficulty + amount).getBytes())));
+                    long deltaS;
+                    long deltaN;
+                    long endTime;
+                    byte[] blockHeaderBytes = MainChain.swapEndianness(MainChain.hexStringToByteArray(MainChain.getHex((
+                            index + currentTimeMillis + fromAddress + toAddress + Arrays.toString(txHash) + merkleRoot
+                                    + Nonce + previousBlockHash + algo + target + amount).getBytes())));
                     if (algo.contentEquals("sha256")) {
                         hash = SHA256.SHA256HashByteArray(SHA256.SHA256HashByteArray(blockHeaderBytes));
                     } else if (algo.contentEquals("sha512")) {
                         hash = SHA512.SHA512HashByteArray(SHA512.SHA512HashByteArray(blockHeaderBytes));
                     }
-                    if (difficulty < 1) {
-                        difficulty = 1;
+                    if (MainChain.difficulty <= 1) {
+                        MainChain.difficulty = 1;
+                        targetAsBigDec = new BigDecimal(new BigInteger(
+                                "00000eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee", 16));
                     }
-                    long deltaS;
-                    long deltaN;
-                    long endTime;
-                    StringBuilder sb = new StringBuilder();
-                    String difficultyPrefix = null;
-                    for (int i = 0; i < difficulty; i++) {
-                        sb.append("0");
-                        difficultyPrefix = sb.toString();
-                    }
-                    if (!MainChain.getHex(hash).startsWith(difficultyPrefix)) {
+                    if (new BigDecimal(new BigInteger(MainChain.getHex(blockHeaderBytes), 16)).subtract(targetAsBigDec).compareTo(
+                            new BigDecimal(0)) <= 0) {
+                        System.out.println("\n");
+                        System.out.println("[" + MainChain.getHex(hash) + "]");
+                        System.out.println("\n");
+                        String indexToStr = Long.toString(index);
+                        String timeToStr = Long.toString(currentTimeMillis);
+                        String nonceToStr = Long.toString(Nonce);
+                        String amountToStr = Float.toString(amount);
+                        System.out.println("Adding block to chain...\n");
+                        if (MainChain.isBlockHashValid(index, currentTimeMillis, fromAddress, toAddress, txHash, merkleRoot,
+                                Nonce, previousBlockHash, algo, MainChain.getHex(hash), target, amount)) {
+                            endpointManager.connectAsClient("update");
+                            Block block = new Block(indexToStr, timeToStr, fromAddress, toAddress, txHash, merkleRoot,
+                                    nonceToStr, previousBlockHash, algo, MainChain.getHex(hash), target, amountToStr);
+                            String encodedBlock = new BlockEncoder().encode(block);
+                            boolean verifyIndex = new Consensus().isBlockOrphan(Long.parseLong(block.getIndex()));
+                            if (verifyIndex) {
+                                BlockChain.blockChain.add(encodedBlock);
+                                mc.writeBlockChain();
+                            } else {
+                                WalletLogger.logEvent("warning", WalletLogger.getLogTimeStamp()
+                                        + " Detected orphan block, not adding to chain!\n");
+                            }
+                            Session sessionForMiner = NodeManager.getSession();
+                            NodeManager.pushBlock(block, sessionForMiner);
+                            timer.cancel();
+                            break;
+                        }
+                    } else {
                         Nonce++;
                         endTime = System.nanoTime();
                         deltaN = endTime - startTime;
@@ -82,52 +113,31 @@ public class Miner {
                             Nonce = 0L;
                             byte[] txHashBytes = (fromAddress + toAddress + amount).getBytes();
                             merkleRoot = MainChain.getHex(SHA256.SHA256HashByteArray(txHashBytes));
-                            difficulty = mc.calculateDifficulty();
-                            restartMiner(updatedIndex, currentTimeMillis, fromAddress, toAddress, txHash, merkleRoot, Nonce, previousBlockHash, algo, difficulty, amount);
-                            break;
-                        }
-                    } else {
-                        System.out.println("\n");
-                        System.out.println("[" + MainChain.getHex(hash) + "]");
-                        System.out.println("\n");
-                        String indexToStr = Long.toString(index);
-                        String timeToStr = Long.toString(currentTimeMillis);
-                        String nonceToStr = Long.toString(Nonce);
-                        String difficultyToStr = Integer.toString(difficulty);
-                        String amountToStr = Float.toString(amount);
-                        System.out.println("Adding block to chain...\n");
-                        if (MainChain.isBlockHashValid(index, currentTimeMillis, fromAddress, toAddress, txHash, merkleRoot, Nonce, previousBlockHash, algo, MainChain.getHex(hash), difficulty, amount)) {
-                            endpointManager.connectAsClient("update");
-                            Block block = new Block(indexToStr, timeToStr, fromAddress, toAddress, txHash, merkleRoot, nonceToStr, previousBlockHash, algo, MainChain.getHex(hash), difficultyToStr, amountToStr);
-                            String encodedBlock = new BlockEncoder().encode(block);
-                            boolean verifyIndex = new Consensus().isBlockOrphan(Long.parseLong(block.getIndex()));
-                            if (verifyIndex) {
-                                BlockChain.blockChain.add(encodedBlock);
-                                mc.writeBlockChain();
-                            } else {
-                                WalletLogger.logEvent("warning", WalletLogger.getLogTimeStamp() + " Detected orphan block, not adding to chain!\n");
-                            }
-                            Session sessionForMiner = NodeManager.getSession();
-                            NodeManager.pushBlock(block, sessionForMiner);
-                            timer.cancel();
+                            target = MainChain.getHex(String.valueOf((MainChain.calculateTarget(deltaS, target))).getBytes());
+                            restartMiner(updatedIndex, currentTimeMillis, fromAddress, toAddress, txHash, merkleRoot,
+                                    Nonce, previousBlockHash, algo, target, amount);
                             break;
                         }
                     }
                 }
             }
         } catch (InterruptedException ie) {
-            WalletLogger.logException(ie, "severe", WalletLogger.getLogTimeStamp() + " Interrupted exception occurred during mining operation! See below:\n" + WalletLogger.exceptionStacktraceToString(ie));
+            WalletLogger.logException(ie, "severe", WalletLogger.getLogTimeStamp()
+                    + " Interrupted exception occurred during mining operation! See below:\n" + WalletLogger.exceptionStacktraceToString(ie));
         } catch (EncodeException ee) {
-            WalletLogger.logException(ee, "severe", WalletLogger.getLogTimeStamp() + " Encode exception occurred during mining operation! See below:\n" + WalletLogger.exceptionStacktraceToString(ee));
+            WalletLogger.logException(ee, "severe", WalletLogger.getLogTimeStamp()
+                    + " Encode exception occurred during mining operation! See below:\n" + WalletLogger.exceptionStacktraceToString(ee));
         } catch (DecodeException de) {
-            WalletLogger.logException(de, "severe", WalletLogger.getLogTimeStamp() + " Decode exception occurred during mining operation! See below:\n" + WalletLogger.exceptionStacktraceToString(de));
+            WalletLogger.logException(de, "severe", WalletLogger.getLogTimeStamp()
+                    + " Decode exception occurred during mining operation! See below:\n" + WalletLogger.exceptionStacktraceToString(de));
         }
     }
 
-    private void restartMiner(long index, long currentTimeMillis, String fromAddress, String toAddress, String[] txHash, String merkleRoot, long Nonce, String previousBlockHash, String algo, int difficulty, float amount) {
+    private void restartMiner(long index, long currentTimeMillis, String fromAddress, String toAddress, String[] txHash,
+                              String merkleRoot, long Nonce, String previousBlockHash, String algo, String target, float amount) {
         timer.cancel();
         System.out.println("Trying to restart miner!\n");
-        mine(index, currentTimeMillis, fromAddress, toAddress, txHash, merkleRoot, Nonce, previousBlockHash, algo, difficulty, amount);
+        mine(index, currentTimeMillis, fromAddress, toAddress, txHash, merkleRoot, Nonce, previousBlockHash, algo, target, amount);
     }
 
     public double calculateNetworkHashRate() {
@@ -146,7 +156,8 @@ public class Miner {
             deltaS = (currentTime - genesisTime) / 1000;
             System.out.println("delta s: " + deltaS);
         } catch (DecodeException de) {
-            WalletLogger.logException(de, "severe", WalletLogger.getLogTimeStamp() + " Decode exception occurred during mining operation! See below:\n" + WalletLogger.exceptionStacktraceToString(de));
+            WalletLogger.logException(de, "severe", WalletLogger.getLogTimeStamp()
+                    + " Decode exception occurred during mining operation! See below:\n" + WalletLogger.exceptionStacktraceToString(de));
         }
         return (totalHashes / deltaS);
     }

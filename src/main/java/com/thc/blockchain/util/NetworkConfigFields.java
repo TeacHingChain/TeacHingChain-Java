@@ -27,22 +27,22 @@ public class NetworkConfigFields {
     private void setConfigProperties() {
         String configPath;
         try {
-            if (baseDir.contains("apache-tomcat-8.5.23")) {
-                configPath = Constants.baseDir + "/../../config/config.properties";
+            if (BASEDIR.contains("apache-tomcat-8.5.23")) {
+                configPath = Constants.BASEDIR + "/../../config/config.properties";
             } else {
-                configPath = Constants.baseDir + "/config/config.properties";
+                configPath = Constants.BASEDIR + "/config/config.properties";
             }
             configProps.load(new FileInputStream(configPath));
-            syncNode1FQN = "ws://" + configProps.getProperty("node1") + ":" + commPort + "/server/" + syncKey;
-            syncNode2FQN = "ws://" + configProps.getProperty("node2") + ":" + commPort + "/server/" + syncKey;
-            updateNode1FQN = "ws://" + configProps.getProperty("node1") + ":" + commPort + "/server/" + updateKey;
-            updateNode2FQN = "ws://" + configProps.getProperty("node2") + ":" + commPort + "/server/" + updateKey;
-            helloNode1FQN = "ws://" + configProps.getProperty("node1") + ":" + commPort + "/server/" + helloKey;
-            helloNode2FQN = "ws://" + configProps.getProperty("node2") + ":" + commPort + "/server/" + helloKey;
-            pushChainNode1FQN = "ws://" + configProps.getProperty("node1") + ":" + commPort + "/server/" + pushChainKey;
-            pushChainNode2FQN = "ws://" + configProps.getProperty("node2") + ":" + commPort + "/server/" + pushChainKey;
-            pushTxNode1FQN = "ws://" + configProps.getProperty("node1") + ":" + commPort + "/server/" + pushTxKey;
-            pushTxNode2FQN = "ws://" + configProps.getProperty("node2") + ":" + commPort + "/server/" + pushTxKey;
+            syncNode1FQN = "ws://" + configProps.getProperty("node1") + ":" + COMM_PORT + "/server/" + SYNC_KEY;
+            syncNode2FQN = "ws://" + configProps.getProperty("node2") + ":" + COMM_PORT + "/server/" + SYNC_KEY;
+            updateNode1FQN = "ws://" + configProps.getProperty("node1") + ":" + COMM_PORT + "/server/" + UPDATE_KEY;
+            updateNode2FQN = "ws://" + configProps.getProperty("node2") + ":" + COMM_PORT + "/server/" + UPDATE_KEY;
+            helloNode1FQN = "ws://" + configProps.getProperty("node1") + ":" + COMM_PORT + "/server/" + HELLO_KEY;
+            helloNode2FQN = "ws://" + configProps.getProperty("node2") + ":" + COMM_PORT + "/server/" + HELLO_KEY;
+            pushChainNode1FQN = "ws://" + configProps.getProperty("node1") + ":" + COMM_PORT + "/server/" + PUSH_CHAIN_KEY;
+            pushChainNode2FQN = "ws://" + configProps.getProperty("node2") + ":" + COMM_PORT + "/server/" + PUSH_CHAIN_KEY;
+            pushTxNode1FQN = "ws://" + configProps.getProperty("node1") + ":" + COMM_PORT + "/server/" + PUSH_TX_KEY;
+            pushTxNode2FQN = "ws://" + configProps.getProperty("node2") + ":" + COMM_PORT + "/server/" + PUSH_TX_KEY;
         } catch (IOException ioe) {
             WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp() + " Failed to parse config properties! See details below:\n" + WalletLogger.exceptionStacktraceToString(ioe));
         }
