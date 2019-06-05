@@ -13,6 +13,7 @@ import javax.websocket.DecodeException;
 import javax.websocket.OnOpen;
 import javax.websocket.Session;
 
+@SuppressWarnings("unused")
 @ClientEndpoint(encoders = { TxEncoder.class }, decoders = { TxDecoder.class })
 
 public class TxClientEndpoint {

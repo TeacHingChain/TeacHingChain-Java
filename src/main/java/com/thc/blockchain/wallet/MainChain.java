@@ -27,7 +27,7 @@ import java.util.Properties;
 public class MainChain {
 
     public static double difficulty;
-    public static String targetHex;
+    public static String targetAsBigDec;
     public static BigDecimal targetBigDec;
     public static float balance;
     public static final float nSubsidy = 50;
@@ -38,7 +38,7 @@ public class MainChain {
     public MainChain() {}
 
     public static boolean isBlockHashValid(long index, long currentTimeMillis, String fromAddress, String toAddress, String[] txHash, String merkleRoot, long Nonce, String previousBlockHash, String algo, String currentHash, String target, float amount) {
-        MainChain.targetHex = target;
+        MainChain.targetAsBigDec = target;
         byte[] blockHeaderBytes = MainChain.swapEndianness(MainChain.hexStringToByteArray(MainChain.getHex((index + currentTimeMillis + fromAddress + toAddress + Arrays.toString(txHash) + merkleRoot + Nonce + previousBlockHash + algo + target + amount).getBytes())));
         if (algo.contentEquals("sha256")) {
             checkHash = SHA256.SHA256HashByteArray(SHA256.SHA256HashByteArray(blockHeaderBytes));
@@ -50,7 +50,6 @@ public class MainChain {
 
     void writeTxPool(String fromAddress, String toAddress, float amount, String txHash) {
         String configPath;
-        MainChain mc = new MainChain();
         try {
             if (Constants.BASEDIR.contains("apache-tomcat-8.5.23")) {
                 configPath = Constants.BASEDIR + "/../../config/config.properties";
@@ -61,7 +60,7 @@ public class MainChain {
             configProps.load(new FileInputStream(configPath));
             File tempFile = new File(configProps.getProperty("datadir") + "/tx-pool.dat");
             if (!tempFile.exists()) {
-                TxPoolArray txpool = new TxPoolArray();
+                new TxPoolArray();
                 Tx tx = new Tx(fromAddress, toAddress, amount, txHash);
                 try {
                     String txPoolTX = new TxEncoder().encode(tx);
@@ -193,9 +192,11 @@ public class MainChain {
                 }
             }
         } catch (DecodeException de) {
-            WalletLogger.logException(de, "warning", WalletLogger.getLogTimeStamp() + " Failed to decode block fetching chain.dat! See below:\n" + WalletLogger.exceptionStacktraceToString(de));
+            WalletLogger.logException(de, "warning", WalletLogger.getLogTimeStamp() + " Failed to decode block fetching chain.dat! See below:\n"
+                    + WalletLogger.exceptionStacktraceToString(de));
         } catch (Base58.AddressFormatException afe) {
-            WalletLogger.logException(afe, "warning", WalletLogger.getLogTimeStamp() + " An error occurred trying to decode an address! See details below:\n" + WalletLogger.exceptionStacktraceToString(afe));
+            WalletLogger.logException(afe, "warning", WalletLogger.getLogTimeStamp() + " An error occurred trying to decode an address! See details below:\n"
+                    + WalletLogger.exceptionStacktraceToString(afe));
         }
     }
 
@@ -271,7 +272,7 @@ public class MainChain {
         }
         File keyRingFile = new File( configProps.getProperty("datadir") + "/keyring.dat");
         if (!keyRingFile.exists()) {
-            KeyRing keyRing = new KeyRing();
+            new KeyRing();
             try {
                 KeyRing.keyRing.add(privKey);
                 FileOutputStream fos = new FileOutputStream(configProps.getProperty("datadir") + "/keyring.dat");
@@ -298,7 +299,7 @@ public class MainChain {
     }
 
     public String generateAddress(int keyIndex){
-        byte[] hashedPrivKeyBytes = SHA256.SHA256HashByteArray(SHA256.SHA256HashByteArray(KeyRing.keyRing.get(keyIndex).toString().getBytes()));
+        byte[] hashedPrivKeyBytes = SHA256.SHA256HashByteArray(SHA256.SHA256HashByteArray(KeyRing.keyRing.get(keyIndex).getBytes()));
         address = Base58.encode(hashedPrivKeyBytes);
         addToAddressBook(address);
         return address;
@@ -316,7 +317,7 @@ public class MainChain {
             configProps.load(new FileInputStream(configPath));
             File abFile = new File(configProps.getProperty("datadir") + "/addressBook.dat");
             if (!abFile.exists()) {
-                AddressBook addressBook = new AddressBook();
+                new AddressBook();
                 AddressBook.addressBook.add(address);
                 try {
                     configProps.load(new FileInputStream(configPath));
@@ -347,7 +348,7 @@ public class MainChain {
     }
 
     public String getAddressFromAddressBook(int index) {
-        return AddressBook.addressBook.get(index).toString();
+        return AddressBook.addressBook.get(index);
     }
     
     void readAddressBook() {
@@ -386,7 +387,7 @@ public class MainChain {
             configProps.load(new FileInputStream(configPath));
             File keyRingFile = new File(configProps.getProperty("datadir") + "/keyring.dat");
             if (!keyRingFile.exists()) {
-                KeyRing keyRing = new KeyRing();
+                new KeyRing();
                 FileOutputStream fos = new FileOutputStream(configProps.getProperty("datadir") + "/keyring.dat");
                 ObjectOutputStream oos = new ObjectOutputStream(fos);
                 oos.writeObject(KeyRing.keyRing);
@@ -445,11 +446,11 @@ public class MainChain {
             configProps.load(new FileInputStream(configPath));
             FileInputStream fis = new FileInputStream(configProps.getProperty("datadir") + "/tx-pool.dat");
             ObjectInputStream ois = new ObjectInputStream(fis);
-            TxPoolArray.TxPool = (ArrayList) ois.readObject();
+            TxPoolArray.TxPool = (ArrayList<String>) ois.readObject();
             ois.close();
             fis.close();
         } catch (FileNotFoundException e) {
-            TxPoolArray txpool = new TxPoolArray();
+            new TxPoolArray();
             overwriteTxPool();
         } catch (IOException ioe) {
             WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp() + " IO exception occurred while reading tx-pool! See below:\n" + WalletLogger.exceptionStacktraceToString(ioe));
@@ -475,26 +476,8 @@ public class MainChain {
         return difficulty;
     }
 
-    public double calculateDifficulty() {
-        try {
-            Block mostRecentBlock = new BlockDecoder().decode(BlockChain.blockChain.get(getIndexOfBlockChain()));
-            difficulty = Integer.parseInt(mostRecentBlock.getTarget());
-            long currentTime = System.currentTimeMillis();
-            long lbtAsLong = Long.parseLong(mostRecentBlock.getTimeStamp());
-            long deltaT = currentTime - lbtAsLong;
-            if (deltaT > 60000) {
-                difficulty--;
-            } else if (deltaT < 60000) {
-                difficulty++;
-            }
-        } catch (DecodeException de) {
-        WalletLogger.logException(de, "severe", WalletLogger.getLogTimeStamp() + " Failed to decode block! See details below:\n" + WalletLogger.exceptionStacktraceToString(de));
-        }
-        return difficulty;
-    }
-
     public static BigDecimal calculateTarget(long deltaT, String previousTarget) {
-        double adjustmentFactor = 0;
+        double adjustmentFactor;
         BigDecimal targetAsBigDec;
         if (MainChain.difficulty <= 1 || BlockChain.blockChain.size() == 1) {
             MainChain.difficulty = 1;
@@ -508,21 +491,26 @@ public class MainChain {
                     deltaTargetTime.doubleValue() / Constants.TARGET_TIME_WINDOW) / 6))).doubleValue();
             MainChain.difficulty += adjustmentFactor;
             targetAsBigDec = targetAsBigDec.multiply(new BigDecimal(String.valueOf(1 / adjustmentFactor)));
-            targetHex = getHex(targetAsBigDec.toBigInteger().toByteArray());
+            MainChain.targetAsBigDec = getHex(targetAsBigDec.toBigInteger().toByteArray());
         } else if (deltaT > Constants.TARGET_TIME_WINDOW) {
             BigDecimal deltaTargetTime = new BigDecimal(String.valueOf(deltaT - Constants.TARGET_TIME_WINDOW));
             adjustmentFactor = deltaTargetTime.multiply(new BigDecimal(String.valueOf((
                     deltaTargetTime.doubleValue() / Constants.TARGET_TIME_WINDOW) / 6))).doubleValue();
             System.out.println("delta2T: " + deltaTargetTime);
             targetAsBigDec = targetAsBigDec.multiply(new BigDecimal(String.valueOf(adjustmentFactor)));
-            targetHex = getHex(targetAsBigDec.toBigInteger().toByteArray());
+            MainChain.targetAsBigDec = getHex(targetAsBigDec.toBigInteger().toByteArray());
             MainChain.difficulty -= adjustmentFactor;
         }
         return targetAsBigDec;
     }
 
-    static String getTargetHex() {
-        return targetHex;
+    static String getTargetAsBigDec() {
+        return targetAsBigDec;
+    }
+
+    @SuppressWarnings("unused")
+    static void setTargetAsBigDec(String targetAsBigDec) {
+        MainChain.targetAsBigDec = targetAsBigDec;
     }
 
 
@@ -564,8 +552,8 @@ public class MainChain {
     }
 
     static class InsufficientBalanceException extends Exception {
-        InsufficientBalanceException(String msg) {
-            System.out.println(msg);
+        InsufficientBalanceException() {
+            System.out.println("Insufficient balance exception occurred! See log for details\n");
         }
     }
 }

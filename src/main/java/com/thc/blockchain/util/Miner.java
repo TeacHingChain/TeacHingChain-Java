@@ -12,7 +12,6 @@ import com.thc.blockchain.network.objects.Block;
 import com.thc.blockchain.network.objects.GenesisBlock;
 import com.thc.blockchain.wallet.BlockChain;
 import com.thc.blockchain.wallet.MainChain;
-import sun.rmi.rmic.Main;
 
 import javax.websocket.DecodeException;
 import javax.websocket.EncodeException;
@@ -26,8 +25,6 @@ import java.util.concurrent.TimeUnit;
 
 public class Miner {
 
-    public static long index;
-    public static float amount;
     private static long hashRate;
     private static Timer timer;
     private static int updatedIndex;
@@ -40,7 +37,7 @@ public class Miner {
             if (endpointManager.isNodeConnected(1) || endpointManager.isNodeConnected(2)) {
                 int indexAtStart = BlockChain.blockChain.size();
                 MainChain mc = new MainChain();
-                MainChain.targetHex = target;
+                MainChain.targetAsBigDec = target;
                 BigDecimal targetAsBigDec = new BigDecimal(new BigInteger(target, 16));
                 System.out.println("difficulty says: \n" + MainChain.difficulty);
                 long startTime = System.nanoTime();

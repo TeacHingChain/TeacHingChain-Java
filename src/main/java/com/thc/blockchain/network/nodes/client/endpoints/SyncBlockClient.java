@@ -11,10 +11,11 @@ import com.thc.blockchain.wallet.MainChain;
 
 import javax.websocket.*;
 
+@SuppressWarnings("unused")
 @ClientEndpoint(encoders = { BlockEncoder.class }, decoders = { BlockDecoder.class })
 public class SyncBlockClient {
 
-    private MainChain mc = new MainChain();
+    private final MainChain mc = new MainChain();
 
     @OnOpen
     public void initSyncBlock(Session session, EndpointConfig config) {

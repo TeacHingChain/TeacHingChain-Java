@@ -5,7 +5,6 @@ package com.thc.blockchain.network.decoders;
 
 import com.thc.blockchain.network.Constants;
 import com.thc.blockchain.network.objects.GenesisBlock;
-import com.thc.blockchain.wallet.MainChain;
 
 import javax.websocket.DecodeException;
 import javax.websocket.Decoder;
@@ -14,8 +13,6 @@ import java.io.IOException;
 
 
 public final class GenesisBlockDecoder implements Decoder.Text<GenesisBlock> {
-
-    private MainChain mc = new MainChain();
 
     @Override
     public GenesisBlock decode(String arg0) throws DecodeException {

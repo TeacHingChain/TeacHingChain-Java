@@ -12,8 +12,9 @@ import com.thc.blockchain.wallet.MainChain;
 import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
 
+@SuppressWarnings("unused")
 @ServerEndpoint(value = "/update", encoders = BlockEncoder.class, decoders = BlockDecoder.class)
-public class UpdateServerEndPoint {
+class UpdateServerEndPoint {
 
     @OnOpen
     public void onOpen(Session session) {
@@ -38,7 +39,6 @@ public class UpdateServerEndPoint {
             WalletLogger.logException(ee, "severe", WalletLogger.getLogTimeStamp() + " Encode exception occurred during mining operation! See below:\n" + WalletLogger.exceptionStacktraceToString(ee));
         }
         NodeManager.remove(session);
-        mc.calculateDifficulty();
     }
 }
 

@@ -21,7 +21,7 @@ public final class NodeManager {
 
     private static final Lock LOCK = new ReentrantLock();
     private static final Set<Session> NODES = new CopyOnWriteArraySet<>();
-    public static Session session;
+    private static Session session;
 
     public static void pushBlock(final Block block, final Session sid) {
         assert !Objects.isNull(block) && !Objects.isNull(sid);
@@ -111,6 +111,7 @@ public final class NodeManager {
         return NODES.contains(session);
     }
 
+    @SuppressWarnings("unused")
     public static void close(final Session session, final CloseCodes closeCode, final String message) {
         assert !Objects.isNull(session) && !Objects.isNull(closeCode);
         try {

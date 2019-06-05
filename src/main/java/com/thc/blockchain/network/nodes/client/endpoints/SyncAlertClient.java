@@ -17,10 +17,10 @@ import javax.websocket.*;
 public class SyncAlertClient {
 
     static int remoteChainSize;
-    private StringBuilder sb = new StringBuilder();
-    private MainChain mc = new MainChain();
+    private final StringBuilder sb = new StringBuilder();
+    private final MainChain mc = new MainChain();
 
-
+    @SuppressWarnings("unused")
     @OnOpen
     public void onOpen(Session session, EndpointConfig config) {
         mc.readBlockChain();
@@ -41,6 +41,7 @@ public class SyncAlertClient {
         }
     }
 
+    @SuppressWarnings("unused")
     @OnMessage
     public void onAlertMessage(Alert alert, Session session) {
         EndpointManager endpointManager = new EndpointManager();

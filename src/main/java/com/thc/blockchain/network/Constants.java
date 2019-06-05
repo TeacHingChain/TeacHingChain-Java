@@ -9,24 +9,24 @@ import com.thc.blockchain.wallet.MainChain;
 public final class Constants {
 
 
-    public static final int MAX_TX_POOL_TXS = 40; // 10 tx's (with 4 params each)
-    public static final int MAX_BLOCK_SIZE = 819200000; // will need to redesign serialized objects to be blk.dat files instead of a single chain.dat
-    public static final String PUB_KEY = "042d19b2d3538855f7fe63ec5c614300ac606412df779cd5d0c55e0fee798820d99eba1e244aa27c26c7966cbb8bf451600f303d691f572f4fdcd1325cba997177"; // write a check for the private key (ensure was derived from pubkey?)
-    public static final String CB_PUB_KEY = "04e8a058194f40a50775e3e189006b953f617419889c4c339edfeb35811ddeb19acc8e1feae801d785102e8780904b78c28042b9b65143633e6e63b44a0dedab3c";
+    // --Commented out by Inspection (6/5/19 1:20 AM):public static final int MAX_TX_POOL_TXS = 10; // Need to rebuild tx-pool to implement
+    // --Commented out by Inspection (6/5/19 1:19 AM):public static final int MAX_BLOCK_SIZE = 819200000; // will need to redesign serialized objects to be blk.dat files instead of a single chain.dat
+    // --Commented out by Inspection (6/5/19 1:19 AM):public static final String PUB_KEY = "042d19b2d3538855f7fe63ec5c614300ac606412df779cd5d0c55e0fee798820d99eba1e244aa27c26c7966cbb8bf451600f303d691f572f4fdcd1325cba997177"; // write a check for the private key (ensure was derived from pubkey?)
+    private static final String CB_PUB_KEY = "04e8a058194f40a50775e3e189006b953f617419889c4c339edfeb35811ddeb19acc8e1feae801d785102e8780904b78c28042b9b65143633e6e63b44a0dedab3c";
     public static final char[] BASE58_ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz".toCharArray();
     public static final String HEXES = "0123456789abcdef";
     public static final char ENCODED_ZERO = BASE58_ALPHABET[0];
     public static final int[] INDEXES = new int[128];
     public static final String CB_ADDRESS = Base58.encode(SHA256.SHA256HashByteArray(SHA256.SHA256HashByteArray(CB_PUB_KEY.getBytes())));
-    public static final int MAX_CLIENT_CONNECTIONS = 8;
+    // --Commented out by Inspection (6/5/19 1:19 AM):public static final int MAX_CLIENT_CONNECTIONS = 8;
     public static final String COMM_PORT = "7777";
     private static final String LOCAL_NODE_IP = "localhost:" + COMM_PORT;
-    public static String BASEDIR = System.getProperty("user.dir");
+    public static final String BASEDIR = System.getProperty("user.dir");
     public static final String SYNC_KEY = "sync";
     public static final String UPDATE_KEY = "update";
     public static final String HELLO_KEY = "hello";
     public static final String PUSH_CHAIN_KEY = "push";
-    public static String PUSH_TX_KEY = "tx";
+    public static final String PUSH_TX_KEY = "tx";
     public static final String GENESIS_SERVER_KEY = "genesis";
     public static final String GENESIS_NODE_FQN = "ws://" + LOCAL_NODE_IP + "/server/" + GENESIS_SERVER_KEY;
     public static final String GENESIS_INDEX = "0";

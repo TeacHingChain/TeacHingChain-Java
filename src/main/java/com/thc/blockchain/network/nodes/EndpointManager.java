@@ -18,7 +18,7 @@ public final class EndpointManager {
 
     private final static CountDownLatch messageLatch = new CountDownLatch(1);
     private static String uri;
-    private NetworkConfigFields configFields = new NetworkConfigFields();
+    private final NetworkConfigFields configFields = new NetworkConfigFields();
 
     public void connectAsClient(String reason) {
         WebSocketContainer container;

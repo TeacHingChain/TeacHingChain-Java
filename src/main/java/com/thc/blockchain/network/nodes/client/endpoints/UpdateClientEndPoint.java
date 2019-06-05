@@ -9,6 +9,7 @@ import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
 import javax.websocket.Session;
 
+@SuppressWarnings("unused")
 @ClientEndpoint(encoders = BlockEncoder.class, decoders = BlockDecoder.class)
 public class UpdateClientEndPoint {
 
@@ -23,6 +24,8 @@ public class UpdateClientEndPoint {
     @OnMessage
     public void onBlockMessage(Block block, Session session) {
         System.out.println("Processing block number: " + block.getIndex());
-        NodeManager.remove(session);
+        if (NodeManager.remove(session)) {
+            System.out.println("Removed session " + session.getUserProperties().get("id").toString());
+        }
     }
 }

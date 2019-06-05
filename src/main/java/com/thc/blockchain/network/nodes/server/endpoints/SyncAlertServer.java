@@ -20,11 +20,12 @@ import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
+@SuppressWarnings("unused")
 @ServerEndpoint(value = "/" + Constants.SYNC_KEY, encoders = { BlockEncoder.class, AlertEncoder.class }, decoders = { BlockDecoder.class, AlertDecoder.class })
 public class SyncAlertServer {
 
     public static int remoteChainSize;
-    private MainChain mc = new MainChain();
+    private final MainChain mc = new MainChain();
 
     @OnOpen
     public void onOpen(Session session, EndpointConfig config) {

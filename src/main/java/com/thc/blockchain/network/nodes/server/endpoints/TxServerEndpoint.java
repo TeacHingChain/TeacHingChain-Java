@@ -10,8 +10,9 @@ import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
+@SuppressWarnings("unused")
 @ServerEndpoint(value = "/tx", encoders = { TxEncoder.class }, decoders = { TxDecoder.class })
-public class TxServerEndpoint {
+class TxServerEndpoint {
 
     @OnOpen
     public void onOpen(Session session) {

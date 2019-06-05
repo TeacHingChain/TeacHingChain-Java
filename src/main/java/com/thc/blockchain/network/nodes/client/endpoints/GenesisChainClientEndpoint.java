@@ -8,6 +8,7 @@ import com.thc.blockchain.network.objects.GenesisBlock;
 
 import javax.websocket.*;
 
+@SuppressWarnings("ALL")
 @ClientEndpoint(encoders = { GenesisBlockEncoder.class }, decoders = { GenesisBlockDecoder.class })
 public class GenesisChainClientEndpoint {
 
