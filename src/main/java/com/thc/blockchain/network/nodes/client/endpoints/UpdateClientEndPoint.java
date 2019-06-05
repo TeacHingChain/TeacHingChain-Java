@@ -23,8 +23,6 @@ public class UpdateClientEndPoint {
     @OnMessage
     public void onBlockMessage(Block block, Session session) {
         System.out.println("Processing block number: " + block.getIndex());
-        if (NodeManager.remove(session)) {
-            System.out.println("Removed session " + session.getUserProperties().get("id").toString());
-        }
+        NodeManager.remove(session);
     }
 }

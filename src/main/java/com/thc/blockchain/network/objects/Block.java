@@ -8,29 +8,29 @@ import java.util.Objects;
 public final class Block {
 
     @JsonProperty("index")
-    private final String index;
+    private String index;
     @JsonProperty("time stamp")
-    private final String timeStamp;
+    private String timeStamp;
     @JsonProperty("from address")
-    private final String fromAddress;
+    private String fromAddress;
     @JsonProperty("to address")
-    private final String toAddress;
+    private String toAddress;
     @JsonProperty("transactions")
-    private final String[] txs;
+    private String[] txs;
     @JsonProperty ("merkle root")
-    private final String merkleRoot;
+    private String merkleRoot;
     @JsonProperty("nonce")
-    private final String Nonce;
+    private String Nonce;
     @JsonProperty("previous block hash")
-    private final String previousBlockHash;
+    private String previousBlockHash;
     @JsonProperty("algo")
-    private final String algo;
+    private String algo;
     @JsonProperty("block hash")
-    private final String blockHash;
+    private String blockHash;
     @JsonProperty("target")
-    private final String target;
+    private String target;
     @JsonProperty("amount")
-    private final String amount;
+    private String amount;
 
     @JsonCreator
     public Block(@JsonProperty("index") String index, @JsonProperty("time stamp") String timeStamp,
@@ -101,5 +101,5 @@ public final class Block {
 }
 
 /*
-long index, long currentTimeMillis, String sendKey, String recvKey, String coinbaseAddress, String txHash, long Nonce, String previousBlockHash, String algo, int targetAsBigDec, float amount
+long index, long currentTimeMillis, String sendKey, String recvKey, String coinbaseAddress, String txHash, long Nonce, String previousBlockHash, String algo, int targetHex, float amount
  */

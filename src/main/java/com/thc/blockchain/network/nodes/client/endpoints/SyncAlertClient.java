@@ -17,8 +17,8 @@ import javax.websocket.*;
 public class SyncAlertClient {
 
     static int remoteChainSize;
-    private final StringBuilder sb = new StringBuilder();
-    private final MainChain mc = new MainChain();
+    private StringBuilder sb = new StringBuilder();
+    private MainChain mc = new MainChain();
 
 
     @OnOpen

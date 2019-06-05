@@ -8,31 +8,31 @@ import java.util.Objects;
 public final class GenesisBlock {
 
     @JsonProperty("index")
-    private final String index;
+    private String index;
     @JsonProperty("time stamp")
-    private final String timeStamp;
+    private String timeStamp;
     @JsonProperty("pszTimestamp")
-    private final String pszTimestamp;
+    private String pszTimestamp;
     @JsonProperty("from address")
-    private final String fromAddress;
+    private String fromAddress;
     @JsonProperty("to address")
-    private final String toAddress;
+    private String toAddress;
     @JsonProperty("tx hash")
-    private final String txHash;
+    private String txHash;
     @JsonProperty ("merkle root")
-    private final String merkleRoot;
+    private String merkleRoot;
     @JsonProperty("nonce")
-    private final String Nonce;
+    private String Nonce;
     @JsonProperty("previous block hash")
-    private final String previousBlockHash;
+    private String previousBlockHash;
     @JsonProperty("algo")
-    private final String algo;
+    private String algo;
     @JsonProperty("block hash")
-    private final String blockHash;
+    private String blockHash;
     @JsonProperty("target")
-    private final String target;
+    private String target;
     @JsonProperty("amount")
-    private final String amount;
+    private String amount;
     
     @JsonCreator
     public GenesisBlock(@JsonProperty("index") String index, @JsonProperty("time stamp") String timeStamp,
@@ -70,49 +70,38 @@ public final class GenesisBlock {
         this.amount = amount;
     }
 
-    @SuppressWarnings("unused")
     public String getIndex() {
         return this.index;
     }
     public String getTimeStamp() {
         return this.timeStamp;
     }
-    @SuppressWarnings("unused")
     public String getPszTimestamp() {
         return this.pszTimestamp;
     }
-    @SuppressWarnings("unused")
     public String getFromAddress() {
         return this.fromAddress;
     }
-    @SuppressWarnings("unused")
     public String getToAddress() { return this.toAddress; }
-    @SuppressWarnings("unused")
     public String getTxHash() {
         return this.txHash;
     }
-    @SuppressWarnings("unused")
     public String getMerkleRoot() {
         return this.merkleRoot;
     }
-    @SuppressWarnings("unused")
     public String getNonce() {
         return this.Nonce;
     }
-    @SuppressWarnings("unused")
     public String getPreviousBlockHash() {
         return this.previousBlockHash;
     }
-    @SuppressWarnings("unused")
     public String getAlgo() {
         return this.algo;
     }
     public String getBlockHash() { return this.blockHash; }
-    @SuppressWarnings("unused")
     public String getTarget() {
         return this.target;
     }
-    @SuppressWarnings("unused")
     public String getAmount() {
         return this.amount;
     }

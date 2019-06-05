@@ -22,7 +22,7 @@ public class NetworkConfigFields {
     public String pushChainNode2FQN;
     public String pushTxNode1FQN;
     public String pushTxNode2FQN;
-    private static final Properties configProps = new Properties();
+    private static Properties configProps = new Properties();
 
     private void setConfigProperties() {
         String configPath;

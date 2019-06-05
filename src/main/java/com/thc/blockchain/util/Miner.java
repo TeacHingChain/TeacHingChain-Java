@@ -12,6 +12,7 @@ import com.thc.blockchain.network.objects.Block;
 import com.thc.blockchain.network.objects.GenesisBlock;
 import com.thc.blockchain.wallet.BlockChain;
 import com.thc.blockchain.wallet.MainChain;
+import sun.rmi.rmic.Main;
 
 import javax.websocket.DecodeException;
 import javax.websocket.EncodeException;
@@ -39,7 +40,7 @@ public class Miner {
             if (endpointManager.isNodeConnected(1) || endpointManager.isNodeConnected(2)) {
                 int indexAtStart = BlockChain.blockChain.size();
                 MainChain mc = new MainChain();
-                MainChain.targetAsBigDec = target;
+                MainChain.targetHex = target;
                 BigDecimal targetAsBigDec = new BigDecimal(new BigInteger(target, 16));
                 System.out.println("difficulty says: \n" + MainChain.difficulty);
                 long startTime = System.nanoTime();
@@ -69,7 +70,7 @@ public class Miner {
                     if (MainChain.difficulty <= 1) {
                         MainChain.difficulty = 1;
                         targetAsBigDec = new BigDecimal(new BigInteger(
-                                "0000eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee", 16));
+                                "00000eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee", 16));
                     }
                     if (new BigDecimal(new BigInteger(MainChain.getHex(blockHeaderBytes), 16)).subtract(targetAsBigDec).compareTo(
                             new BigDecimal(0)) <= 0) {
@@ -112,10 +113,9 @@ public class Miner {
                             Nonce = 0L;
                             byte[] txHashBytes = (fromAddress + toAddress + amount).getBytes();
                             merkleRoot = MainChain.getHex(SHA256.SHA256HashByteArray(txHashBytes));
-                            MainChain.targetAsBigDec = MainChain.getHex(String.valueOf((MainChain.calculateTarget(deltaS, target))).getBytes());
+                            target = MainChain.getHex(String.valueOf((MainChain.calculateTarget(deltaS, target))).getBytes());
                             restartMiner(updatedIndex, currentTimeMillis, fromAddress, toAddress, txHash, merkleRoot,
-                                    Nonce, previousBlockHash, algo, MainChain.getHex(String.valueOf((MainChain.calculateTarget(
-                                            deltaS, target))).getBytes()), amount);
+                                    Nonce, previousBlockHash, algo, target, amount);
                             break;
                         }
                     }

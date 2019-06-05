@@ -27,7 +27,7 @@ import java.util.Properties;
 public class MainChain {
 
     public static double difficulty;
-    public static String targetAsBigDec;
+    public static String targetHex;
     public static BigDecimal targetBigDec;
     public static float balance;
     public static final float nSubsidy = 50;
@@ -38,7 +38,7 @@ public class MainChain {
     public MainChain() {}
 
     public static boolean isBlockHashValid(long index, long currentTimeMillis, String fromAddress, String toAddress, String[] txHash, String merkleRoot, long Nonce, String previousBlockHash, String algo, String currentHash, String target, float amount) {
-        MainChain.targetAsBigDec = target;
+        MainChain.targetHex = target;
         byte[] blockHeaderBytes = MainChain.swapEndianness(MainChain.hexStringToByteArray(MainChain.getHex((index + currentTimeMillis + fromAddress + toAddress + Arrays.toString(txHash) + merkleRoot + Nonce + previousBlockHash + algo + target + amount).getBytes())));
         if (algo.contentEquals("sha256")) {
             checkHash = SHA256.SHA256HashByteArray(SHA256.SHA256HashByteArray(blockHeaderBytes));
@@ -406,13 +406,13 @@ public class MainChain {
         }
     }
 
-    void sendTx(String fromAddress, String toAddress, float amount) {
+    public void sendTx(String fromAddress, String toAddress, float amount) {
         byte[] txHashBytes = MainChain.swapEndianness(MainChain.hexStringToByteArray(MainChain.getHex((fromAddress + toAddress + amount).getBytes())));
         String txHash = MainChain.getHex(SHA256.SHA256HashByteArray(SHA256.SHA256HashByteArray(txHashBytes)));
         writeTxPool(fromAddress, toAddress, amount, txHash);
     }
 
-    void overwriteTxPool() {
+    public void overwriteTxPool() {
         String configPath;
         if (Constants.BASEDIR.contains("apache-tomcat-8.5.23")) {
             configPath = Constants.BASEDIR + "/../../config/config.properties";
@@ -458,7 +458,7 @@ public class MainChain {
         }
     }
 
-    void getTxPool() {
+    public void getTxPool() {
         if (!TxPoolArray.TxPool.isEmpty()) {
             System.out.println("tx pool: \n");
             for (int i = 0; i < TxPoolArray.TxPool.size(); i++) {
@@ -472,6 +472,24 @@ public class MainChain {
     double getDifficulty(){
         System.out.println("\n");
         System.out.println("Difficulty: \n" + difficulty);
+        return difficulty;
+    }
+
+    public double calculateDifficulty() {
+        try {
+            Block mostRecentBlock = new BlockDecoder().decode(BlockChain.blockChain.get(getIndexOfBlockChain()));
+            difficulty = Integer.parseInt(mostRecentBlock.getTarget());
+            long currentTime = System.currentTimeMillis();
+            long lbtAsLong = Long.parseLong(mostRecentBlock.getTimeStamp());
+            long deltaT = currentTime - lbtAsLong;
+            if (deltaT > 60000) {
+                difficulty--;
+            } else if (deltaT < 60000) {
+                difficulty++;
+            }
+        } catch (DecodeException de) {
+        WalletLogger.logException(de, "severe", WalletLogger.getLogTimeStamp() + " Failed to decode block! See details below:\n" + WalletLogger.exceptionStacktraceToString(de));
+        }
         return difficulty;
     }
 
@@ -490,25 +508,21 @@ public class MainChain {
                     deltaTargetTime.doubleValue() / Constants.TARGET_TIME_WINDOW) / 6))).doubleValue();
             MainChain.difficulty += adjustmentFactor;
             targetAsBigDec = targetAsBigDec.multiply(new BigDecimal(String.valueOf(1 / adjustmentFactor)));
-            MainChain.targetAsBigDec = getHex(targetAsBigDec.toBigInteger().toByteArray());
+            targetHex = getHex(targetAsBigDec.toBigInteger().toByteArray());
         } else if (deltaT > Constants.TARGET_TIME_WINDOW) {
             BigDecimal deltaTargetTime = new BigDecimal(String.valueOf(deltaT - Constants.TARGET_TIME_WINDOW));
             adjustmentFactor = deltaTargetTime.multiply(new BigDecimal(String.valueOf((
                     deltaTargetTime.doubleValue() / Constants.TARGET_TIME_WINDOW) / 6))).doubleValue();
             System.out.println("delta2T: " + deltaTargetTime);
             targetAsBigDec = targetAsBigDec.multiply(new BigDecimal(String.valueOf(adjustmentFactor)));
-            MainChain.targetAsBigDec = getHex(targetAsBigDec.toBigInteger().toByteArray());
+            targetHex = getHex(targetAsBigDec.toBigInteger().toByteArray());
             MainChain.difficulty -= adjustmentFactor;
         }
         return targetAsBigDec;
     }
 
-    static String getTargetAsBigDec() {
-        return targetAsBigDec;
-    }
-
-    static void setTargetAsBigDec(String targetAsBigDec) {
-        MainChain.targetAsBigDec = targetAsBigDec;
+    public static String getTargetHex() {
+        return targetHex;
     }
 
 
@@ -550,8 +564,8 @@ public class MainChain {
     }
 
     static class InsufficientBalanceException extends Exception {
-        InsufficientBalanceException() {
-            System.out.println("Insufficient balance exception occurred! See log for details\n");
+        InsufficientBalanceException(String msg) {
+            System.out.println(msg);
         }
     }
 }

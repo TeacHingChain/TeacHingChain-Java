@@ -1,9 +1,24 @@
 package com.thc.blockchain.gui;
 
+import com.thc.blockchain.algos.SHA256;
+import com.thc.blockchain.network.Constants;
+import com.thc.blockchain.util.Miner;
+import com.thc.blockchain.util.WalletLogger;
+import com.thc.blockchain.util.addresses.AddressBook;
+import com.thc.blockchain.wallet.BlockChain;
 import com.thc.blockchain.wallet.MainChain;
+import com.thc.blockchain.wallet.TxPoolArray;
 
 import javax.swing.*;
+import javax.websocket.DecodeException;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.File;
+import java.util.Random;
+import java.util.concurrent.TimeUnit;
+
+import static com.thc.blockchain.wallet.MainChain.difficulty;
 
 public class WalletGui extends JFrame {
 

@@ -6,7 +6,7 @@ import com.thc.blockchain.wallet.MainChain;
 
 public class Consensus {
 
-    private static final StringBuilder sb = new StringBuilder();
+    private static StringBuilder sb = new StringBuilder();
 
     public boolean isBlockOrphan(long index) {
         MainChain mc = new MainChain();

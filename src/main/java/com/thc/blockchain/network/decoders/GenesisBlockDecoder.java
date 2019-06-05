@@ -15,6 +15,8 @@ import java.io.IOException;
 
 public final class GenesisBlockDecoder implements Decoder.Text<GenesisBlock> {
 
+    private MainChain mc = new MainChain();
+
     @Override
     public GenesisBlock decode(String arg0) throws DecodeException {
         try {

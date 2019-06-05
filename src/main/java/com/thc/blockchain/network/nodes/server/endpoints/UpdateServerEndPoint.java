@@ -13,7 +13,7 @@ import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
 
 @ServerEndpoint(value = "/update", encoders = BlockEncoder.class, decoders = BlockDecoder.class)
-class UpdateServerEndPoint {
+public class UpdateServerEndPoint {
 
     @OnOpen
     public void onOpen(Session session) {
@@ -38,6 +38,7 @@ class UpdateServerEndPoint {
             WalletLogger.logException(ee, "severe", WalletLogger.getLogTimeStamp() + " Encode exception occurred during mining operation! See below:\n" + WalletLogger.exceptionStacktraceToString(ee));
         }
         NodeManager.remove(session);
+        mc.calculateDifficulty();
     }
 }
 

@@ -14,7 +14,7 @@ import javax.websocket.*;
 @ClientEndpoint(encoders = { BlockEncoder.class }, decoders = { BlockDecoder.class })
 public class SyncBlockClient {
 
-    private final MainChain mc = new MainChain();
+    private MainChain mc = new MainChain();
 
     @OnOpen
     public void initSyncBlock(Session session, EndpointConfig config) {

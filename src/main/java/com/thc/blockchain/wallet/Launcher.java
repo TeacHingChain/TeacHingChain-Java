@@ -9,7 +9,6 @@ import com.thc.blockchain.network.nodes.NodeManager;
 import com.thc.blockchain.network.nodes.server.endpoints.GenesisChainServerEndpoint;
 import com.thc.blockchain.network.objects.Block;
 import com.thc.blockchain.util.Miner;
-import com.thc.blockchain.util.NetworkConfigFields;
 import com.thc.blockchain.util.WalletLogger;
 import com.thc.blockchain.util.addresses.AddressBook;
 
@@ -25,7 +24,7 @@ import java.util.Random;
 import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 
-class Launcher {
+public class Launcher {
 
     private static String algo;
 
@@ -37,7 +36,6 @@ class Launcher {
             configPath = Constants.BASEDIR + "/config/config.properties";
         }
         Properties configProps = new Properties();
-        new NetworkConfigFields();
         try {
             configProps.load(new FileInputStream(configPath));
             MainChain mc = new MainChain();
@@ -48,19 +46,19 @@ class Launcher {
                 gb.initChain();
                 EndpointManager endpointManager = new EndpointManager();
                 endpointManager.connectAsClient("init chain");
-                MainChain.targetAsBigDec = Constants.GENESIS_TARGET;
+                MainChain.targetHex = Constants.GENESIS_TARGET;
             } else if (chainFile.exists()) {
                 mc.readKeyRing();
                 mc.readAddressBook();
                 mc.readBlockChain();
                 mc.readTxPool();
                 if (BlockChain.blockChain.size() == 1) {
-                    MainChain.targetAsBigDec = Constants.GENESIS_TARGET;
+                    MainChain.targetHex = Constants.GENESIS_TARGET;
                 } else {
                     Block mrb = new BlockDecoder().decode(BlockChain.blockChain.get(mc.getIndexOfBlockChain()));
                     long deltaT = System.currentTimeMillis() - Long.parseLong(mrb.getTimeStamp());
                     String previousTarget = mrb.getTarget();
-                    MainChain.targetAsBigDec = MainChain.getHex(MainChain.calculateTarget(deltaT, previousTarget).toBigInteger().toByteArray());
+                    MainChain.targetHex = MainChain.getHex(MainChain.calculateTarget(deltaT, previousTarget).toBigInteger().toByteArray());
                 }
             }
             System.out.println("\n");
@@ -83,7 +81,7 @@ class Launcher {
                         float amountInput = txData.nextFloat();
                         try {
                             if (amountInput > MainChain.balance) {
-                                throw new MainChain.InsufficientBalanceException();
+                                throw new MainChain.InsufficientBalanceException("Insufficient balance exception occurred! See log for details\n");
                             } else {
                                 mc.sendTx(fromAddress, toAddress, amountInput);
                             }
@@ -177,7 +175,7 @@ class Launcher {
                                 String[] txs = {MainChain.getHex(txHash)};
                                 try {
                                     miner.mine(indexValue, timeStamp, Constants.CB_ADDRESS, toAddress, txs, txs[0], 0L, previousHash, algo,
-                                            MainChain.getTargetAsBigDec(), amount);
+                                            MainChain.getTargetHex(), amount);
                                     TimeUnit.SECONDS.sleep(1);
                                 } catch (InterruptedException ie) {
                                     WalletLogger.logException(ie, "severe", WalletLogger.getLogTimeStamp()
@@ -197,7 +195,7 @@ class Launcher {
                                 String[] txs = {MainChain.getHex(txHash)};
                                 try {
                                     miner.mine(indexValue, timeStamp, Constants.CB_ADDRESS, toAddress, txs, txs[0], 0L, previousHash, algo,
-                                            MainChain.getTargetAsBigDec(), amount);
+                                            MainChain.getTargetHex(), amount);
                                     TimeUnit.SECONDS.sleep(1);
                                 } catch (InterruptedException ie) {
                                     WalletLogger.logException(ie, "severe", WalletLogger.getLogTimeStamp()
@@ -218,7 +216,7 @@ class Launcher {
                                 String[] txs = {MainChain.getHex(txHash)};
                                 try {
                                     miner.mine(indexValue, timeStamp, Constants.CB_ADDRESS, toAddress, txs, txs[0], 0L, previousHash, algo,
-                                            MainChain.getTargetAsBigDec(), amount);
+                                            MainChain.getTargetHex(), amount);
                                     TimeUnit.SECONDS.sleep(1);
                                 } catch (InterruptedException ie) {
                                     WalletLogger.logException(ie, "severe", WalletLogger.getLogTimeStamp()
@@ -280,7 +278,7 @@ class Launcher {
                         break;
                     }
                     case "view difficulty": {
-                       System.out.println("Difficulty: " + mc.getDifficulty()); 
+                        mc.getDifficulty();
                         break;
                     }
                     case "sync": {
@@ -316,7 +314,7 @@ class Launcher {
                         System.out.println("Number of connected peers: " + NodeManager.getPeerCount());
                         break;
                     }
-                    case "test targetAsBigDec": {
+                    case "test targetHex": {
                         double testDifDouble = 1;
                         long start = System.nanoTime() / 1000000000;
                         BigDecimal bigIntTarget = new BigDecimal(new BigInteger(
@@ -335,8 +333,8 @@ class Launcher {
                                     randomValue + "block" + "header" + nonce).getBytes())));
                             if (new BigDecimal(new BigInteger(hasedHeaderHex, 16)).subtract(bigIntTarget).compareTo(
                                     new BigDecimal(0)) <= 0) {
-                                System.out.println("Start targetAsBigDec: " + bigIntTarget);
-                                System.out.println("Start targetAsBigDec hex: " + MainChain.getHex(bigIntTarget.toBigInteger().toByteArray()));
+                                System.out.println("Start targetHex: " + bigIntTarget);
+                                System.out.println("Start targetHex hex: " + MainChain.getHex(bigIntTarget.toBigInteger().toByteArray()));
                                 if (deltaS < targetTime) {
                                     BigDecimal deltaTargetTime = new BigDecimal(String.valueOf(targetTime - deltaS));
                                     adjustmentFactor = deltaTargetTime.multiply(new BigDecimal(String.valueOf((
@@ -362,8 +360,8 @@ class Launcher {
                                 System.out.println("Adjustment factor: " + adjustmentFactor);
                                 System.out.println("deltaS: " + deltaS);
                                 System.out.println("test difficulty: " + testDifDouble);
-                                System.out.println("New targetAsBigDec: " + bigIntTarget);
-                                System.out.println("New targetAsBigDec hex: " + MainChain.getHex(bigIntTarget.toBigInteger().toByteArray()));
+                                System.out.println("New targetHex: " + bigIntTarget);
+                                System.out.println("New targetHex hex: " + MainChain.getHex(bigIntTarget.toBigInteger().toByteArray()));
                                 System.out.println("Continue? \n");
                                 String cont = new Scanner(System.in).nextLine();
                                 if (cont.contentEquals("y")) {
@@ -379,8 +377,7 @@ class Launcher {
                         break;
                     }
                     case "get target": {
-                        System.out.println("Target: " + MainChain.getTargetAsBigDec());
-                        break;
+                        System.out.println("Target: " + MainChain.getTargetHex());
                     }
                     case "quit": {
                         System.exit(1);

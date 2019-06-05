@@ -11,7 +11,7 @@ import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
 @ServerEndpoint(value = "/tx", encoders = { TxEncoder.class }, decoders = { TxDecoder.class })
-class TxServerEndpoint {
+public class TxServerEndpoint {
 
     @OnOpen
     public void onOpen(Session session) {

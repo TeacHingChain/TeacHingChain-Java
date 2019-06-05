@@ -2,6 +2,7 @@ package com.thc.blockchain.network.decoders;
 
 import com.thc.blockchain.network.Constants;
 import com.thc.blockchain.network.objects.Block;
+import com.thc.blockchain.wallet.MainChain;
 
 import javax.websocket.DecodeException;
 import javax.websocket.Decoder;
@@ -9,6 +10,8 @@ import javax.websocket.EndpointConfig;
 import java.io.IOException;
 
 public final class BlockDecoder implements Decoder.Text<Block> {
+
+    private MainChain mc = new MainChain();
 
     @Override
     public void destroy() {
