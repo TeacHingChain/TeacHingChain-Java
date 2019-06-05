@@ -4,10 +4,12 @@ import com.thc.blockchain.algos.SHA256;
 import com.thc.blockchain.gui.WalletGui;
 import com.thc.blockchain.network.Constants;
 import com.thc.blockchain.network.decoders.BlockDecoder;
+import com.thc.blockchain.network.decoders.GenesisBlockDecoder;
 import com.thc.blockchain.network.nodes.EndpointManager;
 import com.thc.blockchain.network.nodes.NodeManager;
 import com.thc.blockchain.network.nodes.server.endpoints.GenesisChainServerEndpoint;
 import com.thc.blockchain.network.objects.Block;
+import com.thc.blockchain.network.objects.GenesisBlock;
 import com.thc.blockchain.util.Miner;
 import com.thc.blockchain.util.WalletLogger;
 import com.thc.blockchain.util.addresses.AddressBook;
@@ -52,10 +54,17 @@ class Launcher {
                 mc.readAddressBook();
                 mc.readBlockChain();
                 mc.readTxPool();
-                Block mrb = new BlockDecoder().decode(BlockChain.blockChain.get(mc.getIndexOfBlockChain()));
-                long deltaT = (System.currentTimeMillis() / 1000) - ((Long.parseLong(mrb.getTimeStamp()) / 1000));
-                String previousTarget = mrb.getTarget();
-                MainChain.targetHex = MainChain.getHex(MainChain.calculateTarget(deltaT, previousTarget).toBigInteger().toByteArray());
+                if (BlockChain.blockChain.size() == 1) {
+                    GenesisBlock gb = new GenesisBlockDecoder().decode(BlockChain.blockChain.get(mc.getIndexOfBlockChain()));
+                    long deltaT = (System.currentTimeMillis() / 1000) - ((Long.parseLong(gb.getTimeStamp()) / 1000));
+                    String previousTarget = gb.getTarget();
+                    MainChain.targetHex = MainChain.getHex(MainChain.calculateTarget(deltaT, previousTarget).toBigInteger().toByteArray());
+                } else {
+                    Block mrb = new BlockDecoder().decode(BlockChain.blockChain.get(mc.getIndexOfBlockChain()));
+                    long deltaT = (System.currentTimeMillis() / 1000) - ((Long.parseLong(mrb.getTimeStamp()) / 1000));
+                    String previousTarget = mrb.getTarget();
+                    MainChain.targetHex = MainChain.getHex(MainChain.calculateTarget(deltaT, previousTarget).toBigInteger().toByteArray());
+                }
             }
             System.out.println("\n");
             System.out.println("Welcome to the light-weight, PoC, java implementation of TeacHingChain!\n");
