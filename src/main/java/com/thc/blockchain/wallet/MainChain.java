@@ -60,7 +60,7 @@ public class MainChain {
             configProps.load(new FileInputStream(configPath));
             File tempFile = new File(configProps.getProperty("datadir") + "/tx-pool.dat");
             if (!tempFile.exists()) {
-                TxPoolArray txpool = new TxPoolArray();
+                new TxPoolArray();
                 Tx tx = new Tx(fromAddress, toAddress, amount, txHash);
                 try {
                     String txPoolTX = new TxEncoder().encode(tx);

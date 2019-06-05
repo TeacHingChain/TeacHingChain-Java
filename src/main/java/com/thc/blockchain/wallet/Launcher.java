@@ -45,23 +45,21 @@ class Launcher {
                 EndpointManager endpointManager = new EndpointManager();
                 endpointManager.connectAsClient("init chain");
                 MainChain.targetHex = Constants.GENESIS_TARGET;
+                mc.readBlockChain();
+                MainChain.difficulty = 1;
             } else if (chainFile.exists()) {
                 mc.readKeyRing();
                 mc.readAddressBook();
                 mc.readBlockChain();
                 mc.readTxPool();
+                Block mrb = new BlockDecoder().decode(BlockChain.blockChain.get(mc.getIndexOfBlockChain()));
+                long deltaT = (System.currentTimeMillis() / 1000) - ((Long.parseLong(mrb.getTimeStamp()) / 1000));
+                String previousTarget = mrb.getTarget();
+                MainChain.targetHex = MainChain.getHex(MainChain.calculateTarget(deltaT, previousTarget).toBigInteger().toByteArray());
             }
             System.out.println("\n");
             System.out.println("Welcome to the light-weight, PoC, java implementation of TeacHingChain!\n");
             while (true) {
-                if (BlockChain.blockChain.size() == 1 || MainChain.difficulty == 1) {
-                    MainChain.targetHex = Constants.GENESIS_TARGET;
-                } else {
-                    Block mrb = new BlockDecoder().decode(BlockChain.blockChain.get(mc.getIndexOfBlockChain()));
-                    long deltaT = System.currentTimeMillis() - Long.parseLong(mrb.getTimeStamp());
-                    String previousTarget = mrb.getTarget();
-                    MainChain.targetHex = MainChain.getHex(MainChain.calculateTarget(deltaT, previousTarget).toBigInteger().toByteArray());
-                }
                 EndpointManager endpointManager = new EndpointManager();
                 Scanner input = new Scanner(System.in);
                 System.out.println("\n");
@@ -377,6 +375,7 @@ class Launcher {
                     }
                     case "get target": {
                         System.out.println("Target: " + MainChain.getTargetHex());
+                        break;
                     }
                     case "quit": {
                         System.exit(1);
