@@ -111,7 +111,6 @@ public final class NodeManager {
         return NODES.contains(session);
     }
 
-    @SuppressWarnings("unused")
     public static void close(final Session session, final CloseCodes closeCode, final String message) {
         assert !Objects.isNull(session) && !Objects.isNull(closeCode);
         try {

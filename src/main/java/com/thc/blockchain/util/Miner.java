@@ -25,6 +25,8 @@ import java.util.concurrent.TimeUnit;
 
 public class Miner {
 
+    public static long index;
+    public static float amount;
     private static long hashRate;
     private static Timer timer;
     private static int updatedIndex;

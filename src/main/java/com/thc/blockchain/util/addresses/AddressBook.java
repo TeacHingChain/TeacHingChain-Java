@@ -7,7 +7,7 @@ public class AddressBook {
 
     public AddressBook() { initAddressBook(); }
 
-    public static List<String> addressBook;
+    public static List addressBook;
 
     private static void initAddressBook() { addressBook = new ArrayList<>(); }
 }

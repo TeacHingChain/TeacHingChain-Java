@@ -17,7 +17,6 @@ import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
 
-@SuppressWarnings("unused")
 @ServerEndpoint(value = "/" + Constants.GENESIS_SERVER_KEY, encoders =  { GenesisBlockEncoder.class }, decoders = { GenesisBlockDecoder.class })
 public class GenesisChainServerEndpoint {
 
@@ -34,7 +33,7 @@ public class GenesisChainServerEndpoint {
         System.out.println("Encoding genesis block and adding to chain!\n");
         try {
             String encodedGenesisBlock = new GenesisBlockEncoder().encode(genesisBlock);
-            new BlockChain();
+            BlockChain blockChain = new BlockChain();
             BlockChain.blockChain.add(encodedGenesisBlock);
             mc.writeBlockChain();
         } catch (EncodeException ee) {

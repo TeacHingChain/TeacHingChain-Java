@@ -7,7 +7,7 @@ public class KeyRing {
 
     KeyRing() { initKeyRing();}
 
-    public static List<String> keyRing;
+    public static List keyRing;
 
-    private static void initKeyRing() { keyRing = new ArrayList<>(); }
+    private static void initKeyRing() { keyRing = new ArrayList(); }
 }

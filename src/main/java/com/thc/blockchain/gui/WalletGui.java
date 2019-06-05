@@ -5,8 +5,12 @@ import com.thc.blockchain.wallet.MainChain;
 import javax.swing.*;
 import java.awt.*;
 
-@SuppressWarnings("ConstantConditions")
 public class WalletGui extends JFrame {
+
+    private static String algo;
+    private static JTextField numberOfBlocks;
+    private static JTextField txAmount;
+    private static JTextField txToAddress;
 
     public WalletGui() {
         super("TeacHingChain Wallet");
@@ -16,9 +20,9 @@ public class WalletGui extends JFrame {
         JLabel numBlockToMine = new JLabel("Number of blocks: ");
         JButton sendTxButton = new JButton("Send Tx");
         JButton mineButton = new JButton("Mine");
-        JTextField numberOfBlocks = new JTextField(3);
-        JTextField txAmount = new JTextField(5);
-        JTextField txToAddress = new JTextField(32);
+        numberOfBlocks = new JTextField(3);
+        txAmount = new JTextField(5);
+        txToAddress = new JTextField(32);
         JPanel newPanel = new JPanel(new GridBagLayout());
         GridBagConstraints constraints = new GridBagConstraints();
         constraints.anchor = GridBagConstraints.WEST;

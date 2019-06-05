@@ -9,7 +9,6 @@ import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
 import javax.websocket.Session;
 
-@SuppressWarnings("unused")
 @ClientEndpoint(encoders = BlockEncoder.class, decoders = BlockDecoder.class)
 public class UpdateClientEndPoint {
 

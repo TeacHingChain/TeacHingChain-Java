@@ -7,6 +7,7 @@ import javax.websocket.ClientEndpoint;
 import javax.websocket.OnError;
 import javax.websocket.OnOpen;
 
+
 @ClientEndpoint (encoders = BlockEncoder.class, decoders = BlockDecoder.class)
 public class HelloClientEndpoint {
 

@@ -50,6 +50,7 @@ public class MainChain {
 
     void writeTxPool(String fromAddress, String toAddress, float amount, String txHash) {
         String configPath;
+        MainChain mc = new MainChain();
         try {
             if (Constants.BASEDIR.contains("apache-tomcat-8.5.23")) {
                 configPath = Constants.BASEDIR + "/../../config/config.properties";
@@ -60,7 +61,7 @@ public class MainChain {
             configProps.load(new FileInputStream(configPath));
             File tempFile = new File(configProps.getProperty("datadir") + "/tx-pool.dat");
             if (!tempFile.exists()) {
-                new TxPoolArray();
+                TxPoolArray txpool = new TxPoolArray();
                 Tx tx = new Tx(fromAddress, toAddress, amount, txHash);
                 try {
                     String txPoolTX = new TxEncoder().encode(tx);
@@ -192,11 +193,9 @@ public class MainChain {
                 }
             }
         } catch (DecodeException de) {
-            WalletLogger.logException(de, "warning", WalletLogger.getLogTimeStamp() + " Failed to decode block fetching chain.dat! See below:\n"
-                    + WalletLogger.exceptionStacktraceToString(de));
+            WalletLogger.logException(de, "warning", WalletLogger.getLogTimeStamp() + " Failed to decode block fetching chain.dat! See below:\n" + WalletLogger.exceptionStacktraceToString(de));
         } catch (Base58.AddressFormatException afe) {
-            WalletLogger.logException(afe, "warning", WalletLogger.getLogTimeStamp() + " An error occurred trying to decode an address! See details below:\n"
-                    + WalletLogger.exceptionStacktraceToString(afe));
+            WalletLogger.logException(afe, "warning", WalletLogger.getLogTimeStamp() + " An error occurred trying to decode an address! See details below:\n" + WalletLogger.exceptionStacktraceToString(afe));
         }
     }
 
@@ -272,7 +271,7 @@ public class MainChain {
         }
         File keyRingFile = new File( configProps.getProperty("datadir") + "/keyring.dat");
         if (!keyRingFile.exists()) {
-            new KeyRing();
+            KeyRing keyRing = new KeyRing();
             try {
                 KeyRing.keyRing.add(privKey);
                 FileOutputStream fos = new FileOutputStream(configProps.getProperty("datadir") + "/keyring.dat");
@@ -299,7 +298,7 @@ public class MainChain {
     }
 
     public String generateAddress(int keyIndex){
-        byte[] hashedPrivKeyBytes = SHA256.SHA256HashByteArray(SHA256.SHA256HashByteArray(KeyRing.keyRing.get(keyIndex).getBytes()));
+        byte[] hashedPrivKeyBytes = SHA256.SHA256HashByteArray(SHA256.SHA256HashByteArray(KeyRing.keyRing.get(keyIndex).toString().getBytes()));
         address = Base58.encode(hashedPrivKeyBytes);
         addToAddressBook(address);
         return address;
@@ -317,7 +316,7 @@ public class MainChain {
             configProps.load(new FileInputStream(configPath));
             File abFile = new File(configProps.getProperty("datadir") + "/addressBook.dat");
             if (!abFile.exists()) {
-                new AddressBook();
+                AddressBook addressBook = new AddressBook();
                 AddressBook.addressBook.add(address);
                 try {
                     configProps.load(new FileInputStream(configPath));
@@ -348,7 +347,7 @@ public class MainChain {
     }
 
     public String getAddressFromAddressBook(int index) {
-        return AddressBook.addressBook.get(index);
+        return AddressBook.addressBook.get(index).toString();
     }
     
     void readAddressBook() {
@@ -387,7 +386,7 @@ public class MainChain {
             configProps.load(new FileInputStream(configPath));
             File keyRingFile = new File(configProps.getProperty("datadir") + "/keyring.dat");
             if (!keyRingFile.exists()) {
-                new KeyRing();
+                KeyRing keyRing = new KeyRing();
                 FileOutputStream fos = new FileOutputStream(configProps.getProperty("datadir") + "/keyring.dat");
                 ObjectOutputStream oos = new ObjectOutputStream(fos);
                 oos.writeObject(KeyRing.keyRing);
@@ -446,11 +445,11 @@ public class MainChain {
             configProps.load(new FileInputStream(configPath));
             FileInputStream fis = new FileInputStream(configProps.getProperty("datadir") + "/tx-pool.dat");
             ObjectInputStream ois = new ObjectInputStream(fis);
-            TxPoolArray.TxPool = (ArrayList<String>) ois.readObject();
+            TxPoolArray.TxPool = (ArrayList) ois.readObject();
             ois.close();
             fis.close();
         } catch (FileNotFoundException e) {
-            new TxPoolArray();
+            TxPoolArray txpool = new TxPoolArray();
             overwriteTxPool();
         } catch (IOException ioe) {
             WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp() + " IO exception occurred while reading tx-pool! See below:\n" + WalletLogger.exceptionStacktraceToString(ioe));
@@ -477,7 +476,7 @@ public class MainChain {
     }
 
     public static BigDecimal calculateTarget(long deltaT, String previousTarget) {
-        double adjustmentFactor;
+        double adjustmentFactor = 0;
         BigDecimal targetAsBigDec;
         if (MainChain.difficulty <= 1 || BlockChain.blockChain.size() == 1) {
             MainChain.difficulty = 1;
@@ -508,7 +507,6 @@ public class MainChain {
         return targetAsBigDec;
     }
 
-    @SuppressWarnings("unused")
     static void setTargetAsBigDec(String targetAsBigDec) {
         MainChain.targetAsBigDec = targetAsBigDec;
     }

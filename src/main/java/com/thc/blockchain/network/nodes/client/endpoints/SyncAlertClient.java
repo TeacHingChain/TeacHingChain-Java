@@ -20,7 +20,7 @@ public class SyncAlertClient {
     private final StringBuilder sb = new StringBuilder();
     private final MainChain mc = new MainChain();
 
-    @SuppressWarnings("unused")
+
     @OnOpen
     public void onOpen(Session session, EndpointConfig config) {
         mc.readBlockChain();
@@ -41,7 +41,6 @@ public class SyncAlertClient {
         }
     }
 
-    @SuppressWarnings("unused")
     @OnMessage
     public void onAlertMessage(Alert alert, Session session) {
         EndpointManager endpointManager = new EndpointManager();

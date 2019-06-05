@@ -10,7 +10,6 @@ public class SHA512 {
 
     private static MessageDigest digest;
 
-    @SuppressWarnings("unused")
     public static String SHA512HashString(String value) {
         String hash = null;
         try {

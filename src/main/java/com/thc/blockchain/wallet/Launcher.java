@@ -26,6 +26,8 @@ import java.util.concurrent.TimeUnit;
 
 class Launcher {
 
+    private static String algo;
+
     public static void main(String[] args) {
         String configPath;
         if (Constants.BASEDIR.contains("apache-tomcat-8.5.23")) {
@@ -72,7 +74,7 @@ class Launcher {
                         Scanner txData = new Scanner(System.in);
                         System.out.println("\n");
                         System.out.println("Please enter to address: \n");
-                        String fromAddress = AddressBook.addressBook.get(0);
+                        String fromAddress = AddressBook.addressBook.get(0).toString();
                         String toAddress = txData.nextLine();
                         System.out.println("\n");
                         System.out.println("Please enter amount: \n");
@@ -145,22 +147,22 @@ class Launcher {
                         int howManyBlocks = howMany.nextInt();
                         int numBlocksMined = 0;
                         //Random algoSelector = new Random();
-                        String algo = "sha256";
+                        algo = "sha256";
                         Random rand = new Random();
                         while (howManyBlocks > numBlocksMined) {
                             byte[] cbTxHashBytes = MainChain.swapEndianness(MainChain.hexStringToByteArray
-                                    (MainChain.getHex((Constants.CB_ADDRESS + AddressBook.addressBook.get(0)
+                                    (MainChain.getHex((Constants.CB_ADDRESS + AddressBook.addressBook.get(0).toString()
                                             + MainChain.nSubsidy).getBytes())));
                             String cbTxHash = MainChain.getHex(SHA256.SHA256HashByteArray(SHA256.SHA256HashByteArray(cbTxHashBytes)));
                             mc.writeTxPool(Constants.CB_ADDRESS, AddressBook.addressBook.get(rand.nextInt(
-                                    AddressBook.addressBook.size())), MainChain.nSubsidy, cbTxHash);
+                                    AddressBook.addressBook.size())).toString(), MainChain.nSubsidy, cbTxHash);
                             mc.readTxPool();
                             int indexValue = BlockChain.blockChain.size();
                             long timeStamp = mc.getUnixTimestamp();
                             if (BlockChain.blockChain.size() < 2 && TxPoolArray.TxPool.size() == 1) {
                                 mc.readBlockChain();
                                 MainChain.difficulty = 1;
-                                String toAddress = AddressBook.addressBook.get(0);
+                                String toAddress = AddressBook.addressBook.get(0).toString();
                                 String previousHash;
                                 if (BlockChain.blockChain.size() == 1) {
                                     previousHash = mc.getGenesisHash();
@@ -185,7 +187,7 @@ class Launcher {
                                 mc.overwriteTxPool();
                             } else if (BlockChain.blockChain.size() >= 2 && TxPoolArray.TxPool.size() <= 1) {
                                 mc.readBlockChain();
-                                String toAddress = AddressBook.addressBook.get(0);
+                                String toAddress = AddressBook.addressBook.get(0).toString();
                                 String previousHash = mc.getPreviousBlockHash();
                                 float amount = MainChain.nSubsidy;
                                 byte[] txHashBytes = (Constants.CB_ADDRESS + toAddress + amount).getBytes();
@@ -206,7 +208,7 @@ class Launcher {
                             } else if (BlockChain.blockChain.size() < 2 && TxPoolArray.TxPool.size() > 1) {
                                 mc.readBlockChain();
                                 MainChain.difficulty = 5;
-                                String toAddress = AddressBook.addressBook.get(0);
+                                String toAddress = AddressBook.addressBook.get(0).toString();
                                 String previousHash = mc.getPreviousBlockHash();
                                 float amount = MainChain.nSubsidy;
                                 byte[] txHashBytes = (Constants.CB_ADDRESS + toAddress + amount).getBytes();
@@ -276,7 +278,7 @@ class Launcher {
                         break;
                     }
                     case "view difficulty": {
-                       System.out.println("Difficulty: " + mc.getDifficulty());
+                       System.out.println("Difficulty: " + mc.getDifficulty()); 
                         break;
                     }
                     case "sync": {

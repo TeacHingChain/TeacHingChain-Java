@@ -5,7 +5,6 @@ import java.nio.charset.StandardCharsets;
 
 class Scrypt {
 
-    @SuppressWarnings("unused")
     public static String generateScryptHash(String value) {
         String scryptHash = SCryptUtil.scrypt(value, 100, 50, 50);
         byte[] bytes = scryptHash.getBytes(StandardCharsets.UTF_8);

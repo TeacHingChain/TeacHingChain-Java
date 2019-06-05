@@ -5,7 +5,6 @@ import javax.websocket.OnOpen;
 import javax.websocket.server.ServerEndpoint;
 
 
-@SuppressWarnings("unused")
 @ServerEndpoint(value = "/hello")
 class HelloServerEndpoint {
 

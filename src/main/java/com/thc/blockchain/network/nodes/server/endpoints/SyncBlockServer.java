@@ -12,7 +12,6 @@ import com.thc.blockchain.wallet.MainChain;
 import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
 
-@SuppressWarnings("unused")
 @ServerEndpoint(value = "/" + Constants.PUSH_CHAIN_KEY, encoders = BlockEncoder.class, decoders = BlockDecoder.class)
 class SyncBlockServer {
 

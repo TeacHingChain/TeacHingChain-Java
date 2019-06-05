@@ -11,7 +11,6 @@ import com.thc.blockchain.wallet.MainChain;
 
 import javax.websocket.*;
 
-@SuppressWarnings("unused")
 @ClientEndpoint(encoders = { BlockEncoder.class }, decoders = { BlockDecoder.class })
 public class SyncBlockClient {
 
