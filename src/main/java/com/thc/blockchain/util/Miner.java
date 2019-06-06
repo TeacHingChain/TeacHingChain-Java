@@ -51,9 +51,10 @@ public class Miner {
                 System.out.println("Big decimal value of hash: " + new BigDecimal(new BigInteger(hashedBlockHeaderBytes, 16)));
                 System.out.println("Current target: " + targetAsBigDec);
                 System.out.println("Current target hex: " + MainChain.getHex(targetAsBigDec.toBigInteger().toByteArray()));
+                System.out.println("Current value - target value: " + new BigDecimal(new BigInteger(hashedBlockHeaderBytes, 16)).subtract(targetAsBigDec));
                 updatedIndex = BlockChain.blockChain.size();
                 }
-            }, 1000, 3000);
+            }, 0, 3000);
             while (true) {
                 long deltaS = 0;
                 long deltaN;
@@ -100,8 +101,11 @@ public class Miner {
                                 WalletLogger.logEvent("warning", WalletLogger.getLogTimeStamp()
                                         + " Detected orphan block, not adding to chain!\n");
                             }
-                            System.out.println("deltaS: " + deltaS);
-                            System.out.println("New target: " + MainChain.calculateTarget(deltaS / 1000000000, target));
+                            System.out.println("New target: " + MainChain.targetHex);
+                            timer.cancel();
+                            break;
+                        } else {
+                            System.out.println("No peers found! Check network connection!\n");
                             timer.cancel();
                             break;
                         }
@@ -122,7 +126,6 @@ public class Miner {
                                 Nonce, previousBlockHash, algo, target, amount);
                         break;
                     }
-                    break;
                 }
             }
         } catch (InterruptedException ie) {

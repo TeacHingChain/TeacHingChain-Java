@@ -27,7 +27,6 @@ public final class NodeManager {
     public static void pushBlock(final Block block, final Session sid) {
         assert !Objects.isNull(block) && !Objects.isNull(sid);
         NODES.forEach(session -> {
-            System.out.println(sid.getUserProperties().get("id").toString());
             if (sid.getUserProperties().get("id").toString().contentEquals("update-chain-client") || sid.getUserProperties().get("id").toString().contentEquals("update-chain-server") || sid.getUserProperties().get("id").toString().contentEquals("sync-block-client") || sid.getUserProperties().get("id").toString().contentEquals("sync-block-server")) {
                 try {
                     sid.getBasicRemote().sendObject(block);

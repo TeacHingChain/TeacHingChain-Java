@@ -475,32 +475,42 @@ public class MainChain {
 
     public static BigDecimal calculateTarget(long deltaT, String previousTarget) {
         double adjustmentFactor;
-
-        if (MainChain.difficulty <= 1 || BlockChain.blockChain.size() <= 2) {
+        BigDecimal targetAsBigDec;
+        if (BlockChain.blockChain.size() <= 3) {
             MainChain.difficulty = 1;
-            
-        }
-        BigDecimal targetAsBigDec = new BigDecimal(new BigInteger(previousTarget, 16));
-        if (deltaT < Constants.TARGET_TIME_WINDOW) {
-            BigDecimal deltaTargetTime = new BigDecimal(String.valueOf(Constants.TARGET_TIME_WINDOW - deltaT));
-            adjustmentFactor = deltaTargetTime.multiply(new BigDecimal(String.valueOf((
-                    deltaTargetTime.doubleValue() / Constants.TARGET_TIME_WINDOW) / 6))).doubleValue();
-            MainChain.difficulty += adjustmentFactor;
-            System.out.println(deltaTargetTime);
-            System.out.println("adj factor: " + adjustmentFactor);
-            targetAsBigDec = targetAsBigDec.multiply(new BigDecimal(String.valueOf(1 / adjustmentFactor)));
-
+            targetAsBigDec = new BigDecimal(new BigInteger(previousTarget, 16));
             targetHex = getHex(targetAsBigDec.toBigInteger().toByteArray());
-        } else if (deltaT > Constants.TARGET_TIME_WINDOW) {
-            BigDecimal deltaTargetTime = new BigDecimal(String.valueOf(deltaT - Constants.TARGET_TIME_WINDOW));
-            adjustmentFactor = deltaTargetTime.multiply(new BigDecimal(String.valueOf((
-                    deltaTargetTime.doubleValue() / Constants.TARGET_TIME_WINDOW) / 6))).doubleValue();
-            System.out.println("delta2T: " + deltaTargetTime);
-            targetAsBigDec = targetAsBigDec.multiply(new BigDecimal(String.valueOf(adjustmentFactor)));
-            targetHex = getHex(targetAsBigDec.toBigInteger().toByteArray());
-            MainChain.difficulty -= adjustmentFactor;
+            return targetAsBigDec;
+        } else {
+            targetAsBigDec = new BigDecimal(new BigInteger(previousTarget, 16));
+            if (deltaT < Constants.TARGET_TIME_WINDOW) {
+                BigDecimal deltaTargetTime = new BigDecimal(String.valueOf(Constants.TARGET_TIME_WINDOW - deltaT));
+                adjustmentFactor = deltaTargetTime.multiply(new BigDecimal(String.valueOf((
+                        deltaTargetTime.doubleValue() / Constants.TARGET_TIME_WINDOW) / 6))).doubleValue();
+                MainChain.difficulty += adjustmentFactor;
+                System.out.println("Delta time: " + deltaT);
+                System.out.println("Delta target time: " + deltaTargetTime);
+                System.out.println("Adjustment factor: " + adjustmentFactor);
+                targetAsBigDec = targetAsBigDec.multiply(new BigDecimal(String.valueOf(1 / adjustmentFactor)));
+                targetHex = getHex(targetAsBigDec.toBigInteger().toByteArray());
+            } else if (deltaT > Constants.TARGET_TIME_WINDOW) {
+                BigDecimal deltaTargetTime = new BigDecimal(String.valueOf(deltaT - Constants.TARGET_TIME_WINDOW));
+                adjustmentFactor = deltaTargetTime.multiply(new BigDecimal(String.valueOf((
+                        deltaTargetTime.doubleValue() / Constants.TARGET_TIME_WINDOW) / 6))).doubleValue();
+                System.out.println("Delta time: " + deltaT);
+                System.out.println("Delta target time: " + deltaTargetTime);
+                System.out.println("Adjustment factor: " + adjustmentFactor);
+                targetAsBigDec = targetAsBigDec.multiply(new BigDecimal(String.valueOf(adjustmentFactor)));
+                targetHex = getHex(targetAsBigDec.toBigInteger().toByteArray());
+                if (MainChain.difficulty - adjustmentFactor < 1) {
+                    MainChain.difficulty = 1;
+                    targetAsBigDec = new BigDecimal(new BigInteger(Constants.GENESIS_TARGET, 16));
+                } else {
+                    MainChain.difficulty -= adjustmentFactor;
+                }
+            }
+            return targetAsBigDec;
         }
-        return targetAsBigDec;
     }
 
     static String getTargetHex() {
