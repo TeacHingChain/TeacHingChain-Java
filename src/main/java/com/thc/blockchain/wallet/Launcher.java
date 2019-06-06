@@ -7,6 +7,7 @@ import com.thc.blockchain.network.decoders.BlockDecoder;
 import com.thc.blockchain.network.decoders.GenesisBlockDecoder;
 import com.thc.blockchain.network.nodes.EndpointManager;
 import com.thc.blockchain.network.nodes.NodeManager;
+import com.thc.blockchain.network.nodes.client.endpoints.HelloClientEndpoint;
 import com.thc.blockchain.network.nodes.client.endpoints.SyncAlertClient;
 import com.thc.blockchain.network.nodes.server.endpoints.GenesisChainServerEndpoint;
 import com.thc.blockchain.network.objects.Block;
@@ -403,7 +404,7 @@ class Launcher {
                             container = ContainerProvider.getWebSocketContainer();
                             uri = configFields.helloNode1FQN;
                             System.out.println("Connecting to " + uri);
-                            container.connectToServer(SyncAlertClient.class, URI.create(uri));
+                            container.connectToServer(HelloClientEndpoint.class, URI.create(uri));
                             messageLatch.await(1, TimeUnit.SECONDS);
                         } catch (DeploymentException de) {
                             WalletLogger.logException(de, "severe", WalletLogger.getLogTimeStamp() + " Deployment exception occurred while trying to connect to a peer as a client! See below:\n" + WalletLogger.exceptionStacktraceToString(de));
@@ -412,6 +413,7 @@ class Launcher {
                         } catch (IOException ioe) {
                             WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp() + " IO exception occurred while trying to connect to a peer as a client! See below:\n" + WalletLogger.exceptionStacktraceToString(ioe));
                         }
+                        break;
                     }
                     case "quit": {
                         System.exit(1);

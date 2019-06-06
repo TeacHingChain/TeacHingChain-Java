@@ -4,7 +4,6 @@ import com.thc.blockchain.network.Constants;
 
 import javax.websocket.OnError;
 import javax.websocket.OnOpen;
-import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
 
@@ -12,8 +11,8 @@ import javax.websocket.server.ServerEndpoint;
 public class HelloServerEndpoint {
 
     @OnOpen
-    public void onOpen (Session session) {
-        System.out.println("Hello from client " + session.getUserProperties().get("id").toString());
+    public void onOpen () {
+        System.out.println("Hello from client!\n");
     }
 
     @OnError
