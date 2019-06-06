@@ -24,7 +24,6 @@ import java.util.concurrent.TimeUnit;
 
 public class Miner {
 
-    public static long index;
     private static long hashRate;
     private static Timer timer;
     private static int updatedIndex;
@@ -32,51 +31,53 @@ public class Miner {
 
     public void mine(long index, long currentTimeMillis, String fromAddress, String toAddress, String[] txHash, String merkleRoot, long Nonce, String previousBlockHash, String algo, String target, float amount) {
         try {
-            System.out.println("Seeing if any configured nodes are up...\n");
+            new NetworkConfigFields();
             EndpointManager endpointManager = new EndpointManager();
-            if (endpointManager.isNodeConnected(1) || endpointManager.isNodeConnected(2)) {
-                int indexAtStart = BlockChain.blockChain.size();
-                MainChain mc = new MainChain();
-                MainChain.targetHex = target;
-                BigDecimal targetAsBigDec = new BigDecimal(new BigInteger(target, 16));
-                System.out.println("difficulty says: \n" + MainChain.difficulty);
-                long startTime = System.nanoTime();
-                TimeUnit.MILLISECONDS.sleep(1000);
-                timer = new Timer();
-                timer.schedule(new TimerTask() {
-                    @Override
-                    public void run() {
-                        mc.readBlockChain();
-                        System.out.println("\n");
-                        System.out.println("Current hash rate: " + hashRate + " " + "hash/s");
-                        System.out.println("Current hash: " + hashedBlockHeaderBytes);
-                        System.out.println("Big decimal value of hash: " + new BigDecimal(new BigInteger(hashedBlockHeaderBytes, 16)));
-                        System.out.println("Current target: " + targetAsBigDec);
-                        System.out.println("Current target hex: " + MainChain.getHex(targetAsBigDec.toBigInteger().toByteArray()));
-                        updatedIndex = BlockChain.blockChain.size();
-                    }
-                }, 1000, 3000);
-                while (true) {
-                    long deltaS = 0;
-                    long deltaN;
-                    long endTime;
-
-                    hashedBlockHeaderBytes = MainChain.getHex(SHA256.SHA256HashByteArray(SHA256.SHA256HashByteArray(MainChain.swapEndianness((index + currentTimeMillis + fromAddress + toAddress + Arrays.toString(txHash) + merkleRoot + Nonce + previousBlockHash + algo + target + amount).getBytes()))));
-
-                    if (new BigDecimal(new BigInteger(hashedBlockHeaderBytes, 16)).compareTo(targetAsBigDec) <= 0) {
-                        System.out.println("\n");
-                        System.out.println("[" + hashedBlockHeaderBytes + "]");
-                        System.out.println("\n");
-                        String indexToStr = Long.toString(index);
-                        String timeToStr = Long.toString(currentTimeMillis);
-                        String nonceToStr = Long.toString(Nonce);
-                        String amountToStr = Float.toString(amount);
-                        System.out.println("Adding block to chain...\n");
-                        if (MainChain.isBlockHashValid(index, currentTimeMillis, fromAddress, toAddress, txHash, merkleRoot,
-                                Nonce, previousBlockHash, algo, hashedBlockHeaderBytes, target, amount)) {
+            int indexAtStart = BlockChain.blockChain.size();
+            MainChain mc = new MainChain();
+            MainChain.targetHex = target;
+            BigDecimal targetAsBigDec = new BigDecimal(new BigInteger(target, 16));
+            System.out.println("difficulty says: \n" + MainChain.difficulty);
+            long startTime = System.nanoTime();
+            TimeUnit.MILLISECONDS.sleep(1000);
+            timer = new Timer();
+            timer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                mc.readBlockChain();
+                System.out.println("\n");
+                System.out.println("Current hash rate: " + hashRate + " " + "hash/s");
+                System.out.println("Current hash: " + hashedBlockHeaderBytes);
+                System.out.println("Big decimal value of hash: " + new BigDecimal(new BigInteger(hashedBlockHeaderBytes, 16)));
+                System.out.println("Current target: " + targetAsBigDec);
+                System.out.println("Current target hex: " + MainChain.getHex(targetAsBigDec.toBigInteger().toByteArray()));
+                updatedIndex = BlockChain.blockChain.size();
+                }
+            }, 1000, 3000);
+            while (true) {
+                long deltaS = 0;
+                long deltaN;
+                long endTime;
+                hashedBlockHeaderBytes = MainChain.getHex(SHA256.SHA256HashByteArray(SHA256.SHA256HashByteArray(MainChain.swapEndianness((index + currentTimeMillis + fromAddress + toAddress + Arrays.toString(txHash) + merkleRoot + Nonce + previousBlockHash + algo + target + amount).getBytes()))));
+                if (new BigDecimal(new BigInteger(hashedBlockHeaderBytes, 16)).compareTo(targetAsBigDec) <= 0) {
+                    System.out.println("\n");
+                    System.out.println("[" + hashedBlockHeaderBytes + "]");
+                    System.out.println("\n");
+                    String indexToStr = Long.toString(index);
+                    String timeToStr = Long.toString(currentTimeMillis);
+                    String nonceToStr = Long.toString(Nonce);
+                    String amountToStr = Float.toString(amount);
+                    System.out.println("Adding block to chain...\n");
+                    if (MainChain.isBlockHashValid(index, currentTimeMillis, fromAddress, toAddress, txHash, merkleRoot,
+                            Nonce, previousBlockHash, algo, hashedBlockHeaderBytes, target, amount)) {
+                        endpointManager.connectAsClient("hello");
+                        if (endpointManager.getIsNode1Connected() || endpointManager.getIsNode2Connected()) {
+                            System.out.println("Is node 1 connected: " + endpointManager.getIsNode1Connected());
+                            System.out.println("Is node 2 connected: " + endpointManager.getIsNode2Connected());
                             endpointManager.connectAsClient("update");
                             Block block = new Block(indexToStr, timeToStr, fromAddress, toAddress, txHash, merkleRoot,
-                                    nonceToStr, previousBlockHash, algo, MainChain.getHex(targetAsBigDec.toBigInteger().toByteArray()), target, amountToStr);
+                                    nonceToStr, previousBlockHash, algo, MainChain.getHex(targetAsBigDec.toBigInteger().toByteArray()),
+                                    target, amountToStr);
                             String encodedBlock = new BlockEncoder().encode(block);
                             boolean verifyIndex = new Consensus().isBlockOrphan(Long.parseLong(block.getIndex()));
                             if (verifyIndex) {
@@ -94,22 +95,22 @@ public class Miner {
                             timer.cancel();
                             break;
                         }
-                    } else {
-                        Nonce++;
-                        endTime = System.nanoTime();
-                        deltaN = endTime - startTime;
-                        deltaS = (deltaN / 1000000000);
-                        hashRate = (Nonce / deltaS);
-                        if (updatedIndex > indexAtStart) {
-                            previousBlockHash = mc.getPreviousBlockHash();
-                            currentTimeMillis = System.currentTimeMillis();
-                            Nonce = 0L;
-                            byte[] txHashBytes = (fromAddress + toAddress + amount).getBytes();
-                            merkleRoot = MainChain.getHex(SHA256.SHA256HashByteArray(txHashBytes));
-                            restartMiner(updatedIndex, currentTimeMillis, fromAddress, toAddress, txHash, merkleRoot,
-                                    Nonce, previousBlockHash, algo, target, amount);
-                            break;
-                        }
+                    }
+                } else {
+                    Nonce++;
+                    endTime = System.nanoTime();
+                    deltaN = endTime - startTime;
+                    deltaS = (deltaN / 1000000000);
+                    hashRate = (Nonce / deltaS);
+                    if (updatedIndex > indexAtStart) {
+                        previousBlockHash = mc.getPreviousBlockHash();
+                        currentTimeMillis = System.currentTimeMillis();
+                        Nonce = 0L;
+                        byte[] txHashBytes = (fromAddress + toAddress + amount).getBytes();
+                        merkleRoot = MainChain.getHex(SHA256.SHA256HashByteArray(txHashBytes));
+                        restartMiner(updatedIndex, currentTimeMillis, fromAddress, toAddress, txHash, merkleRoot,
+                                Nonce, previousBlockHash, algo, target, amount);
+                        break;
                     }
                 }
             }
@@ -126,7 +127,7 @@ public class Miner {
     }
 
     private void restartMiner(long index, long currentTimeMillis, String fromAddress, String toAddress, String[] txHash,
-                              String merkleRoot, long Nonce, String previousBlockHash, String algo, String target, float amount) {
+        String merkleRoot, long Nonce, String previousBlockHash, String algo, String target, float amount) {
         timer.cancel();
         System.out.println("Trying to restart miner!\n");
         mine(index, currentTimeMillis, fromAddress, toAddress, txHash, merkleRoot, Nonce, previousBlockHash, algo, target, amount);

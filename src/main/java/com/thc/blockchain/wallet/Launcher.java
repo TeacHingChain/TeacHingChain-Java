@@ -7,23 +7,30 @@ import com.thc.blockchain.network.decoders.BlockDecoder;
 import com.thc.blockchain.network.decoders.GenesisBlockDecoder;
 import com.thc.blockchain.network.nodes.EndpointManager;
 import com.thc.blockchain.network.nodes.NodeManager;
+import com.thc.blockchain.network.nodes.client.endpoints.SyncAlertClient;
 import com.thc.blockchain.network.nodes.server.endpoints.GenesisChainServerEndpoint;
 import com.thc.blockchain.network.objects.Block;
 import com.thc.blockchain.network.objects.GenesisBlock;
 import com.thc.blockchain.util.Miner;
+import com.thc.blockchain.util.NetworkConfigFields;
 import com.thc.blockchain.util.WalletLogger;
 import com.thc.blockchain.util.addresses.AddressBook;
 
 import javax.swing.*;
+import javax.websocket.ContainerProvider;
 import javax.websocket.DecodeException;
+import javax.websocket.DeploymentException;
+import javax.websocket.WebSocketContainer;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.net.URI;
 import java.util.Properties;
 import java.util.Random;
 import java.util.Scanner;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 class Launcher {
@@ -54,14 +61,15 @@ class Launcher {
                 mc.readAddressBook();
                 mc.readBlockChain();
                 mc.readTxPool();
-                if (BlockChain.blockChain.size() == 1) {
+                if (BlockChain.blockChain.size() <= 3) {
                     GenesisBlock gb = new GenesisBlockDecoder().decode(BlockChain.blockChain.get(mc.getIndexOfBlockChain()));
                     long deltaT = (System.currentTimeMillis() / 1000) - ((Long.parseLong(gb.getTimeStamp()) / 1000));
                     String previousTarget = gb.getTarget();
                     MainChain.targetHex = MainChain.getHex(MainChain.calculateTarget(deltaT, previousTarget).toBigInteger().toByteArray());
                 } else {
                     Block mrb = new BlockDecoder().decode(BlockChain.blockChain.get(mc.getIndexOfBlockChain()));
-                    long deltaT = (System.currentTimeMillis() / 1000) - ((Long.parseLong(mrb.getTimeStamp()) / 1000));
+                    Block bbl = new BlockDecoder().decode(BlockChain.blockChain.get(mc.getIndexOfBlockChain() - 1));
+                    long deltaT = (Long.parseLong(mrb.getTimeStamp()) / 1000) - (Long.parseLong(bbl.getTimeStamp()) / 1000);
                     String previousTarget = mrb.getTarget();
                     MainChain.targetHex = MainChain.getHex(MainChain.calculateTarget(deltaT, previousTarget).toBigInteger().toByteArray());
                 }
@@ -385,6 +393,25 @@ class Launcher {
                     case "get target": {
                         System.out.println("Target: " + MainChain.getTargetHex());
                         break;
+                    }
+                    case "test hello": {
+                        WebSocketContainer container;
+                        String uri;
+                        NetworkConfigFields configFields = new NetworkConfigFields();
+                        CountDownLatch messageLatch = new CountDownLatch(1);
+                        try {
+                            container = ContainerProvider.getWebSocketContainer();
+                            uri = configFields.helloNode1FQN;
+                            System.out.println("Connecting to " + uri);
+                            container.connectToServer(SyncAlertClient.class, URI.create(uri));
+                            messageLatch.await(1, TimeUnit.SECONDS);
+                        } catch (DeploymentException de) {
+                            WalletLogger.logException(de, "severe", WalletLogger.getLogTimeStamp() + " Deployment exception occurred while trying to connect to a peer as a client! See below:\n" + WalletLogger.exceptionStacktraceToString(de));
+                        } catch (InterruptedException ie) {
+                            WalletLogger.logException(ie, "severe", WalletLogger.getLogTimeStamp() + " Interrupted exception occurred while trying to connect to a peer as a client! See below:\n" + WalletLogger.exceptionStacktraceToString(ie));
+                        } catch (IOException ioe) {
+                            WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp() + " IO exception occurred while trying to connect to a peer as a client! See below:\n" + WalletLogger.exceptionStacktraceToString(ioe));
+                        }
                     }
                     case "quit": {
                         System.exit(1);

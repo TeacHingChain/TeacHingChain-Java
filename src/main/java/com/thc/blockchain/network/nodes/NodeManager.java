@@ -8,6 +8,7 @@ import com.thc.blockchain.util.WalletLogger;
 
 import javax.websocket.CloseReason;
 import javax.websocket.CloseReason.CloseCodes;
+import javax.websocket.DeploymentException;
 import javax.websocket.EncodeException;
 import javax.websocket.Session;
 import java.io.IOException;
@@ -87,12 +88,13 @@ public final class NodeManager {
 
     public static int getPeerCount() {
         int connectedNodes = 0;
-        if (new EndpointManager().isNodeConnected(1)) {
+        if (new EndpointManager().getIsNode1Connected()) {
             connectedNodes++;
         }
-        if (new EndpointManager().isNodeConnected(2)) {
+        if (new EndpointManager().getIsNode2Connected()) {
             connectedNodes++;
         }
+
         return connectedNodes;
     }
 
