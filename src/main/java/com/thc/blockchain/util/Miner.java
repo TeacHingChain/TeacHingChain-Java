@@ -83,7 +83,18 @@ public class Miner {
                             if (verifyIndex) {
                                 BlockChain.blockChain.add(encodedBlock);
                                 mc.writeBlockChain();
-                                MainChain.targetHex = MainChain.getHex(MainChain.calculateTarget(deltaS, target).toBigInteger().toByteArray());
+                                if (BlockChain.blockChain.size() <= 2) {
+                                    GenesisBlock gb = new GenesisBlockDecoder().decode(BlockChain.blockChain.get(mc.getIndexOfBlockChain()));
+                                    long deltaT = (System.currentTimeMillis() / 1000) - ((Long.parseLong(gb.getTimeStamp()) / 1000));
+                                    String previousTarget = gb.getTarget();
+                                    MainChain.targetHex = MainChain.getHex(MainChain.calculateTarget(deltaT, previousTarget).toBigInteger().toByteArray());
+                                } else {
+                                    Block mrb = new BlockDecoder().decode(BlockChain.blockChain.get(mc.getIndexOfBlockChain()));
+                                    Block bbl = new BlockDecoder().decode(BlockChain.blockChain.get(mc.getIndexOfBlockChain() - 1));
+                                    long deltaT = (Long.parseLong(mrb.getTimeStamp()) / 1000) - (Long.parseLong(bbl.getTimeStamp()) / 1000);
+                                    String previousTarget = mrb.getTarget();
+                                    MainChain.targetHex = MainChain.getHex(MainChain.calculateTarget(deltaT, previousTarget).toBigInteger().toByteArray());
+                                }
                             } else {
                                 WalletLogger.logEvent("warning", WalletLogger.getLogTimeStamp()
                                         + " Detected orphan block, not adding to chain!\n");

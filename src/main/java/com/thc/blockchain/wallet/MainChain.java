@@ -476,7 +476,7 @@ public class MainChain {
     public static BigDecimal calculateTarget(long deltaT, String previousTarget) {
         double adjustmentFactor;
 
-        if (MainChain.difficulty <= 1 || BlockChain.blockChain.size() == 1) {
+        if (MainChain.difficulty <= 1 || BlockChain.blockChain.size() <= 2) {
             MainChain.difficulty = 1;
             
         }
