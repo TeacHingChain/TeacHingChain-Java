@@ -24,3 +24,8 @@ public class HelloClientEndpoint {
         System.out.println(exception.getMessage());
     }
 }
+
+
+
+
+

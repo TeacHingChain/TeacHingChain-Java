@@ -13,7 +13,7 @@ import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
 
 @ServerEndpoint(value = "/update", encoders = BlockEncoder.class, decoders = BlockDecoder.class)
-class UpdateServerEndPoint {
+public class UpdateServerEndPoint {
 
     @OnOpen
     public void onOpen(Session session) {

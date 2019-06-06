@@ -13,7 +13,7 @@ import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
 
 @ServerEndpoint(value = "/" + Constants.PUSH_CHAIN_KEY, encoders = BlockEncoder.class, decoders = BlockDecoder.class)
-class SyncBlockServer {
+public class SyncBlockServer {
 
     @OnOpen
     public void onOpen(Session session, EndpointConfig config) {
