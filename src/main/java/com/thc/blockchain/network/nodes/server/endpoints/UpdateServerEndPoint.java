@@ -1,6 +1,7 @@
 package com.thc.blockchain.network.nodes.server.endpoints;
 
 import com.thc.blockchain.consensus.Consensus;
+import com.thc.blockchain.network.Constants;
 import com.thc.blockchain.network.decoders.BlockDecoder;
 import com.thc.blockchain.network.encoders.BlockEncoder;
 import com.thc.blockchain.network.nodes.NodeManager;
@@ -12,7 +13,7 @@ import com.thc.blockchain.wallet.MainChain;
 import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
 
-@ServerEndpoint(value = "/update", encoders = BlockEncoder.class, decoders = BlockDecoder.class)
+@ServerEndpoint(value = "/" + Constants.UPDATE_KEY, encoders = BlockEncoder.class, decoders = BlockDecoder.class)
 public class UpdateServerEndPoint {
 
     @OnOpen

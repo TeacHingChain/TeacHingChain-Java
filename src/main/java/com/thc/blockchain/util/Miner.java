@@ -74,17 +74,18 @@ public class Miner {
                         if (endpointManager.getIsNode1Connected() || endpointManager.getIsNode2Connected()) {
                             System.out.println("Is node 1 connected: " + endpointManager.getIsNode1Connected());
                             System.out.println("Is node 2 connected: " + endpointManager.getIsNode2Connected());
-                            endpointManager.connectAsClient("update");
                             Block block = new Block(indexToStr, timeToStr, fromAddress, toAddress, txHash, merkleRoot,
                                     nonceToStr, previousBlockHash, algo, MainChain.getHex(targetAsBigDec.toBigInteger().toByteArray()),
                                     target, amountToStr);
                             String encodedBlock = new BlockEncoder().encode(block);
+                            Session sessionForMiner = NodeManager.getSession();
+                            NodeManager.pushBlock(block, sessionForMiner);
                             boolean verifyIndex = new Consensus().isBlockOrphan(Long.parseLong(block.getIndex()));
                             if (verifyIndex) {
                                 BlockChain.blockChain.add(encodedBlock);
                                 mc.writeBlockChain();
                                 if (BlockChain.blockChain.size() <= 2) {
-                                    GenesisBlock gb = new GenesisBlockDecoder().decode(BlockChain.blockChain.get(mc.getIndexOfBlockChain()));
+                                    GenesisBlock gb = new GenesisBlockDecoder().decode(BlockChain.blockChain.get(0));
                                     long deltaT = (System.currentTimeMillis() / 1000) - ((Long.parseLong(gb.getTimeStamp()) / 1000));
                                     String previousTarget = gb.getTarget();
                                     MainChain.targetHex = MainChain.getHex(MainChain.calculateTarget(deltaT, previousTarget).toBigInteger().toByteArray());
@@ -99,10 +100,8 @@ public class Miner {
                                 WalletLogger.logEvent("warning", WalletLogger.getLogTimeStamp()
                                         + " Detected orphan block, not adding to chain!\n");
                             }
-                            Session sessionForMiner = NodeManager.getSession();
                             System.out.println("deltaS: " + deltaS);
                             System.out.println("New target: " + MainChain.calculateTarget(deltaS / 1000000000, target));
-                            NodeManager.pushBlock(block, sessionForMiner);
                             timer.cancel();
                             break;
                         }
@@ -123,6 +122,7 @@ public class Miner {
                                 Nonce, previousBlockHash, algo, target, amount);
                         break;
                     }
+                    break;
                 }
             }
         } catch (InterruptedException ie) {
