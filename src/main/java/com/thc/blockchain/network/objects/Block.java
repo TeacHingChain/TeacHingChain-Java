@@ -3,6 +3,7 @@ package com.thc.blockchain.network.objects;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.io.ObjectOutputStream;
 import java.util.Objects;
 
 public final class Block {
@@ -29,6 +30,8 @@ public final class Block {
     private final String blockHash;
     @JsonProperty("target")
     private final String target;
+    @JsonProperty("difficulty")
+    private final String difficulty;
     @JsonProperty("amount")
     private final String amount;
 
@@ -38,7 +41,7 @@ public final class Block {
                  @JsonProperty("transactions") String[] txs, @JsonProperty("merkle root") String merkleRoot,
                  @JsonProperty("nonce") String Nonce, @JsonProperty("previous block hash") String previousBlockHash,
                  @JsonProperty("algo") String algo, @JsonProperty("block hash") String blockHash,
-                 @JsonProperty("target") String target, @JsonProperty("amount") String amount) {
+                 @JsonProperty("target") String target, @JsonProperty("difficulty") String difficulty, @JsonProperty("amount") String amount) {
         Objects.requireNonNull(index);
         Objects.requireNonNull(timeStamp);
         Objects.requireNonNull(fromAddress);
@@ -50,6 +53,7 @@ public final class Block {
         Objects.requireNonNull(algo);
         Objects.requireNonNull(blockHash);
         Objects.requireNonNull(target);
+        Objects.requireNonNull(difficulty);
         Objects.requireNonNull(amount);
         this.index = index;
         this.timeStamp = timeStamp;
@@ -62,6 +66,7 @@ public final class Block {
         this.algo = algo;
         this.blockHash = blockHash;
         this.target = target;
+        this.difficulty = difficulty;
         this.amount = amount;
     }
 
@@ -76,22 +81,19 @@ public final class Block {
     public String[] getTransactions() {
         return this.txs;
     }
-    public String getMerkleRoot() {
-        return this.merkleRoot;
-    }
+    public String getMerkleRoot() { return this.merkleRoot; }
     public String getNonce() {
         return this.Nonce;
     }
     public String getPreviousBlockHash() {
         return this.previousBlockHash;
     }
-    public String getAlgo() {
-        return this.algo;
-    }
+    public String getAlgo() { return this.algo; }
     public String getBlockHash() { return this.blockHash; }
     public String getTarget() {
         return this.target;
     }
+    public String getDifficulty() { return this.difficulty; }
     public String getAmount() {
         return this.amount;
     }
@@ -99,7 +101,3 @@ public final class Block {
 
 
 }
-
-/*
-long index, long currentTimeMillis, String sendKey, String recvKey, String coinbaseAddress, String txHash, long Nonce, String previousBlockHash, String algo, int targetHex, float amount
- */

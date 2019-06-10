@@ -8,7 +8,7 @@ import com.thc.blockchain.wallet.MainChain;
 
 public final class Constants {
 
-
+    public static final int TARGET_WINDOW = 5;
     public static final int MAX_TX_POOL_TXS = 40; // 10 tx's (with 4 params each)
     public static final int MAX_BLOCK_SIZE = 819200000; // will need to redesign serialized objects to be blk.dat files instead of a single chain.dat
     public static final String PUB_KEY = "042d19b2d3538855f7fe63ec5c614300ac606412df779cd5d0c55e0fee798820d99eba1e244aa27c26c7966cbb8bf451600f303d691f572f4fdcd1325cba997177"; // write a check for the private key (ensure was derived from pubkey?)
@@ -30,29 +30,29 @@ public final class Constants {
     public static final String GENESIS_SERVER_KEY = "genesis";
     public static final String GENESIS_NODE_FQN = "ws://" + LOCAL_NODE_IP + "/server/" + GENESIS_SERVER_KEY;
     public static final String GENESIS_INDEX = "0";
-    public static final String GENESIS_TIMESTAMP = "1559705206978";
+    public static final String GENESIS_TIMESTAMP = "1560037287230";
     public static final String GENESIS_PSZ_TIMESTAMP = "TeacHingChain, a very simple crypto-currency implementation written in java for illustrative purposes and to help learn some of the nuances of blockchain!";
     public static final String GENESIS_FROM_ADDRESS = "";
     public static final String GENESIS_TO_ADDRESS = "";
-    public static final String GENESIS_TX_HASH = "5d0b0f61a978470869b78136bf5acc40e07ec361ad3faeb5feb28597a644de53";
-    public static final String GENESIS_MERKLE_ROOT = "5d0b0f61a978470869b78136bf5acc40e07ec361ad3faeb5feb28597a644de53";
-    public static final String GENESIS_NONCE = "519455";
+    public static final String GENESIS_TX_HASH = "78a29d3f5cea2a77434630fb5cd081ad19b63a61fba6c3658f4feba62660e82d";
+    public static final String GENESIS_MERKLE_ROOT = "78a29d3f5cea2a77434630fb5cd081ad19b63a61fba6c3658f4feba62660e82d";
+    public static final String GENESIS_NONCE = "162007";
     public static final String GENESIS_PREVIOUS_BLOCK_HASH = "none";
     public static final String GENESIS_ALGO = "sha256";
-    public static final String GENESIS_HASH = "000006eecc8105013b11cf08999209fc20538c3c16e4273301d05783f8b848d6";
+    public static final String GENESIS_HASH = "000002d774d436d9275f9c546e718e3958b936599cc1a55aa39eba925b5af142";
     public static final String GENESIS_TARGET = "00000eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee";
+    public static final String GENESIS_DIFFICULTY = "1.0";
     public static final String GENESIS_AMOUNT = String.valueOf(MainChain.nSubsidy);
-    public static final long TARGET_TIME_WINDOW = 60;
+    public static final int TARGET_BLOCK_TIME = 60;
+    public static final int TARGET_WINDOW_DURATION = TARGET_BLOCK_TIME * TARGET_WINDOW;
     public static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 }
 
 /*
 TODO: Add constants for tx pool max size, block max size
+
+
 --------------------------BLOCK DETAILS--------------------------
-
-
-Mined block hash:
-000006eecc8105013b11cf08999209fc20538c3c16e4273301d05783f8b848d6
 
 
 Index:
@@ -60,7 +60,7 @@ Index:
 
 
 Unix time stamp:
-1559705206978
+1560037287230
 
 
 Data:
@@ -72,11 +72,23 @@ none
 
 
 Nonce:
-519455
+162007
 
+
+Tx hash:
+78a29d3f5cea2a77434630fb5cd081ad19b63a61fba6c3658f4feba62660e82d
+
+
+Merkle root:
+78a29d3f5cea2a77434630fb5cd081ad19b63a61fba6c3658f4feba62660e82d
 
 Target:
 00000eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+
+
+Difficulty:
+1.0
+
 
 
  */

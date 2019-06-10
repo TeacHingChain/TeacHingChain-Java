@@ -1,8 +1,14 @@
 package com.thc.blockchain.consensus;
 
 import com.thc.blockchain.algos.SHA256;
+import com.thc.blockchain.network.decoders.GenesisBlockDecoder;
+import com.thc.blockchain.network.objects.Block;
+import com.thc.blockchain.network.objects.GenesisBlock;
 import com.thc.blockchain.wallet.BlockChain;
 import com.thc.blockchain.wallet.MainChain;
+
+import javax.websocket.DecodeException;
+import java.util.Arrays;
 
 public class Consensus {
 
@@ -14,7 +20,7 @@ public class Consensus {
         return index == mostRecentIndex + 1;
     }
 
-    public static Boolean compareChainChecksum(int remoteChainSize, String remoteChecksum) {
+    public static boolean compareChainChecksum(int remoteChainSize, String remoteChecksum) {
         if (remoteChainSize == 1) {
             String blockAsString = BlockChain.blockChain.get(0);
             sb.append(blockAsString);
@@ -30,5 +36,16 @@ public class Consensus {
         System.out.println("Local checksum to remoteChainSize " + remoteChainSize + ": " + checksum);
 
         return remoteChecksum.contentEquals(checksum);
+    }
+
+    public boolean validateBlock(Block block) {
+        String blockHeader =
+                (Long.parseLong(block.getIndex()) + Long.parseLong(block.getTimeStamp()) + block.getFromAddress()
+                + block.getToAddress() + Arrays.toString(block.getTransactions()) + block.getMerkleRoot()
+                + Long.parseLong(block.getNonce()) + block.getPreviousBlockHash() + block.getAlgo() + block.getTarget()
+                + Double.parseDouble(block.getDifficulty()) + Float.parseFloat(block.getAmount()));
+        String hashedHeaderBytes = MainChain.getHex(SHA256.SHA256HashByteArray(SHA256.SHA256HashByteArray(
+                MainChain.swapEndianness(blockHeader.getBytes()))));
+        return block.getBlockHash().contentEquals(hashedHeaderBytes);
     }
 }

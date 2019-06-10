@@ -1,6 +1,7 @@
 package com.thc.blockchain.wallet;
 
 import com.thc.blockchain.algos.SHA256;
+import com.thc.blockchain.consensus.Consensus;
 import com.thc.blockchain.gui.WalletGui;
 import com.thc.blockchain.network.Constants;
 import com.thc.blockchain.network.decoders.BlockDecoder;
@@ -8,8 +9,6 @@ import com.thc.blockchain.network.decoders.GenesisBlockDecoder;
 import com.thc.blockchain.network.nodes.EndpointManager;
 import com.thc.blockchain.network.nodes.NodeManager;
 import com.thc.blockchain.network.nodes.server.endpoints.GenesisChainServerEndpoint;
-import com.thc.blockchain.network.objects.Block;
-import com.thc.blockchain.network.objects.GenesisBlock;
 import com.thc.blockchain.util.Miner;
 import com.thc.blockchain.util.WalletLogger;
 import com.thc.blockchain.util.addresses.AddressBook;
@@ -19,8 +18,6 @@ import javax.websocket.DecodeException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.util.Properties;
 import java.util.Random;
 import java.util.Scanner;
@@ -47,25 +44,15 @@ class Launcher {
                 EndpointManager endpointManager = new EndpointManager();
                 endpointManager.connectAsClient("init chain");
                 MainChain.targetHex = Constants.GENESIS_TARGET;
-                mc.readBlockChain();
                 MainChain.difficulty = 1;
             } else if (chainFile.exists()) {
                 mc.readKeyRing();
                 mc.readAddressBook();
                 mc.readBlockChain();
                 mc.readTxPool();
-                if (BlockChain.blockChain.size() <= 2) {
-                    GenesisBlock gb = new GenesisBlockDecoder().decode(BlockChain.blockChain.get(mc.getIndexOfBlockChain()));
-                    long deltaT = (System.currentTimeMillis() / 1000) - ((Long.parseLong(gb.getTimeStamp()) / 1000));
-                    String previousTarget = gb.getTarget();
-                    MainChain.targetHex = MainChain.getHex(MainChain.calculateTarget(deltaT, previousTarget).toBigInteger().toByteArray());
-                } else {
-                    Block mrb = new BlockDecoder().decode(BlockChain.blockChain.get(mc.getIndexOfBlockChain()));
-                    Block bbl = new BlockDecoder().decode(BlockChain.blockChain.get(mc.getIndexOfBlockChain() - 1));
-                    long deltaT = (Long.parseLong(mrb.getTimeStamp()) / 1000) - (Long.parseLong(bbl.getTimeStamp()) / 1000);
-                    String previousTarget = mrb.getTarget();
-                    MainChain.targetHex = MainChain.getHex(MainChain.calculateTarget(deltaT, previousTarget).toBigInteger().toByteArray());
-                }
+                MainChain.setTargetHex(new BlockDecoder().decode(BlockChain.blockChain.get(mc.getIndexOfBlockChain())).getTarget());
+                MainChain.difficulty = Double.parseDouble(new BlockDecoder().decode(BlockChain.blockChain.get
+                        (mc.getIndexOfBlockChain())).getDifficulty());
             }
             System.out.println("\n");
             System.out.println("Welcome to the light-weight, PoC, java implementation of TeacHingChain!\n");
@@ -165,23 +152,18 @@ class Launcher {
                             mc.readTxPool();
                             int indexValue = BlockChain.blockChain.size();
                             long timeStamp = mc.getUnixTimestamp();
-                            if (BlockChain.blockChain.size() < 2 && TxPoolArray.TxPool.size() == 1) {
+                            if (BlockChain.blockChain.size() < 5 && TxPoolArray.TxPool.size() == 1) {
                                 mc.readBlockChain();
                                 MainChain.difficulty = 1;
                                 String toAddress = AddressBook.addressBook.get(0);
-                                String previousHash;
-                                if (BlockChain.blockChain.size() == 1) {
-                                    previousHash = mc.getGenesisHash();
-                                } else {
-                                    previousHash = mc.getPreviousBlockHash();
-                                }
+                                String previousHash = mc.getPreviousBlockHash();
                                 float amount = MainChain.nSubsidy;
                                 byte[] txHashBytes = (Constants.CB_ADDRESS + toAddress + amount).getBytes();
                                 byte[] txHash = SHA256.SHA256HashByteArray(SHA256.SHA256HashByteArray(txHashBytes));
                                 String[] txs = {MainChain.getHex(txHash)};
                                 try {
                                     miner.mine(indexValue, timeStamp, Constants.CB_ADDRESS, toAddress, txs, txs[0], 0L, previousHash, algo,
-                                            MainChain.getTargetHex(), amount);
+                                            MainChain.getTargetHex(), MainChain.difficulty, amount);
                                     TimeUnit.SECONDS.sleep(1);
                                 } catch (InterruptedException ie) {
                                     WalletLogger.logException(ie, "severe", WalletLogger.getLogTimeStamp()
@@ -192,7 +174,7 @@ class Launcher {
                                 TxPoolArray.TxPool.remove(0);
                                 mc.overwriteTxPool();
 
-                            } else if (BlockChain.blockChain.size() >= 2 && TxPoolArray.TxPool.size() <= 1) {
+                            } else if (BlockChain.blockChain.size() == 5 && TxPoolArray.TxPool.size() == 1) {
                                 mc.readBlockChain();
                                 String toAddress = AddressBook.addressBook.get(0);
                                 String previousHash = mc.getPreviousBlockHash();
@@ -202,7 +184,60 @@ class Launcher {
                                 String[] txs = {MainChain.getHex(txHash)};
                                 try {
                                     miner.mine(indexValue, timeStamp, Constants.CB_ADDRESS, toAddress, txs, txs[0], 0L, previousHash, algo,
-                                            MainChain.getTargetHex(), amount);
+                                            MainChain.getTargetHex(), MainChain.difficulty, amount);
+                                    TimeUnit.SECONDS.sleep(1);
+                                } catch (InterruptedException ie) {
+                                    WalletLogger.logException(ie, "severe", WalletLogger.getLogTimeStamp()
+                                            + " Interrupted exception occurred during mining operation! See below:\n"
+                                            + WalletLogger.exceptionStacktraceToString(ie));
+                                }
+                                numBlocksMined++;
+                                long deltaT = (Long.parseLong(new BlockDecoder().decode(BlockChain.blockChain.get(
+                                        4)).getTimeStamp()) - Long.parseLong(new GenesisBlockDecoder()
+                                        .decode(BlockChain.blockChain.get(0)).getTimeStamp())) / 1000;
+                                String previousTarget = new BlockDecoder().decode(BlockChain.blockChain.get(
+                                        4)).getTarget();
+                                MainChain.calculateTarget(deltaT, previousTarget);
+                                TxPoolArray.TxPool.remove(0);
+                                mc.overwriteTxPool();
+
+                            } else if (BlockChain.blockChain.size() > 5 && TxPoolArray.TxPool.size() == 1 && BlockChain.blockChain.size() % 5 == 0) {
+                                mc.readBlockChain();
+                                String toAddress = AddressBook.addressBook.get(0);
+                                String previousHash = mc.getPreviousBlockHash();
+                                float amount = MainChain.nSubsidy;
+                                byte[] txHashBytes = (Constants.CB_ADDRESS + toAddress + amount).getBytes();
+                                byte[] txHash = SHA256.SHA256HashByteArray(SHA256.SHA256HashByteArray(txHashBytes));
+                                String[] txs = {MainChain.getHex(txHash)};
+                                try {
+                                    miner.mine(indexValue, timeStamp, Constants.CB_ADDRESS, toAddress, txs, txs[0], 0L, previousHash, algo,
+                                            MainChain.getTargetHex(), MainChain.difficulty, amount);
+                                    TimeUnit.SECONDS.sleep(1);
+                                } catch (InterruptedException ie) {
+                                    WalletLogger.logException(ie, "severe", WalletLogger.getLogTimeStamp()
+                                            + " Interrupted exception occurred during mining operation! See below:\n"
+                                            + WalletLogger.exceptionStacktraceToString(ie));
+                                }
+                                numBlocksMined++;
+                                long deltaT = (Long.parseLong(new BlockDecoder().decode(BlockChain.blockChain.get(
+                                        mc.getIndexOfBlockChain())).getTimeStamp()) - Long.parseLong(new BlockDecoder()
+                                        .decode(BlockChain.blockChain.get(mc.getIndexOfBlockChain() - 5)).getTimeStamp())) / 1000;
+                                String previousTarget = new BlockDecoder().decode(BlockChain.blockChain.get(
+                                        mc.getIndexOfBlockChain() - 5)).getTarget();
+                                MainChain.calculateTarget(deltaT, previousTarget);
+                                TxPoolArray.TxPool.remove(0);
+                                mc.overwriteTxPool();
+                            } else if (BlockChain.blockChain.size() > 5 && TxPoolArray.TxPool.size() == 1) {
+                                mc.readBlockChain();
+                                String toAddress = AddressBook.addressBook.get(0);
+                                String previousHash = mc.getPreviousBlockHash();
+                                float amount = MainChain.nSubsidy;
+                                byte[] txHashBytes = (Constants.CB_ADDRESS + toAddress + amount).getBytes();
+                                byte[] txHash = SHA256.SHA256HashByteArray(SHA256.SHA256HashByteArray(txHashBytes));
+                                String[] txs = {MainChain.getHex(txHash)};
+                                try {
+                                    miner.mine(indexValue, timeStamp, Constants.CB_ADDRESS, toAddress, txs, txs[0], 0L, previousHash, algo,
+                                            MainChain.getTargetHex(), MainChain.difficulty, amount);
                                     TimeUnit.SECONDS.sleep(1);
                                 } catch (InterruptedException ie) {
                                     WalletLogger.logException(ie, "severe", WalletLogger.getLogTimeStamp()
@@ -212,25 +247,6 @@ class Launcher {
                                 numBlocksMined++;
                                 TxPoolArray.TxPool.remove(0);
                                 mc.overwriteTxPool();
-                            } else if (BlockChain.blockChain.size() < 2 && TxPoolArray.TxPool.size() > 1) {
-                                mc.readBlockChain();
-                                MainChain.difficulty = 5;
-                                String toAddress = AddressBook.addressBook.get(0);
-                                String previousHash = mc.getPreviousBlockHash();
-                                float amount = MainChain.nSubsidy;
-                                byte[] txHashBytes = (Constants.CB_ADDRESS + toAddress + amount).getBytes();
-                                byte[] txHash = SHA256.SHA256HashByteArray(SHA256.SHA256HashByteArray(txHashBytes));
-                                String[] txs = {MainChain.getHex(txHash)};
-                                try {
-                                    miner.mine(indexValue, timeStamp, Constants.CB_ADDRESS, toAddress, txs, txs[0], 0L, previousHash, algo,
-                                            MainChain.getTargetHex(), amount);
-                                    TimeUnit.SECONDS.sleep(1);
-                                } catch (InterruptedException ie) {
-                                    WalletLogger.logException(ie, "severe", WalletLogger.getLogTimeStamp()
-                                            + " Interrupted exception occurred during mining operation! See below:\n"
-                                            + WalletLogger.exceptionStacktraceToString(ie));
-                                }
-                                numBlocksMined++;
                             }
 
                             // not ready to send tx's yet
@@ -268,6 +284,11 @@ class Launcher {
                         }
                         break;
                     }
+                    case "get previous hash": {
+                        System.out.println(mc.getPreviousBlockHash());
+                        break;
+                    }
+
                     case "generate private key": {
                         mc.generatePrivateKey();
                         break;
@@ -313,7 +334,7 @@ class Launcher {
                         System.out.println("Address: " + AddressBook.addressBook.get(0));
                         break;
                     }
-                    case "test hash rate": {
+                    case "view network hash rate": {
                         System.out.println("Network hash rate: " + new Miner().calculateNetworkHashRate());
                         break;
                     }
@@ -321,65 +342,11 @@ class Launcher {
                         System.out.println("Number of connected peers: " + NodeManager.getPeerCount());
                         break;
                     }
-                    case "test targetHex": {
-                        double testDifDouble = 1;
-                        long start = System.nanoTime() / 1000000000;
-                        BigDecimal bigIntTarget = new BigDecimal(new BigInteger(
-                                "00000eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee", 16));
-                        long nonce = 0L;
-                        BigInteger randomValue = new BigInteger(256, new Random());
-                        long deltaS;
-                        TimeUnit.MILLISECONDS.sleep(10);
-                        System.out.println("Hashing...\n");
-                        while (true) {
-                            double adjustmentFactor = 0;
-                            long updatedTime = System.nanoTime() / 1000000000;
-                            deltaS = (updatedTime - start);
-                            long targetTime = 60;
-                            String hasedHeaderHex = MainChain.getHex(SHA256.SHA256HashByteArray(SHA256.SHA256HashByteArray((
-                                    randomValue + "block" + "header" + nonce).getBytes())));
-                            if (new BigDecimal(new BigInteger(hasedHeaderHex, 16)).subtract(bigIntTarget).compareTo(
-                                    new BigDecimal(0)) <= 0) {
-                                System.out.println("Start targetHex: " + bigIntTarget);
-                                System.out.println("Start targetHex hex: " + MainChain.getHex(bigIntTarget.toBigInteger().toByteArray()));
-                                if (deltaS < targetTime) {
-                                    BigDecimal deltaTargetTime = new BigDecimal(String.valueOf(targetTime - deltaS));
-                                    adjustmentFactor = deltaTargetTime.multiply(new BigDecimal(String.valueOf((
-                                            deltaTargetTime.doubleValue() / targetTime) / 6))).doubleValue();
-                                    System.out.println("delta2T: " + deltaTargetTime.doubleValue());
-                                    testDifDouble += adjustmentFactor;
-                                    bigIntTarget = bigIntTarget.multiply(new BigDecimal(String.valueOf(1 / adjustmentFactor)));
-                                } else if (deltaS > targetTime) {
-                                    BigDecimal deltaTargetTime = new BigDecimal(String.valueOf(deltaS - targetTime));
-                                    adjustmentFactor = deltaTargetTime.multiply(new BigDecimal(String.valueOf((
-                                            deltaTargetTime.doubleValue() / targetTime) / 6))).doubleValue();
-                                    System.out.println("delta2T: " + deltaTargetTime);
-                                    bigIntTarget = bigIntTarget.multiply(new BigDecimal(String.valueOf(adjustmentFactor)));
-                                    testDifDouble -= adjustmentFactor;
-                                    if (testDifDouble <= 1) {
-                                        testDifDouble = 1;
-                                        bigIntTarget = new BigDecimal(new BigInteger(
-                                                "00000eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee", 16));
-                                    }
-                                }
-                                System.out.println("Found hash: " + hasedHeaderHex);
-                                System.out.println("Actual value: " + new BigInteger(hasedHeaderHex, 16));
-                                System.out.println("Adjustment factor: " + adjustmentFactor);
-                                System.out.println("deltaS: " + deltaS);
-                                System.out.println("test difficulty: " + testDifDouble);
-                                System.out.println("New targetHex: " + bigIntTarget);
-                                System.out.println("New targetHex hex: " + MainChain.getHex(bigIntTarget.toBigInteger().toByteArray()));
-                                System.out.println("Continue? \n");
-                                String cont = new Scanner(System.in).nextLine();
-                                if (cont.contentEquals("y")) {
-                                    randomValue = new BigInteger(256, new Random());
-                                    start = System.nanoTime() / 1000000000;
-                                } else {
-                                    break;
-                                }
-                            } else {
-                                nonce++;
-                            }
+                    case "test validate block": {
+                        if (new Consensus().validateBlock(new BlockDecoder().decode(BlockChain.blockChain.get(10)))) {
+                            System.out.println("Block is valid!\n");
+                        } else {
+                            System.out.println("Block was not valid!\n");
                         }
                         break;
                     }
@@ -400,8 +367,6 @@ class Launcher {
         } catch (DecodeException de) {
             WalletLogger.logException(de, "warning", WalletLogger.getLogTimeStamp()
                     + " Failed to decode block! See details below:\n" + WalletLogger.exceptionStacktraceToString(de));
-        } catch (InterruptedException e) {
-            e.printStackTrace();
         }
     }
 }

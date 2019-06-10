@@ -8,7 +8,7 @@ import javax.websocket.EncodeException;
 import javax.websocket.Encoder;
 import javax.websocket.EndpointConfig;
 
-public class TxEncoder implements Encoder.Text<Tx> {
+public final class TxEncoder implements Encoder.Text<Tx> {
     @Override
     public String encode(final Tx tx) throws EncodeException {
         try {

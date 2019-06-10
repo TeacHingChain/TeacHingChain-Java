@@ -31,6 +31,8 @@ public final class GenesisBlock {
     private final String blockHash;
     @JsonProperty("target")
     private final String target;
+    @JsonProperty("difficulty")
+    private final String difficulty;
     @JsonProperty("amount")
     private final String amount;
     
@@ -41,7 +43,7 @@ public final class GenesisBlock {
                         @JsonProperty("merkle root") String merkleRoot, @JsonProperty("nonce") String Nonce,
                         @JsonProperty("previous block hash") String previousBlockHash, @JsonProperty("algo") String algo,
                         @JsonProperty("block hash") String blockHash, @JsonProperty("target") String target,
-                        @JsonProperty("amount") String amount) {
+                        @JsonProperty("difficulty") String difficulty, @JsonProperty("amount") String amount) {
         Objects.requireNonNull(index);
         Objects.requireNonNull(timeStamp);
         Objects.requireNonNull(pszTimestamp);
@@ -54,6 +56,7 @@ public final class GenesisBlock {
         Objects.requireNonNull(algo);
         Objects.requireNonNull(blockHash);
         Objects.requireNonNull(target);
+        Objects.requireNonNull(difficulty);
         Objects.requireNonNull(amount);
         this.index = index;
         this.timeStamp = timeStamp;
@@ -67,6 +70,7 @@ public final class GenesisBlock {
         this.algo = algo;
         this.blockHash = blockHash;
         this.target = target;
+        this.difficulty = difficulty;
         this.amount = amount;
     }
 
@@ -102,6 +106,7 @@ public final class GenesisBlock {
     public String getTarget() {
         return this.target;
     }
+    public String getDifficulty() { return this.difficulty; }
     public String getAmount() {
         return this.amount;
     }

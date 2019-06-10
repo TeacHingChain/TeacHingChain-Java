@@ -11,7 +11,7 @@ import com.thc.blockchain.network.objects.Tx;
 import com.thc.blockchain.util.WalletLogger;
 import com.thc.blockchain.util.addresses.AddressBook;
 import com.thc.blockchain.util.addresses.Base58;
-
+import org.apache.commons.lang.StringUtils;
 import javax.websocket.DecodeException;
 import javax.websocket.EncodeException;
 import java.io.*;
@@ -36,9 +36,13 @@ public class MainChain {
 
     public MainChain() {}
 
-    public static boolean isBlockHashValid(long index, long currentTimeMillis, String fromAddress, String toAddress, String[] txHash, String merkleRoot, long Nonce, String previousBlockHash, String algo, String currentHash, String target, float amount) {
+    public static boolean isBlockHashValid(long index, long currentTimeMillis, String fromAddress, String toAddress,
+                                           String[] txHash, String merkleRoot, long Nonce, String previousBlockHash,
+                                           String algo, String currentHash, String target, double difficulty, float amount) {
         MainChain.targetHex = target;
-        byte[] blockHeaderBytes = MainChain.swapEndianness(MainChain.hexStringToByteArray(MainChain.getHex((index + currentTimeMillis + fromAddress + toAddress + Arrays.toString(txHash) + merkleRoot + Nonce + previousBlockHash + algo + target + amount).getBytes())));
+        byte[] blockHeaderBytes = MainChain.swapEndianness(MainChain.hexStringToByteArray(MainChain.getHex((index
+                + currentTimeMillis + fromAddress + toAddress + Arrays.toString(txHash) + merkleRoot + Nonce
+                + previousBlockHash + algo + target + difficulty + amount).getBytes())));
         if (algo.contentEquals("sha256")) {
             checkHash = SHA256.SHA256HashByteArray(SHA256.SHA256HashByteArray(blockHeaderBytes));
         } else if (algo.contentEquals("sha512")) {
@@ -49,7 +53,6 @@ public class MainChain {
 
     void writeTxPool(String fromAddress, String toAddress, float amount, String txHash) {
         String configPath;
-        MainChain mc = new MainChain();
         try {
             if (Constants.BASEDIR.contains("apache-tomcat-8.5.23")) {
                 configPath = Constants.BASEDIR + "/../../config/config.properties";
@@ -67,7 +70,8 @@ public class MainChain {
                     TxPoolArray.TxPool.add(txPoolTX);
 
                 } catch (EncodeException ee) {
-                    WalletLogger.logException(ee, "warning", WalletLogger.getLogTimeStamp() + " Failed to encode tx! See details below:\n" + WalletLogger.exceptionStacktraceToString(ee));
+                    WalletLogger.logException(ee, "warning", WalletLogger.getLogTimeStamp()
+                            + " Failed to encode tx! See details below:\n" + WalletLogger.exceptionStacktraceToString(ee));
                 }
             } else {
                 Tx tx = new Tx(fromAddress, toAddress, amount, txHash);
@@ -76,14 +80,17 @@ public class MainChain {
                     String txPoolTX = encoder.encode(tx);
                     TxPoolArray.TxPool.add(txPoolTX);
                 } catch (EncodeException ee) {
-                    WalletLogger.logException(ee, "warning", WalletLogger.getLogTimeStamp() + " Failed to encode tx! See details below:\n" + WalletLogger.exceptionStacktraceToString(ee));
+                    WalletLogger.logException(ee, "warning", WalletLogger.getLogTimeStamp()
+                            + " Failed to encode tx! See details below:\n" + WalletLogger.exceptionStacktraceToString(ee));
                 }
             }
             overwriteTxPool();
         } catch (FileNotFoundException fnfe) {
-            WalletLogger.logException(fnfe, "severe", "Could not find specified file! See details below:\n" + WalletLogger.exceptionStacktraceToString(fnfe));
+            WalletLogger.logException(fnfe, "severe", "Could not find specified file! See details below:\n"
+                    + WalletLogger.exceptionStacktraceToString(fnfe));
         } catch (IOException ioe) {
-            WalletLogger.logException(ioe, "severe", "IOException occurred reading/writing tx-pool.dat! See details below:\n" + WalletLogger.exceptionStacktraceToString(ioe));
+            WalletLogger.logException(ioe, "severe", "IOException occurred reading/writing tx-pool.dat! See details below:\n"
+                    + WalletLogger.exceptionStacktraceToString(ioe));
         }
     }
 
@@ -108,7 +115,11 @@ public class MainChain {
     public String getPreviousBlockHash() throws DecodeException {
         readBlockChain();
         try {
-            return new BlockDecoder().decode(BlockChain.blockChain.get(getIndexOfBlockChain())).getPreviousBlockHash();
+            if (BlockChain.blockChain.size() == 1) {
+                return new GenesisBlockDecoder().decode(BlockChain.blockChain.get(0)).getBlockHash();
+            } else {
+                return new BlockDecoder().decode(BlockChain.blockChain.get(BlockChain.blockChain.size() - 1)).getBlockHash();
+            }
         } catch (DecodeException de) {
             throw new DecodeException(BlockChain.blockChain.get(getIndexOfBlockChain()), "Unable to decode text to Block", de);
         }
@@ -137,9 +148,13 @@ public class MainChain {
             ois.close();
             fis.close();
         } catch (IOException ioe) {
-            WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp() + " IO exception occurred while fetching chain.dat! See below:\n" + WalletLogger.exceptionStacktraceToString(ioe));
+            WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp()
+                    + " IO exception occurred while fetching chain.dat! See below:\n"
+                    + WalletLogger.exceptionStacktraceToString(ioe));
         } catch (ClassNotFoundException e) {
-            WalletLogger.logException(e, "severe", WalletLogger.getLogTimeStamp() + " Class not found exception occurred while fetching chain.dat! See below:\n" + WalletLogger.exceptionStacktraceToString(e));
+            WalletLogger.logException(e, "severe", WalletLogger.getLogTimeStamp()
+                    + " Class not found exception occurred while fetching chain.dat! See below:\n"
+                    + WalletLogger.exceptionStacktraceToString(e));
         }
     }
 
@@ -158,10 +173,12 @@ public class MainChain {
                     if (fromAddress.contentEquals(address)) {
                         for (Object o : KeyRing.keyRing) {
                             privKey = o.toString();
-                            if (MainChain.getHex(Base58.decode(fromAddress)).contentEquals(MainChain.getHex(SHA256.SHA256HashByteArray(SHA256.SHA256HashByteArray(privKey.getBytes()))))) {
+                            if (MainChain.getHex(Base58.decode(fromAddress)).contentEquals(MainChain.getHex(
+                                    SHA256.SHA256HashByteArray(SHA256.SHA256HashByteArray(privKey.getBytes()))))) {
                                 String txHash = txs[txs.length - 1];
                                 String blockHash = blockObject.getBlockHash();
-                                WalletLogger.logEvent("info", "Found sent transaction: \n" + txHash + "\n corresponding block: \n" + blockHash);
+                                WalletLogger.logEvent("info", "Found sent transaction: \n" + txHash
+                                        + "\n corresponding block: \n" + blockHash);
                                 float amount = Float.parseFloat(blockObject.getAmount());
                                 balance -= amount;
                             }
@@ -169,10 +186,12 @@ public class MainChain {
                     } else if (toAddress.contentEquals(address) && !fromAddress.contentEquals(Constants.CB_ADDRESS)) {
                         for (Object o : KeyRing.keyRing) {
                             privKey = o.toString();
-                            if (MainChain.getHex(Base58.decode(toAddress)).contentEquals(MainChain.getHex(SHA256.SHA256HashByteArray(SHA256.SHA256HashByteArray(privKey.getBytes()))))) {
+                            if (MainChain.getHex(Base58.decode(toAddress)).contentEquals(MainChain.getHex(
+                                    SHA256.SHA256HashByteArray(SHA256.SHA256HashByteArray(privKey.getBytes()))))) {
                                 String txHash = txs[txs.length - 1];
                                 String blockHash = blockObject.getBlockHash();
-                                WalletLogger.logEvent("info", "Found received transaction: \n" + txHash + "\n corresponding block: \n" + blockHash);
+                                WalletLogger.logEvent("info", "Found received transaction: \n" + txHash
+                                        + "\n corresponding block: \n" + blockHash);
                                 float amount = Float.parseFloat(blockObject.getAmount());
                                 balance += amount;
                             }
@@ -180,10 +199,12 @@ public class MainChain {
                     } else if (fromAddress.contentEquals(Constants.CB_ADDRESS) && toAddress.contentEquals(address)) {
                         for (Object o : KeyRing.keyRing) {
                             privKey = o.toString();
-                            if (MainChain.getHex(Base58.decode(toAddress)).contentEquals(MainChain.getHex(SHA256.SHA256HashByteArray(SHA256.SHA256HashByteArray(privKey.getBytes()))))) {
+                            if (MainChain.getHex(Base58.decode(toAddress)).contentEquals(MainChain.getHex(
+                                    SHA256.SHA256HashByteArray(SHA256.SHA256HashByteArray(privKey.getBytes()))))) {
                                 String txHash = txs[txs.length - 1];
                                 String blockHash = blockObject.getBlockHash();
-                                WalletLogger.logEvent("info", "Found mined transaction: \n" + txHash + "\n corresponding block: \n" + blockHash);
+                                WalletLogger.logEvent("info", "Found mined transaction: \n" + txHash
+                                        + "\n corresponding block: \n" + blockHash);
                                 float amount = Float.parseFloat(blockObject.getAmount());
                                 balance += amount;
                             }
@@ -192,9 +213,13 @@ public class MainChain {
                 }
             }
         } catch (DecodeException de) {
-            WalletLogger.logException(de, "warning", WalletLogger.getLogTimeStamp() + " Failed to decode block fetching chain.dat! See below:\n" + WalletLogger.exceptionStacktraceToString(de));
+            WalletLogger.logException(de, "warning", WalletLogger.getLogTimeStamp()
+                    + " Failed to decode block fetching chain.dat! See below:\n"
+                    + WalletLogger.exceptionStacktraceToString(de));
         } catch (Base58.AddressFormatException afe) {
-            WalletLogger.logException(afe, "warning", WalletLogger.getLogTimeStamp() + " An error occurred trying to decode an address! See details below:\n" + WalletLogger.exceptionStacktraceToString(afe));
+            WalletLogger.logException(afe, "warning", WalletLogger.getLogTimeStamp()
+                    + " An error occurred trying to decode an address! See details below:\n"
+                    + WalletLogger.exceptionStacktraceToString(afe));
         }
     }
 
@@ -215,7 +240,9 @@ public class MainChain {
             fos.close();
             readBlockChain();
         } catch (IOException ioe) {
-            WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp() + " IO exception occurred while trying to write to blockchain! See below:\n" + WalletLogger.exceptionStacktraceToString(ioe));
+            WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp()
+                    + " IO exception occurred while trying to write to blockchain! See below:\n"
+                    + WalletLogger.exceptionStacktraceToString(ioe));
         }
     }
 
@@ -236,7 +263,9 @@ public class MainChain {
             byte[] encoded = Files.readAllBytes(Paths.get(path));
             privKey = new String (encoded, StandardCharsets.UTF_8);
         } catch (IOException ioe) {
-            WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp() + " IO exception occurred while reading private key! See below:\n" + WalletLogger.exceptionStacktraceToString(ioe));
+            WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp()
+                    + " IO exception occurred while reading private key! See below:\n"
+                    + WalletLogger.exceptionStacktraceToString(ioe));
         }
     return privKey;
     }
@@ -266,7 +295,9 @@ public class MainChain {
             }
             privKey = readPrivateKey(configProps.getProperty("datadir") + "/THC_PRIVATE_KEY");
         } catch (IOException ioe) {
-            WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp() + " IO exception occurred while generating private key! See below:\n" + WalletLogger.exceptionStacktraceToString(ioe));
+            WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp()
+                    + " IO exception occurred while generating private key! See below:\n"
+                    + WalletLogger.exceptionStacktraceToString(ioe));
         }
         File keyRingFile = new File( configProps.getProperty("datadir") + "/keyring.dat");
         if (!keyRingFile.exists()) {
@@ -279,7 +310,9 @@ public class MainChain {
                 oos.close();
                 fos.close();
             } catch (IOException ioe) {
-                WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp() + " IO exception occurred while writing to keyring! See below:\n" + WalletLogger.exceptionStacktraceToString(ioe));
+                WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp()
+                        + " IO exception occurred while writing to keyring! See below:\n"
+                        + WalletLogger.exceptionStacktraceToString(ioe));
             }
         } else {
             KeyRing.keyRing.add(privKey);
@@ -291,7 +324,9 @@ public class MainChain {
                 oos.close();
                 fos.close();
             } catch (IOException ioe) {
-                WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp() + " IO exception occurred while writing to keyring! See below:\n" + WalletLogger.exceptionStacktraceToString(ioe));
+                WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp()
+                        + " IO exception occurred while writing to keyring! See below:\n"
+                        + WalletLogger.exceptionStacktraceToString(ioe));
             }
         }
     }
@@ -325,7 +360,9 @@ public class MainChain {
                     oos.close();
                     fos.close();
                 } catch (IOException ioe) {
-                    WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp() + " IO exception occurred while writing to address book! See below:\n" + WalletLogger.exceptionStacktraceToString(ioe));
+                    WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp()
+                            + " IO exception occurred while writing to address book! See below:\n"
+                            + WalletLogger.exceptionStacktraceToString(ioe));
                 }
             } else {
                 AddressBook.addressBook.add(address);
@@ -337,11 +374,15 @@ public class MainChain {
                     oos.close();
                     fos.close();
                 } catch (IOException ioe) {
-                    WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp() + " IO exception occurred while writing to address book! See below:\n" + WalletLogger.exceptionStacktraceToString(ioe));
+                    WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp()
+                            + " IO exception occurred while writing to address book! See below:\n"
+                            + WalletLogger.exceptionStacktraceToString(ioe));
                 }
             }
         } catch (IOException ioe) {
-            WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp() + " IO exception occurred while writing to address book! See below:\n" + WalletLogger.exceptionStacktraceToString(ioe));
+            WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp()
+                    + " IO exception occurred while writing to address book! See below:\n"
+                    + WalletLogger.exceptionStacktraceToString(ioe));
         }
     }
 
@@ -361,15 +402,21 @@ public class MainChain {
             configProps.load(new FileInputStream(configPath));
             FileInputStream fis = new FileInputStream(configProps.getProperty("datadir") + "/addressBook.dat");
             ObjectInputStream ois = new ObjectInputStream(fis);
-            AddressBook.addressBook = (ArrayList) ois.readObject();
+            AddressBook.addressBook = (ArrayList<String>) ois.readObject();
             ois.close();
             fis.close();
         } catch (ClassNotFoundException cnfe) {
-            WalletLogger.logException(cnfe, "severe", WalletLogger.getLogTimeStamp() + " Class not found exception occurred while reading address book! See below:\n" + WalletLogger.exceptionStacktraceToString(cnfe));
+            WalletLogger.logException(cnfe, "severe", WalletLogger.getLogTimeStamp()
+                    + " Class not found exception occurred while reading address book! See below:\n"
+                    + WalletLogger.exceptionStacktraceToString(cnfe));
         } catch (IOException ioe) {
-            WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp() + " IO exception occurred while reading address book! See below:\n" + WalletLogger.exceptionStacktraceToString(ioe));
+            WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp()
+                    + " IO exception occurred while reading address book! See below:\n"
+                    + WalletLogger.exceptionStacktraceToString(ioe));
         } catch (NullPointerException npe) {
-            WalletLogger.logException(npe, "severe", WalletLogger.getLogTimeStamp() + " Null pointer exception occurred while reading address book! See below:\n" + WalletLogger.exceptionStacktraceToString(npe));
+            WalletLogger.logException(npe, "severe", WalletLogger.getLogTimeStamp()
+                    + " Null pointer exception occurred while reading address book! See below:\n"
+                    + WalletLogger.exceptionStacktraceToString(npe));
         }
     }
     
@@ -392,21 +439,28 @@ public class MainChain {
             } else {
                 FileInputStream fis = new FileInputStream(configProps.getProperty("datadir") + "/keyring.dat");
                 ObjectInputStream ois = new ObjectInputStream(fis);
-                KeyRing.keyRing = (ArrayList) ois.readObject();
+                KeyRing.keyRing = (ArrayList<String>) ois.readObject();
                 ois.close();
                 fis.close();
             }
         } catch (ClassNotFoundException cnfe) {
-            WalletLogger.logException(cnfe, "severe", WalletLogger.getLogTimeStamp() + " Class not found exception occurred while reading keyring! See below:\n" + WalletLogger.exceptionStacktraceToString(cnfe));
+            WalletLogger.logException(cnfe, "severe", WalletLogger.getLogTimeStamp()
+                    + " Class not found exception occurred while reading keyring! See below:\n"
+                    + WalletLogger.exceptionStacktraceToString(cnfe));
         } catch (IOException ioe) {
-            WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp() + " IO exception occurred while reading keyring! See below:\n" + WalletLogger.exceptionStacktraceToString(ioe));
+            WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp()
+                    + " IO exception occurred while reading keyring! See below:\n"
+                    + WalletLogger.exceptionStacktraceToString(ioe));
         } catch (NullPointerException npe) {
-            WalletLogger.logException(npe, "severe", WalletLogger.getLogTimeStamp() + " Null pointer exception occurred while reading keyring! See below:\n" + WalletLogger.exceptionStacktraceToString(npe));
+            WalletLogger.logException(npe, "severe", WalletLogger.getLogTimeStamp()
+                    + " Null pointer exception occurred while reading keyring! See below:\n"
+                    + WalletLogger.exceptionStacktraceToString(npe));
         }
     }
 
     void sendTx(String fromAddress, String toAddress, float amount) {
-        byte[] txHashBytes = MainChain.swapEndianness(MainChain.hexStringToByteArray(MainChain.getHex((fromAddress + toAddress + amount).getBytes())));
+        byte[] txHashBytes = MainChain.swapEndianness(MainChain.hexStringToByteArray(MainChain.getHex(
+                (fromAddress + toAddress + amount).getBytes())));
         String txHash = MainChain.getHex(SHA256.SHA256HashByteArray(SHA256.SHA256HashByteArray(txHashBytes)));
         writeTxPool(fromAddress, toAddress, amount, txHash);
     }
@@ -428,7 +482,9 @@ public class MainChain {
             fos.close();
             readTxPool();
         } catch (IOException ioe) {
-            WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp() + " IO exception occurred while overwriting tx-pool! See below:\n" + WalletLogger.exceptionStacktraceToString(ioe));
+            WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp()
+                    + " IO exception occurred while overwriting tx-pool! See below:\n"
+                    + WalletLogger.exceptionStacktraceToString(ioe));
         }
     }
 
@@ -444,16 +500,20 @@ public class MainChain {
             configProps.load(new FileInputStream(configPath));
             FileInputStream fis = new FileInputStream(configProps.getProperty("datadir") + "/tx-pool.dat");
             ObjectInputStream ois = new ObjectInputStream(fis);
-            TxPoolArray.TxPool = (ArrayList) ois.readObject();
+            TxPoolArray.TxPool = (ArrayList<String>) ois.readObject();
             ois.close();
             fis.close();
         } catch (FileNotFoundException e) {
-            TxPoolArray txpool = new TxPoolArray();
+            new TxPoolArray();
             overwriteTxPool();
         } catch (IOException ioe) {
-            WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp() + " IO exception occurred while reading tx-pool! See below:\n" + WalletLogger.exceptionStacktraceToString(ioe));
+            WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp()
+                    + " IO exception occurred while reading tx-pool! See below:\n"
+                    + WalletLogger.exceptionStacktraceToString(ioe));
         } catch (ClassNotFoundException cnfe) {
-            WalletLogger.logException(cnfe, "severe", WalletLogger.getLogTimeStamp() + " Class not found exception occurred while reading tx-pool! See below:\n" + WalletLogger.exceptionStacktraceToString(cnfe));
+            WalletLogger.logException(cnfe, "severe", WalletLogger.getLogTimeStamp()
+                    + " Class not found exception occurred while reading tx-pool! See below:\n"
+                    + WalletLogger.exceptionStacktraceToString(cnfe));
         }
     }
 
@@ -473,43 +533,59 @@ public class MainChain {
         System.out.println("Difficulty: \n" + difficulty);
     }
 
-    public static BigDecimal calculateTarget(long deltaT, String previousTarget) {
+    public static void calculateTarget(long deltaT, String previousTarget) {
         double adjustmentFactor;
         BigDecimal targetAsBigDec;
-        if (BlockChain.blockChain.size() <= 3) {
+        if (BlockChain.blockChain.size() < 5) {
             MainChain.difficulty = 1;
             targetAsBigDec = new BigDecimal(new BigInteger(previousTarget, 16));
-            targetHex = getHex(targetAsBigDec.toBigInteger().toByteArray());
-            return targetAsBigDec;
-        } else {
+            setTargetHex(getHex(targetAsBigDec.toBigInteger().toByteArray()));
+        } else if (BlockChain.blockChain.size() % 5 == 0) {
             targetAsBigDec = new BigDecimal(new BigInteger(previousTarget, 16));
-            if (deltaT < Constants.TARGET_TIME_WINDOW) {
-                BigDecimal deltaTargetTime = new BigDecimal(String.valueOf(Constants.TARGET_TIME_WINDOW - deltaT));
-                adjustmentFactor = deltaTargetTime.multiply(new BigDecimal(String.valueOf((
-                        deltaTargetTime.doubleValue() / Constants.TARGET_TIME_WINDOW) / 6))).doubleValue();
-                MainChain.difficulty += adjustmentFactor;
-                System.out.println("Delta time: " + deltaT);
-                System.out.println("Delta target time: " + deltaTargetTime);
-                System.out.println("Adjustment factor: " + adjustmentFactor);
-                targetAsBigDec = targetAsBigDec.multiply(new BigDecimal(String.valueOf(1 / adjustmentFactor)));
-                targetHex = getHex(targetAsBigDec.toBigInteger().toByteArray());
-            } else if (deltaT > Constants.TARGET_TIME_WINDOW) {
-                BigDecimal deltaTargetTime = new BigDecimal(String.valueOf(deltaT - Constants.TARGET_TIME_WINDOW));
-                adjustmentFactor = deltaTargetTime.multiply(new BigDecimal(String.valueOf((
-                        deltaTargetTime.doubleValue() / Constants.TARGET_TIME_WINDOW) / 6))).doubleValue();
+            if (deltaT < Constants.TARGET_WINDOW_DURATION) {
+                BigDecimal deltaTargetTime = new BigDecimal(String.valueOf(Constants.TARGET_WINDOW_DURATION - deltaT));
+                BigDecimal targetWindow = new BigDecimal(String.valueOf(Constants.TARGET_WINDOW_DURATION));
+                adjustmentFactor = (deltaTargetTime.multiply(new BigDecimal(String.valueOf(1 / targetWindow.doubleValue()))).doubleValue());
+                if (adjustmentFactor > 1.5) {
+                    System.out.println("Capped adjustment factor at 1.5, " + "actual was: " + adjustmentFactor);
+                    adjustmentFactor = 1.5;
+                }
                 System.out.println("Delta time: " + deltaT);
                 System.out.println("Delta target time: " + deltaTargetTime);
                 System.out.println("Adjustment factor: " + adjustmentFactor);
                 targetAsBigDec = targetAsBigDec.multiply(new BigDecimal(String.valueOf(adjustmentFactor)));
-                targetHex = getHex(targetAsBigDec.toBigInteger().toByteArray());
+                setTargetHex(getHex(targetAsBigDec.toBigInteger().toByteArray()));
+                if (MainChain.targetHex.length() < 64) {
+                    MainChain.targetHex = StringUtils.leftPad(MainChain.targetHex, 64, "0");
+                    System.out.println("New target hex: " + MainChain.targetHex);
+                }
+                MainChain.difficulty += adjustmentFactor;
+            } else if (deltaT > Constants.TARGET_WINDOW_DURATION) {
+                BigDecimal deltaTargetTime = new BigDecimal(String.valueOf(deltaT - Constants.TARGET_WINDOW_DURATION));
+                BigDecimal targetWindow = new BigDecimal(String.valueOf(Constants.TARGET_WINDOW_DURATION));
+                adjustmentFactor = (deltaTargetTime.multiply(new BigDecimal(String.valueOf(1 / targetWindow.doubleValue()))).doubleValue());
+                if (adjustmentFactor > 1.5) {
+                    System.out.println("Capped adjustment factor at 1.5, " + "actual was: " + adjustmentFactor);
+                    adjustmentFactor = 1.5;
+                }
+                System.out.println("Delta time: " + deltaT);
+                System.out.println("Delta target time: " + deltaTargetTime);
+                System.out.println("Adjustment factor: " + adjustmentFactor);
+                targetAsBigDec = targetAsBigDec.multiply(new BigDecimal(String.valueOf( 1 / adjustmentFactor)));
+                System.out.println("New target as big dec: " + targetAsBigDec);
+                if (MainChain.targetHex.length() < 64) {
+                    MainChain.targetHex = StringUtils.leftPad(MainChain.targetHex, 64, "0");
+                    System.out.println("New target hex: " + MainChain.targetHex);
+                }
                 if (MainChain.difficulty - adjustmentFactor < 1) {
                     MainChain.difficulty = 1;
                     targetAsBigDec = new BigDecimal(new BigInteger(Constants.GENESIS_TARGET, 16));
+                    setTargetHex(getHex(targetAsBigDec.toBigInteger().toByteArray()));
                 } else {
                     MainChain.difficulty -= adjustmentFactor;
+                    setTargetHex(getHex(targetAsBigDec.toBigInteger().toByteArray()));
                 }
             }
-            return targetAsBigDec;
         }
     }
 
@@ -517,6 +593,9 @@ public class MainChain {
         return targetHex;
     }
 
+    static void setTargetHex(String targetHex) {
+        MainChain.targetHex = targetHex;
+    }
 
     public static byte[] swapEndianness(byte[] hash) {
         byte[] result = new byte[hash.length];

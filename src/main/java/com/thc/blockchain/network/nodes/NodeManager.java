@@ -8,7 +8,6 @@ import com.thc.blockchain.util.WalletLogger;
 
 import javax.websocket.CloseReason;
 import javax.websocket.CloseReason.CloseCodes;
-import javax.websocket.DeploymentException;
 import javax.websocket.EncodeException;
 import javax.websocket.Session;
 import java.io.IOException;
@@ -27,13 +26,17 @@ public final class NodeManager {
     public static void pushBlock(final Block block, final Session sid) {
         assert !Objects.isNull(block) && !Objects.isNull(sid);
         NODES.forEach(session -> {
-            if (sid.getUserProperties().get("id").toString().contentEquals("update-chain-client") || sid.getUserProperties().get("id").toString().contentEquals("update-chain-server") || sid.getUserProperties().get("id").toString().contentEquals("sync-block-client") || sid.getUserProperties().get("id").toString().contentEquals("sync-block-server")) {
+            if (sid.getUserProperties().get("id").toString().contentEquals("update-chain-client") || sid.getUserProperties()
+                    .get("id").toString().contentEquals("update-chain-server") || sid.getUserProperties().get("id").toString()
+                    .contentEquals("sync-block-client") || sid.getUserProperties().get("id").toString().contentEquals("sync-block-server")) {
                 try {
                     sid.getBasicRemote().sendObject(block);
                 } catch (IOException ioe) {
-                    WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp() + " IO exception occurred while trying to push a block to a peer! See below:\n" + WalletLogger.exceptionStacktraceToString(ioe));
+                    WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp()
+                            + " IO exception occurred while trying to push a block to a peer! See below:\n" + WalletLogger.exceptionStacktraceToString(ioe));
                 } catch (EncodeException ee) {
-                    WalletLogger.logException(ee, "severe", WalletLogger.getLogTimeStamp() + " Encode exception occurred while trying to push a block to a peer! See below:\n" + WalletLogger.exceptionStacktraceToString(ee));
+                    WalletLogger.logException(ee, "severe", WalletLogger.getLogTimeStamp()
+                            + " Encode exception occurred while trying to push a block to a peer! See below:\n" + WalletLogger.exceptionStacktraceToString(ee));
                 }
             }
         });
@@ -46,9 +49,11 @@ public final class NodeManager {
                 try {
                     sid.getBasicRemote().sendObject(genesisBlock);
                 } catch (IOException ioe) {
-                    WalletLogger.logException(ioe, "severe",  WalletLogger.getLogTimeStamp() + " IO exception occurred while trying to push genesis block! See below:\n" + WalletLogger.exceptionStacktraceToString(ioe));
+                    WalletLogger.logException(ioe, "severe",  WalletLogger.getLogTimeStamp()
+                            + " IO exception occurred while trying to push genesis block! See below:\n" + WalletLogger.exceptionStacktraceToString(ioe));
                 } catch (EncodeException ee) {
-                    WalletLogger.logException(ee, "severe",  WalletLogger.getLogTimeStamp() + " Encode exception occurred while trying to push genesis block! See below:\n" + WalletLogger.exceptionStacktraceToString(ee));
+                    WalletLogger.logException(ee, "severe",  WalletLogger.getLogTimeStamp()
+                            + " Encode exception occurred while trying to push genesis block! See below:\n" + WalletLogger.exceptionStacktraceToString(ee));
                 }
             }
         });
@@ -62,9 +67,11 @@ public final class NodeManager {
                 try {
                     sid.getBasicRemote().sendObject(alert);
                 } catch (IOException ioe) {
-                    WalletLogger.logException(ioe, "severe",  WalletLogger.getLogTimeStamp() + " IO exception occurred while trying to push an alert to a peer! See below:\n" + WalletLogger.exceptionStacktraceToString(ioe));
+                    WalletLogger.logException(ioe, "severe",  WalletLogger.getLogTimeStamp()
+                            + " IO exception occurred while trying to push an alert to a peer! See below:\n" + WalletLogger.exceptionStacktraceToString(ioe));
                 } catch (EncodeException ee) {
-                    WalletLogger.logException(ee, "severe",  WalletLogger.getLogTimeStamp() + " Encode exception occurred while trying to push an alert to a peer! See below:\n" + WalletLogger.exceptionStacktraceToString(ee));
+                    WalletLogger.logException(ee, "severe",  WalletLogger.getLogTimeStamp()
+                            + " Encode exception occurred while trying to push an alert to a peer! See below:\n" + WalletLogger.exceptionStacktraceToString(ee));
                 }
             }
         });
@@ -73,13 +80,16 @@ public final class NodeManager {
     public static void pushTx(final Tx tx, final Session sid) {
         assert !Objects.isNull(tx) && !Objects.isNull(sid);
         NODES.forEach(session -> {
-            if (sid.getUserProperties().get("id").toString().contentEquals("tx-client") || sid.getUserProperties().get("id").toString().contentEquals("tx-server")) {
+            if (sid.getUserProperties().get("id").toString().contentEquals("tx-client") || sid.getUserProperties()
+                    .get("id").toString().contentEquals("tx-server")) {
                 try {
                     sid.getBasicRemote().sendObject(tx);
                 } catch (IOException ioe) {
-                    WalletLogger.logException(ioe, "severe",  WalletLogger.getLogTimeStamp() + " IO exception occurred while trying to push an alert to a peer! See below:\n" + WalletLogger.exceptionStacktraceToString(ioe));
+                    WalletLogger.logException(ioe, "severe",  WalletLogger.getLogTimeStamp()
+                            + " IO exception occurred while trying to push an alert to a peer! See below:\n" + WalletLogger.exceptionStacktraceToString(ioe));
                 } catch (EncodeException ee) {
-                    WalletLogger.logException(ee, "severe",  WalletLogger.getLogTimeStamp() + " Encode exception occurred while trying to push an alert to a peer! See below:\n" + WalletLogger.exceptionStacktraceToString(ee));
+                    WalletLogger.logException(ee, "severe",  WalletLogger.getLogTimeStamp()
+                            + " Encode exception occurred while trying to push an alert to a peer! See below:\n" + WalletLogger.exceptionStacktraceToString(ee));
                 }
             }
         });
