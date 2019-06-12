@@ -74,12 +74,12 @@ public class WalletLogger {
                 case "warning":
                     logger.log(Level.WARNING, msg);
                     break;
-                case "info":
-                    logger.log(Level.INFO, msg);
-                    break;
                 case "config":
-                default:
                     logger.log(Level.CONFIG, msg);
+                case "severe":
+                    logger.log(Level.SEVERE, msg);
+                default:
+                    logger.log(Level.INFO, msg);
                     break;
             }
         } catch (IOException | SecurityException ex1) {

@@ -57,7 +57,7 @@ public class SyncAlertServer {
         } else if (alert.getAlertType().contentEquals("sync checksum") && remoteChainSize < BlockChain.blockChain.size()) {
             WalletLogger.logEvent("info", WalletLogger.getLogTimeStamp() + " received alert: \n" + "alert type: " + alert.getAlertType() + " alert message: " + alert.getAlertMessage() + " from session: " + session.getUserProperties().get("id"));
             String remoteCheckSum = alert.getAlertMessage();
-            if (Consensus.compareChainChecksum(remoteChainSize, remoteCheckSum)) {
+            if (Consensus.validateChainChecksum(remoteChainSize, remoteCheckSum)) {
                 endpointManager.connectAsClient("sync-block");
             } else {
                 System.out.println("Refusing to connect to sync block client due to a consensus error!\n");

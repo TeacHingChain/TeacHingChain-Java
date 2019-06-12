@@ -28,7 +28,7 @@ public class TxClientEndpoint {
                     Tx decodedTx = new TxDecoder().decode(tx);
                     String fromAddress = decodedTx.getFromAddress();
                     String toAddress = decodedTx.getToAddress();
-                    float amount = decodedTx.getAmount();
+                    double amount = decodedTx.getAmount();
                     String txHash = decodedTx.getTxHash();
                     byte[] txHashBytes = MainChain.swapEndianness(MainChain.hexStringToByteArray(MainChain.getHex((fromAddress + toAddress + amount).getBytes())));
                     String txHashCheck = MainChain.getHex(SHA256.SHA256HashByteArray(SHA256.SHA256HashByteArray(txHashBytes)));

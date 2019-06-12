@@ -29,7 +29,7 @@ public class UpdateServerEndPoint {
         try {
             mc.readBlockChain();
             System.out.println("Processing block number: " + block.getIndex());
-            boolean verifyIndex = consensus.isBlockOrphan(Long.parseLong(block.getIndex()));
+            boolean verifyIndex = consensus.isBlockOrphan(block.getIndex());
             if (verifyIndex) {
                 String encodedBlock = new BlockEncoder().encode(block);
                 BlockChain.blockChain.add(encodedBlock);

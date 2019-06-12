@@ -11,7 +11,6 @@ import java.io.IOException;
 
 public final class BlockDecoder implements Decoder.Text<Block> {
 
-    private MainChain mc = new MainChain();
 
     @Override
     public void destroy() {

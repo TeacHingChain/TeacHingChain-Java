@@ -1,17 +1,17 @@
 package com.thc.blockchain.wallet;
 
 import com.thc.blockchain.algos.SHA256;
-import com.thc.blockchain.algos.SHA512;
 import com.thc.blockchain.network.Constants;
 import com.thc.blockchain.network.decoders.BlockDecoder;
 import com.thc.blockchain.network.decoders.GenesisBlockDecoder;
 import com.thc.blockchain.network.encoders.TxEncoder;
+import com.thc.blockchain.network.nodes.EndpointManager;
 import com.thc.blockchain.network.objects.Block;
 import com.thc.blockchain.network.objects.Tx;
+import com.thc.blockchain.util.Miner;
 import com.thc.blockchain.util.WalletLogger;
 import com.thc.blockchain.util.addresses.AddressBook;
 import com.thc.blockchain.util.addresses.Base58;
-import org.apache.commons.lang.StringUtils;
 import javax.websocket.DecodeException;
 import javax.websocket.EncodeException;
 import java.io.*;
@@ -29,29 +29,13 @@ public class MainChain {
     public static double difficulty;
     public static String targetHex;
     public static float balance;
-    public static final float nSubsidy = 50;
+    public static final double nSubsidy = 50;
     private static String address;
     private static String privKey;
-    private static byte[] checkHash;
 
     public MainChain() {}
 
-    public static boolean isBlockHashValid(long index, long currentTimeMillis, String fromAddress, String toAddress,
-                                           String[] txHash, String merkleRoot, long Nonce, String previousBlockHash,
-                                           String algo, String currentHash, String target, double difficulty, float amount) {
-        MainChain.targetHex = target;
-        byte[] blockHeaderBytes = MainChain.swapEndianness(MainChain.hexStringToByteArray(MainChain.getHex((index
-                + currentTimeMillis + fromAddress + toAddress + Arrays.toString(txHash) + merkleRoot + Nonce
-                + previousBlockHash + algo + target + difficulty + amount).getBytes())));
-        if (algo.contentEquals("sha256")) {
-            checkHash = SHA256.SHA256HashByteArray(SHA256.SHA256HashByteArray(blockHeaderBytes));
-        } else if (algo.contentEquals("sha512")) {
-            checkHash = SHA512.SHA512HashByteArray(SHA512.SHA512HashByteArray(blockHeaderBytes));
-        }
-        return (getHex(checkHash).contentEquals(currentHash));
-    }
-
-    void writeTxPool(String fromAddress, String toAddress, float amount, String txHash) {
+    void writeTxPool(long timeStamp, String fromAddress, String toAddress, double amount, String txHash) {
         String configPath;
         try {
             if (Constants.BASEDIR.contains("apache-tomcat-8.5.23")) {
@@ -64,21 +48,26 @@ public class MainChain {
             File tempFile = new File(configProps.getProperty("datadir") + "/tx-pool.dat");
             if (!tempFile.exists()) {
                 new TxPoolArray();
-                Tx tx = new Tx(fromAddress, toAddress, amount, txHash);
+                Tx tx = new Tx(timeStamp, fromAddress, toAddress, amount, txHash);
                 try {
                     String txPoolTX = new TxEncoder().encode(tx);
                     TxPoolArray.TxPool.add(txPoolTX);
+                    if (TxPoolArray.TxPool.size() > 1) {
+                        propagateTx();
+                    }
 
                 } catch (EncodeException ee) {
                     WalletLogger.logException(ee, "warning", WalletLogger.getLogTimeStamp()
                             + " Failed to encode tx! See details below:\n" + WalletLogger.exceptionStacktraceToString(ee));
                 }
             } else {
-                Tx tx = new Tx(fromAddress, toAddress, amount, txHash);
-                TxEncoder encoder = new TxEncoder();
+                Tx tx = new Tx(timeStamp, fromAddress, toAddress, amount, txHash);
                 try {
-                    String txPoolTX = encoder.encode(tx);
+                    String txPoolTX = new TxEncoder().encode(tx);
                     TxPoolArray.TxPool.add(txPoolTX);
+                    if (TxPoolArray.TxPool.size() > 1) {
+                        propagateTx();
+                    }
                 } catch (EncodeException ee) {
                     WalletLogger.logException(ee, "warning", WalletLogger.getLogTimeStamp()
                             + " Failed to encode tx! See details below:\n" + WalletLogger.exceptionStacktraceToString(ee));
@@ -92,6 +81,10 @@ public class MainChain {
             WalletLogger.logException(ioe, "severe", "IOException occurred reading/writing tx-pool.dat! See details below:\n"
                     + WalletLogger.exceptionStacktraceToString(ioe));
         }
+    }
+
+    void propagateTx() {
+        new EndpointManager().connectAsClient("tx");
     }
 
     String getBestHash() throws DecodeException {
@@ -166,46 +159,46 @@ public class MainChain {
             for (int i = 1; i < BlockChain.blockChain.size(); i++) {
                 Block blockObject = new BlockDecoder().decode(BlockChain.blockChain.get(i));
                 String[] txs = blockObject.getTransactions();
-                String toAddress = blockObject.getToAddress();
-                String fromAddress = blockObject.getFromAddress();
+                String[] txins = blockObject.getTxins();
+                String[] txouts = blockObject.getTxouts();
                 for (Object addressObj : AddressBook.addressBook) {
                     address = addressObj.toString();
-                    if (fromAddress.contentEquals(address)) {
+                    if (txins[0].contentEquals(address)) {
                         for (Object o : KeyRing.keyRing) {
                             privKey = o.toString();
-                            if (MainChain.getHex(Base58.decode(fromAddress)).contentEquals(MainChain.getHex(
+                            if (MainChain.getHex(Base58.decode(txins[0])).contentEquals(MainChain.getHex(
                                     SHA256.SHA256HashByteArray(SHA256.SHA256HashByteArray(privKey.getBytes()))))) {
                                 String txHash = txs[txs.length - 1];
                                 String blockHash = blockObject.getBlockHash();
                                 WalletLogger.logEvent("info", "Found sent transaction: \n" + txHash
                                         + "\n corresponding block: \n" + blockHash);
-                                float amount = Float.parseFloat(blockObject.getAmount());
+                                double amount = (blockObject.getAmounts()[0]);
                                 balance -= amount;
                             }
                         }
-                    } else if (toAddress.contentEquals(address) && !fromAddress.contentEquals(Constants.CB_ADDRESS)) {
+                    } else if (txouts[0].contentEquals(address) && txins[0].contentEquals(Constants.CB_ADDRESS)) {
                         for (Object o : KeyRing.keyRing) {
                             privKey = o.toString();
-                            if (MainChain.getHex(Base58.decode(toAddress)).contentEquals(MainChain.getHex(
+                            if (MainChain.getHex(Base58.decode(txouts[0])).contentEquals(MainChain.getHex(
                                     SHA256.SHA256HashByteArray(SHA256.SHA256HashByteArray(privKey.getBytes()))))) {
                                 String txHash = txs[txs.length - 1];
                                 String blockHash = blockObject.getBlockHash();
                                 WalletLogger.logEvent("info", "Found received transaction: \n" + txHash
                                         + "\n corresponding block: \n" + blockHash);
-                                float amount = Float.parseFloat(blockObject.getAmount());
+                                double amount = (blockObject.getAmounts()[0]);
                                 balance += amount;
                             }
                         }
-                    } else if (fromAddress.contentEquals(Constants.CB_ADDRESS) && toAddress.contentEquals(address)) {
+                    } else if (txouts[0].contentEquals(Constants.CB_ADDRESS) && txins[0].contentEquals(address)) {
                         for (Object o : KeyRing.keyRing) {
                             privKey = o.toString();
-                            if (MainChain.getHex(Base58.decode(toAddress)).contentEquals(MainChain.getHex(
+                            if (MainChain.getHex(Base58.decode(txouts[0])).contentEquals(MainChain.getHex(
                                     SHA256.SHA256HashByteArray(SHA256.SHA256HashByteArray(privKey.getBytes()))))) {
                                 String txHash = txs[txs.length - 1];
                                 String blockHash = blockObject.getBlockHash();
                                 WalletLogger.logEvent("info", "Found mined transaction: \n" + txHash
                                         + "\n corresponding block: \n" + blockHash);
-                                float amount = Float.parseFloat(blockObject.getAmount());
+                                double amount = (blockObject.getAmounts()[0]);
                                 balance += amount;
                             }
                         }
@@ -458,11 +451,11 @@ public class MainChain {
         }
     }
 
-    void sendTx(String fromAddress, String toAddress, float amount) {
+    void sendTx(long timeStamp, String fromAddress, String toAddress, double amount) {
         byte[] txHashBytes = MainChain.swapEndianness(MainChain.hexStringToByteArray(MainChain.getHex(
                 (fromAddress + toAddress + amount).getBytes())));
         String txHash = MainChain.getHex(SHA256.SHA256HashByteArray(SHA256.SHA256HashByteArray(txHashBytes)));
-        writeTxPool(fromAddress, toAddress, amount, txHash);
+        writeTxPool(timeStamp, fromAddress, toAddress, amount, txHash);
     }
 
     void overwriteTxPool() {
@@ -518,6 +511,10 @@ public class MainChain {
     }
 
     void getTxPool() {
+        if (TxPoolArray.TxPool == null) {
+            new TxPoolArray();
+            System.out.println("tx pool: \n" + "[]");
+        }
         if (!TxPoolArray.TxPool.isEmpty()) {
             System.out.println("tx pool: \n");
             for (int i = 0; i < TxPoolArray.TxPool.size(); i++) {
@@ -540,6 +537,10 @@ public class MainChain {
             MainChain.difficulty = 1;
             targetAsBigDec = new BigDecimal(new BigInteger(previousTarget, 16));
             setTargetHex(getHex(targetAsBigDec.toBigInteger().toByteArray()));
+            if (MainChain.targetHex.length() < 64) {
+                MainChain.targetHex = new Miner().leftPad(MainChain.targetHex, 64, '0');
+                setTargetHex(MainChain.targetHex);
+            }
         } else if (BlockChain.blockChain.size() % 5 == 0) {
             targetAsBigDec = new BigDecimal(new BigInteger(previousTarget, 16));
             if (deltaT < Constants.TARGET_WINDOW_DURATION) {
@@ -553,10 +554,15 @@ public class MainChain {
                 System.out.println("Delta time: " + deltaT);
                 System.out.println("Delta target time: " + deltaTargetTime);
                 System.out.println("Adjustment factor: " + adjustmentFactor);
-                targetAsBigDec = targetAsBigDec.multiply(new BigDecimal(String.valueOf(adjustmentFactor)));
-                setTargetHex(getHex(targetAsBigDec.toBigInteger().toByteArray()));
+                if (adjustmentFactor < 1) {
+                    targetAsBigDec = targetAsBigDec.multiply(new BigDecimal(String.valueOf(1 - adjustmentFactor)));
+                    setTargetHex(getHex(targetAsBigDec.toBigInteger().toByteArray()));
+                } else {
+                    targetAsBigDec = targetAsBigDec.multiply(new BigDecimal(String.valueOf(adjustmentFactor - 1)));
+                    setTargetHex(getHex(targetAsBigDec.toBigInteger().toByteArray()));
+                }
                 if (MainChain.targetHex.length() < 64) {
-                    MainChain.targetHex = StringUtils.leftPad(MainChain.targetHex, 64, "0");
+                    MainChain.targetHex = new Miner().leftPad(MainChain.targetHex, 64, '0');
                     System.out.println("New target hex: " + MainChain.targetHex);
                 }
                 MainChain.difficulty += adjustmentFactor;
@@ -571,10 +577,16 @@ public class MainChain {
                 System.out.println("Delta time: " + deltaT);
                 System.out.println("Delta target time: " + deltaTargetTime);
                 System.out.println("Adjustment factor: " + adjustmentFactor);
-                targetAsBigDec = targetAsBigDec.multiply(new BigDecimal(String.valueOf( 1 / adjustmentFactor)));
+                if (adjustmentFactor < 1) {
+                    targetAsBigDec = targetAsBigDec.multiply(new BigDecimal(String.valueOf(1 / (1 - adjustmentFactor))));
+                    setTargetHex(getHex(targetAsBigDec.toBigInteger().toByteArray()));
+                } else {
+                    targetAsBigDec = targetAsBigDec.multiply(new BigDecimal(String.valueOf(1 / (adjustmentFactor - 1))));
+                    setTargetHex(getHex(targetAsBigDec.toBigInteger().toByteArray()));
+                }
                 System.out.println("New target as big dec: " + targetAsBigDec);
                 if (MainChain.targetHex.length() < 64) {
-                    MainChain.targetHex = StringUtils.leftPad(MainChain.targetHex, 64, "0");
+                    MainChain.targetHex = new Miner().leftPad(MainChain.targetHex, 64, '0');
                     System.out.println("New target hex: " + MainChain.targetHex);
                 }
                 if (MainChain.difficulty - adjustmentFactor < 1) {

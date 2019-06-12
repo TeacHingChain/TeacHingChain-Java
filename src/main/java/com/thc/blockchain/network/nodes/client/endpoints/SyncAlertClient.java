@@ -51,7 +51,7 @@ public class SyncAlertClient {
             remoteChainSize = Integer.parseInt(alert.getAlertMessage());
         } else if (alert.getAlertType().contentEquals("sync checksum") && remoteChainSize < BlockChain.blockChain.size()) {
             String remoteCheckSum = alert.getAlertMessage();
-            if (Consensus.compareChainChecksum(remoteChainSize, remoteCheckSum)) {
+            if (Consensus.validateChainChecksum(remoteChainSize, remoteCheckSum)) {
                 endpointManager.connectAsClient("sync block");
             } else {
                 WalletLogger.logEvent("info", WalletLogger.getLogTimeStamp()

@@ -3,25 +3,24 @@ package com.thc.blockchain.network.objects;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.io.ObjectOutputStream;
 import java.util.Objects;
 
 public final class Block {
 
     @JsonProperty("index")
-    private final String index;
-    @JsonProperty("time stamp")
-    private final String timeStamp;
-    @JsonProperty("from address")
-    private final String fromAddress;
-    @JsonProperty("to address")
-    private final String toAddress;
+    private final long index;
+    @JsonProperty("time stamps")
+    private final long[] timeStamps;
+    @JsonProperty("tx inputs")
+    private final String[] txins;
+    @JsonProperty("tx outputs")
+    private final String[] txouts;
     @JsonProperty("transactions")
     private final String[] txs;
     @JsonProperty ("merkle root")
     private final String merkleRoot;
     @JsonProperty("nonce")
-    private final String Nonce;
+    private final long Nonce;
     @JsonProperty("previous block hash")
     private final String previousBlockHash;
     @JsonProperty("algo")
@@ -31,21 +30,20 @@ public final class Block {
     @JsonProperty("target")
     private final String target;
     @JsonProperty("difficulty")
-    private final String difficulty;
-    @JsonProperty("amount")
-    private final String amount;
+    private final double difficulty;
+    @JsonProperty("amounts")
+    private final double[] amounts;
 
     @JsonCreator
-    public Block(@JsonProperty("index") String index, @JsonProperty("time stamp") String timeStamp,
-                 @JsonProperty("from address") String fromAddress, @JsonProperty("to address") String toAddress,
+    public Block(@JsonProperty("index") long index, @JsonProperty("time stamps") long[] timeStamps,
+                 @JsonProperty("tx inputs") String[] txins, @JsonProperty("tx outputs") String[] txouts,
                  @JsonProperty("transactions") String[] txs, @JsonProperty("merkle root") String merkleRoot,
-                 @JsonProperty("nonce") String Nonce, @JsonProperty("previous block hash") String previousBlockHash,
+                 @JsonProperty("nonce") Long Nonce, @JsonProperty("previous block hash") String previousBlockHash,
                  @JsonProperty("algo") String algo, @JsonProperty("block hash") String blockHash,
-                 @JsonProperty("target") String target, @JsonProperty("difficulty") String difficulty, @JsonProperty("amount") String amount) {
-        Objects.requireNonNull(index);
-        Objects.requireNonNull(timeStamp);
-        Objects.requireNonNull(fromAddress);
-        Objects.requireNonNull(toAddress);
+                 @JsonProperty("target") String target, @JsonProperty("difficulty") double difficulty, @JsonProperty("amounts") double[] amounts) {
+        Objects.requireNonNull(timeStamps);
+        Objects.requireNonNull(txins);
+        Objects.requireNonNull(txouts);
         Objects.requireNonNull(txs);
         Objects.requireNonNull(merkleRoot);
         Objects.requireNonNull(Nonce);
@@ -53,12 +51,11 @@ public final class Block {
         Objects.requireNonNull(algo);
         Objects.requireNonNull(blockHash);
         Objects.requireNonNull(target);
-        Objects.requireNonNull(difficulty);
-        Objects.requireNonNull(amount);
+        Objects.requireNonNull(amounts);
         this.index = index;
-        this.timeStamp = timeStamp;
-        this.fromAddress = fromAddress;
-        this.toAddress = toAddress;
+        this.timeStamps = timeStamps;
+        this.txins = txins;
+        this.txouts = txouts;
         this.txs = txs;
         this.merkleRoot = merkleRoot;
         this.Nonce = Nonce;
@@ -67,22 +64,22 @@ public final class Block {
         this.blockHash = blockHash;
         this.target = target;
         this.difficulty = difficulty;
-        this.amount = amount;
+        this.amounts = amounts;
     }
 
-    public String getIndex() {
+    public long getIndex() {
         return this.index;
     }
-    public String getTimeStamp() {
-        return this.timeStamp;
+    public long[] getTimeStamps() {
+        return this.timeStamps;
     }
-    public String getFromAddress() { return this.fromAddress; }
-    public String getToAddress() { return this.toAddress; }
+    public String[] getTxins() { return this.txins; }
+    public String[] getTxouts() { return this.txouts; }
     public String[] getTransactions() {
         return this.txs;
     }
     public String getMerkleRoot() { return this.merkleRoot; }
-    public String getNonce() {
+    public Long getNonce() {
         return this.Nonce;
     }
     public String getPreviousBlockHash() {
@@ -93,9 +90,9 @@ public final class Block {
     public String getTarget() {
         return this.target;
     }
-    public String getDifficulty() { return this.difficulty; }
-    public String getAmount() {
-        return this.amount;
+    public double getDifficulty() { return this.difficulty; }
+    public double[] getAmounts() {
+        return this.amounts;
     }
 
 

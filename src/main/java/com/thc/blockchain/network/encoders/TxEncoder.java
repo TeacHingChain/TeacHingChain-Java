@@ -10,7 +10,7 @@ import javax.websocket.EndpointConfig;
 
 public final class TxEncoder implements Encoder.Text<Tx> {
     @Override
-    public String encode(final Tx tx) throws EncodeException {
+    public String encode(Tx tx) throws EncodeException {
         try {
             return Constants.OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(tx);
         } catch (JsonProcessingException e) {

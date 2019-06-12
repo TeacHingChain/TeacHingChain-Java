@@ -39,7 +39,7 @@ public class GenesisChainServerEndpoint {
                 new BlockChain();
                 BlockChain.blockChain.add(encodedGenesisBlock);
                 mc.writeBlockChain();
-                WalletLogger.logEvent("info", WalletLogger.getLogTimeStamp() + "Genesis block passed validation check!\n");
+                WalletLogger.logEvent("info", WalletLogger.getLogTimeStamp() + " Genesis block passed validation check!\n");
             } else {
                 System.out.println("Genesis block not passing validation!\n");
                 WalletLogger.logEvent("warning", WalletLogger.getLogTimeStamp() + " Genesis block failed validation!\n");
