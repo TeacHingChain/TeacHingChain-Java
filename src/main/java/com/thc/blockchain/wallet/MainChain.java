@@ -29,6 +29,7 @@ import java.security.interfaces.ECPrivateKey;
 import java.security.spec.ECGenParameterSpec;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -160,6 +161,7 @@ public class MainChain {
     }
 
     void calculateBalance() {
+        Sign.SignatureData sigData = null;
         balance = 0;
         try {
             readBlockChain();
@@ -169,13 +171,20 @@ public class MainChain {
                 String[] txs = blockObject.getTransactions();
                 String[] txins = blockObject.getTxins();
                 String[] txouts = blockObject.getTxouts();
-                Sign.SignatureData sigData = signTx(txins[0], txouts[0], calculateTxHashHex(blockObject.getTimeStamps()[0],
-                        txins[0], txouts[0], blockObject.getAmounts()[0]));
+                try {
+                    sigData = signTx(txins[0], txouts[0], calculateTxHashHex(blockObject.getTimeStamps()[0],
+                            txins[0], txouts[0], blockObject.getAmounts()[0]));
+                } catch (NullPointerException npe) {
+                    if (i + 1 < BlockChain.blockChain.size()) {
+                        i += 1;
+                    }
+                }
                 for (String txInput : txins) {
                     if (txInput.startsWith("CB")) {
-                        for (int j = 0; j < KeyRing.keyRing.size(); j++ ) {
-                            if (Sign.signedMessageToKey(txs[0].getBytes(), sigData).toString(16).contentEquals(KeyRing.keyRing.get(j))) {
-                                WalletLogger.logEvent("info", WalletLogger.getLogTimeStamp() + " Mined transaction " + txs[0] + "found!\n"
+                        for (int j = 0; j < KeyRing.keyRing.size(); j++) {
+                            String recoveredKey = Sign.signedMessageToKey(txs[0].getBytes(), sigData).toString(16);
+                            if (recoveredKey.contentEquals(KeyRing.keyRing.get(j))) {
+                                WalletLogger.logEvent("info", WalletLogger.getLogTimeStamp() + " Mined transaction " + txs[0] + " found!\n"
                                         + "Found in block: " + blockObject.getBlockHash() + " at index: "
                                         + blockObject.getIndex() + " amount: " + blockObject.getAmounts()[0] + "\n" + "Recovered key: "
                                         + Sign.signedMessageToKey(txs[0].getBytes(), sigData).toString(16) + " ("
@@ -193,7 +202,6 @@ public class MainChain {
         } catch (SignatureException e) {
             e.printStackTrace();
         }
-
     }
 
     public void writeBlockChain() {
@@ -622,17 +630,21 @@ public class MainChain {
     static Sign.SignatureData signTx(String fromAddress, String toAddress, String txHash) {
         final ECKeyPair[] keyPair = new ECKeyPair[1];
         final byte[][] txHashBytes = new byte[txHash.length()][1];
-        KeyRing.keyRing.forEach(key -> {
-            if (key.length() > 64) {
-                String addressFromPubKey = Base58.encode(SHA256.SHA256HashByteArray(SHA256.SHA256HashByteArray(key.getBytes())));
-                if (fromAddress.contentEquals(addressFromPubKey) || toAddress.contentEquals(addressFromPubKey)) {
-                    int privateKeyIndex = KeyRing.keyRing.indexOf(key) - 1;
-                    keyPair[0] = new ECKeyPair(new BigInteger(KeyRing.keyRing.get(privateKeyIndex), 16),
-                            new BigInteger(KeyRing.keyRing.get(privateKeyIndex + 1), 16));
-                    txHashBytes[0] = Hash.sha3(txHash.getBytes());
+        try {
+            KeyRing.keyRing.forEach(key -> {
+                if (key.length() > 64) {
+                    String addressFromPubKey = Base58.encode(SHA256.SHA256HashByteArray(SHA256.SHA256HashByteArray(key.getBytes())));
+                    if (fromAddress.contentEquals(addressFromPubKey) || toAddress.contentEquals(addressFromPubKey)) {
+                        int privateKeyIndex = KeyRing.keyRing.indexOf(key) - 1;
+                        keyPair[0] = new ECKeyPair(new BigInteger(KeyRing.keyRing.get(privateKeyIndex), 16),
+                                new BigInteger(KeyRing.keyRing.get(privateKeyIndex + 1), 16));
+                        txHashBytes[0] = Hash.sha3(txHash.getBytes());
+                    }
                 }
-            }
-        });
+            });
+        } catch (NullPointerException npe) {
+            System.out.println("Invalid EC Key pair detected!\n");
+        }
         return Sign.signMessage(txHashBytes[0], keyPair[0], false);
     }
 

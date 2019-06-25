@@ -33,6 +33,8 @@ public class UpdateServerEndPoint {
                 String encodedBlock = new BlockEncoder().encode(block);
                 BlockChain.blockChain.add(encodedBlock);
                 mc.writeBlockChain();
+                MainChain.difficulty = block.getDifficulty();
+                MainChain.targetHex = block.getTarget();
             }
         } catch (EncodeException ee) {
             WalletLogger.logException(ee, "severe", WalletLogger.getLogTimeStamp() + " Encode exception occurred during mining operation! See below:\n" + WalletLogger.exceptionStacktraceToString(ee));
