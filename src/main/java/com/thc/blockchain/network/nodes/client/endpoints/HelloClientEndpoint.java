@@ -17,6 +17,7 @@ public class HelloClientEndpoint {
     public void onOpen(Session session) {
         NodeManager.registerNode(session, "hello-client");
         System.out.println("Hello from " + session.getUserProperties().get("id").toString());
+        NodeManager.remove(session);
     }
 
     @OnError
