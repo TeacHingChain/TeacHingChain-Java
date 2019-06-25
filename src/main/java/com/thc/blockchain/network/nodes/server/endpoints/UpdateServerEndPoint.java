@@ -29,8 +29,7 @@ public class UpdateServerEndPoint {
         try {
             mc.readBlockChain();
             System.out.println("Processing block number: " + block.getIndex());
-            boolean verifyIndex = consensus.isBlockOrphan(block.getIndex());
-            if (verifyIndex) {
+            if (consensus.isBlockOrphan(block.getIndex())) {
                 String encodedBlock = new BlockEncoder().encode(block);
                 BlockChain.blockChain.add(encodedBlock);
                 mc.writeBlockChain();
@@ -38,7 +37,6 @@ public class UpdateServerEndPoint {
         } catch (EncodeException ee) {
             WalletLogger.logException(ee, "severe", WalletLogger.getLogTimeStamp() + " Encode exception occurred during mining operation! See below:\n" + WalletLogger.exceptionStacktraceToString(ee));
         }
-        NodeManager.remove(session);
     }
 }
 
