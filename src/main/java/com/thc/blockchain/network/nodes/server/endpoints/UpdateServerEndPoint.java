@@ -33,11 +33,19 @@ public class UpdateServerEndPoint {
                 String encodedBlock = new BlockEncoder().encode(block);
                 BlockChain.blockChain.add(encodedBlock);
                 mc.writeBlockChain();
-                MainChain.difficulty = block.getDifficulty();
-                MainChain.targetHex = block.getTarget();
+                if (BlockChain.blockChain.size() % 5 == 0) {
+                    MainChain.calculateTarget(((new BlockDecoder().decode(BlockChain.blockChain.get(
+                            mc.getIndexOfBlockChain())).getTimeStamps()[0]) - (new BlockDecoder()
+                            .decode(BlockChain.blockChain.get(mc.getIndexOfBlockChain() - 5)).getTimeStamps()[0])) / 1000, MainChain.targetHex);
+                } else {
+                    MainChain.difficulty = block.getDifficulty();
+                    MainChain.targetHex = block.getTarget();
+                }
             }
         } catch (EncodeException ee) {
             WalletLogger.logException(ee, "severe", WalletLogger.getLogTimeStamp() + " Encode exception occurred during mining operation! See below:\n" + WalletLogger.exceptionStacktraceToString(ee));
+        } catch (DecodeException e) {
+            e.printStackTrace();
         }
         NodeManager.remove(session);
         NodeManager.close(session, CloseReason.CloseCodes.NORMAL_CLOSURE, "Closing session...\n");
