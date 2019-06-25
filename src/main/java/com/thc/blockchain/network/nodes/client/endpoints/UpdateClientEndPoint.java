@@ -28,5 +28,6 @@ public class UpdateClientEndPoint {
     @OnMessage
     public void onBlockMessage(Block block, Session session) {
         System.out.println("Processing block number: " + block.getIndex());
+        NodeManager.remove(session);
     }
 }
