@@ -112,14 +112,13 @@ public final class NodeManager {
         NodeManager.session = session;
         try {
             LOCK.lock();
-            NODES.forEach(nodeSession -> {
-                if (!nodeSession.getUserProperties().get("id").toString().contentEquals(id)) {
-                    session.getUserProperties().put("id", id);
-                    NODES.add(session);
-                    setSession(session);
-                }
-            });
-
+            if (!NODES.contains(session)) {
+                session.getUserProperties().put("id", id);
+                NODES.add(session);
+                setSession(session);
+            } else {
+                return NODES.contains(session);
+            }
         } finally {
             LOCK.unlock();
         }
