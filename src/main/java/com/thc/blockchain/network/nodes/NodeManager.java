@@ -26,8 +26,7 @@ public final class NodeManager {
     public static void pushBlock(final Block block, final Session sid) {
         assert !Objects.isNull(block) && !Objects.isNull(sid);
         NODES.forEach(session -> {
-            if (sid.getUserProperties().get("id").toString().contentEquals("update-chain-client") || sid.getUserProperties()
-                    .get("id").toString().contentEquals("update-chain-server") || sid.getUserProperties().get("id").toString()
+            if (sid.getUserProperties().get("id").toString().contentEquals("update-chain-client")  || sid.getUserProperties().get("id").toString()
                     .contentEquals("sync-block-client") || sid.getUserProperties().get("id").toString().contentEquals("sync-block-server")) {
                 try {
                     sid.getBasicRemote().sendObject(block);
@@ -113,13 +112,14 @@ public final class NodeManager {
         NodeManager.session = session;
         try {
             LOCK.lock();
-            if (!NODES.contains(session)) {
-                session.getUserProperties().put("id", id);
-                NODES.add(session);
-                setSession(session);
-            } else {
-                return NODES.contains(session);
-            }
+            NODES.forEach(nodeSession -> {
+                if (!nodeSession.getUserProperties().get("id").toString().contentEquals(id)) {
+                    session.getUserProperties().put("id", id);
+                    NODES.add(session);
+                    setSession(session);
+                }
+            });
+
         } finally {
             LOCK.unlock();
         }
