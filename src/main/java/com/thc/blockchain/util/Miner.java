@@ -99,8 +99,8 @@ public class Miner {
                                 System.out.println("Size: " + BlockChain.blockChain.size());
                                 if (BlockChain.blockChain.size() == 5) {
                                     long deltaT = ((new BlockDecoder().decode(BlockChain.blockChain.get(
-                                           4)).getTimeStamps()[0]) - Long.parseLong(new GenesisBlockDecoder()
-                                            .decode(BlockChain.blockChain.get(0)).getTimeStamp())) / 1000;
+                                           4)).getTimeStamps()[0]) - new GenesisBlockDecoder()
+                                            .decode(BlockChain.blockChain.get(0)).getTimeStamp()) / 1000;
                                     MainChain.calculateTarget(deltaT, MainChain.targetHex);
                                 } else if (BlockChain.blockChain.size() > 5 && BlockChain.blockChain.size() % 5 == 0) {
                                     long deltaT = ((new BlockDecoder().decode(BlockChain.blockChain.get(
@@ -161,16 +161,17 @@ public class Miner {
         long totalHashes = 0;
         double deltaS = 0;
         try {
-            GenesisBlock genesisBlock = new GenesisBlockDecoder().decode(BlockChain.blockChain.get(0));
-            long genesisTime = Long.parseLong(genesisBlock.getTimeStamp());
-            long currentTime = System.currentTimeMillis();
+            Block secondBlock = new BlockDecoder().decode(BlockChain.blockChain.get(1));
+            Block lastBlock = new BlockDecoder().decode(BlockChain.blockChain.get(new MainChain().getIndexOfBlockChain()));
+            long genesisTime = secondBlock.getTimeStamps()[0];
+            long lastBlockTime = lastBlock.getTimeStamps()[0];
             for (int i = 1; i < BlockChain.blockChain.size(); i++) {
                 Block decodedBlock = new BlockDecoder().decode(BlockChain.blockChain.get(i));
                 long parsedNonce  = (decodedBlock.getNonce());
                 totalHashes += parsedNonce;
             }
-            System.out.println("Genesis time: " + genesisTime + " current time: " + currentTime + " total hashes: " + totalHashes);
-            deltaS = (currentTime - genesisTime) / 1000;
+            System.out.println("2nd block time: " + genesisTime + " most recent block time: " + lastBlockTime + " total hashes: " + totalHashes);
+            deltaS = (lastBlockTime - genesisTime) / 1000;
             System.out.println("delta s: " + deltaS);
         } catch (DecodeException de) {
             WalletLogger.logException(de, "severe", WalletLogger.getLogTimeStamp()

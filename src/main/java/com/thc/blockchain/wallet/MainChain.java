@@ -12,6 +12,10 @@ import com.thc.blockchain.util.Miner;
 import com.thc.blockchain.util.WalletLogger;
 import com.thc.blockchain.util.addresses.AddressBook;
 import com.thc.blockchain.util.addresses.Base58;
+import org.web3j.crypto.ECKeyPair;
+import org.web3j.crypto.Hash;
+import org.web3j.crypto.Sign;
+
 import javax.websocket.DecodeException;
 import javax.websocket.EncodeException;
 import java.io.*;
@@ -20,9 +24,13 @@ import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.security.*;
+import java.security.interfaces.ECPrivateKey;
+import java.security.spec.ECGenParameterSpec;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Properties;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class MainChain {
 
@@ -35,7 +43,7 @@ public class MainChain {
 
     public MainChain() {}
 
-    void writeTxPool(long timeStamp, String fromAddress, String toAddress, double amount, String txHash) {
+    private void writeTxPool(long timeStamp, String fromAddress, String toAddress, double amount, String txHash) {
         String configPath;
         try {
             if (Constants.BASEDIR.contains("apache-tomcat-8.5.23")) {
@@ -48,7 +56,7 @@ public class MainChain {
             File tempFile = new File(configProps.getProperty("datadir") + "/tx-pool.dat");
             if (!tempFile.exists()) {
                 new TxPoolArray();
-                Tx tx = new Tx(timeStamp, fromAddress, toAddress, amount, txHash);
+                Tx tx = new Tx(timeStamp, fromAddress, toAddress, amount, txHash, signTx(fromAddress, toAddress, txHash));
                 try {
                     String txPoolTX = new TxEncoder().encode(tx);
                     TxPoolArray.TxPool.add(txPoolTX);
@@ -61,7 +69,7 @@ public class MainChain {
                             + " Failed to encode tx! See details below:\n" + WalletLogger.exceptionStacktraceToString(ee));
                 }
             } else {
-                Tx tx = new Tx(timeStamp, fromAddress, toAddress, amount, txHash);
+                Tx tx = new Tx(timeStamp, fromAddress, toAddress, amount, txHash, signTx(fromAddress, toAddress, txHash));
                 try {
                     String txPoolTX = new TxEncoder().encode(tx);
                     TxPoolArray.TxPool.add(txPoolTX);
@@ -161,59 +169,13 @@ public class MainChain {
                 String[] txs = blockObject.getTransactions();
                 String[] txins = blockObject.getTxins();
                 String[] txouts = blockObject.getTxouts();
-                for (Object addressObj : AddressBook.addressBook) {
-                    address = addressObj.toString();
-                    if (txins[0].contentEquals(address)) {
-                        for (Object o : KeyRing.keyRing) {
-                            privKey = o.toString();
-                            if (MainChain.getHex(Base58.decode(txins[0])).contentEquals(MainChain.getHex(
-                                    SHA256.SHA256HashByteArray(SHA256.SHA256HashByteArray(privKey.getBytes()))))) {
-                                String txHash = txs[txs.length - 1];
-                                String blockHash = blockObject.getBlockHash();
-                                WalletLogger.logEvent("info", "Found sent transaction: \n" + txHash
-                                        + "\n corresponding block: \n" + blockHash);
-                                double amount = (blockObject.getAmounts()[0]);
-                                balance -= amount;
-                            }
-                        }
-                    } else if (txouts[0].contentEquals(address) && txins[0].contentEquals(Constants.CB_ADDRESS)) {
-                        for (Object o : KeyRing.keyRing) {
-                            privKey = o.toString();
-                            if (MainChain.getHex(Base58.decode(txouts[0])).contentEquals(MainChain.getHex(
-                                    SHA256.SHA256HashByteArray(SHA256.SHA256HashByteArray(privKey.getBytes()))))) {
-                                String txHash = txs[txs.length - 1];
-                                String blockHash = blockObject.getBlockHash();
-                                WalletLogger.logEvent("info", "Found received transaction: \n" + txHash
-                                        + "\n corresponding block: \n" + blockHash);
-                                double amount = (blockObject.getAmounts()[0]);
-                                balance += amount;
-                            }
-                        }
-                    } else if (txouts[0].contentEquals(Constants.CB_ADDRESS) && txins[0].contentEquals(address)) {
-                        for (Object o : KeyRing.keyRing) {
-                            privKey = o.toString();
-                            if (MainChain.getHex(Base58.decode(txouts[0])).contentEquals(MainChain.getHex(
-                                    SHA256.SHA256HashByteArray(SHA256.SHA256HashByteArray(privKey.getBytes()))))) {
-                                String txHash = txs[txs.length - 1];
-                                String blockHash = blockObject.getBlockHash();
-                                WalletLogger.logEvent("info", "Found mined transaction: \n" + txHash
-                                        + "\n corresponding block: \n" + blockHash);
-                                double amount = (blockObject.getAmounts()[0]);
-                                balance += amount;
-                            }
-                        }
-                    }
-                }
             }
         } catch (DecodeException de) {
             WalletLogger.logException(de, "warning", WalletLogger.getLogTimeStamp()
                     + " Failed to decode block fetching chain.dat! See below:\n"
                     + WalletLogger.exceptionStacktraceToString(de));
-        } catch (Base58.AddressFormatException afe) {
-            WalletLogger.logException(afe, "warning", WalletLogger.getLogTimeStamp()
-                    + " An error occurred trying to decode an address! See details below:\n"
-                    + WalletLogger.exceptionStacktraceToString(afe));
         }
+
     }
 
     public void writeBlockChain() {
@@ -247,10 +209,6 @@ public class MainChain {
         return BlockChain.blockChain.get(index);
     }
 
-    long getUnixTimestamp() {
-        return System.currentTimeMillis();
-    }
-
     private String readPrivateKey(String path) {
         try {
             byte[] encoded = Files.readAllBytes(Paths.get(path));
@@ -263,7 +221,7 @@ public class MainChain {
     return privKey;
     }
 
-    public void generatePrivateKey() {
+    public void generateKeyPair() {
         String configPath;
         if (Constants.BASEDIR.contains("apache-tomcat-8.5.23")) {
             configPath = Constants.BASEDIR + "/../../config/config.properties";
@@ -271,64 +229,94 @@ public class MainChain {
             configPath = Constants.BASEDIR + "/config/config.properties";
         }
         Properties configProps = new Properties();
+        KeyPairGenerator keyGen;
         try {
             configProps.load(new FileInputStream(configPath));
-            Runtime rt = Runtime.getRuntime();
-            String[] commands = {configProps.getProperty("datadir") + "/keygen.sh"};
-            Process proc = rt.exec(commands);
-            BufferedReader stdInput = new BufferedReader(new InputStreamReader(proc.getInputStream()));
-            BufferedReader stdError = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
-            System.out.println("Command output: \n");
-            String s;
-            while ((s = stdInput.readLine()) != null) {
-                System.out.println(s);
-            }
-            while ((s = stdError.readLine()) != null) {
-                System.out.println(s);
-            }
-            privKey = readPrivateKey(configProps.getProperty("datadir") + "/THC_PRIVATE_KEY");
+            keyGen = KeyPairGenerator.getInstance("EC");
+            ECGenParameterSpec ecSpec = new ECGenParameterSpec("secp256k1");
+            keyGen.initialize(ecSpec);
+            KeyPair kp = keyGen.generateKeyPair();
+            PrivateKey privKey = kp.getPrivate();
+            ECPrivateKey ecPrivKey = (ECPrivateKey) privKey;
+            String ecPrivKeyAsString = new Miner().leftPad(ecPrivKey.getS().toString(16), 64, '0');
+            BigInteger ecPubKey = Sign.publicKeyFromPrivate(new BigInteger(ecPrivKeyAsString, 16));
+            String ecPubKeyAsString = ecPubKey.toString(16);
+            KeyRing.keyRing.add(ecPrivKeyAsString);
+            KeyRing.keyRing.add(ecPubKeyAsString);
+            FileOutputStream fos = new FileOutputStream(configProps.getProperty("datadir") + "/keyring.dat");
+            ObjectOutputStream oos = new ObjectOutputStream(fos);
+            oos.writeObject(KeyRing.keyRing);
+            oos.close();
+            fos.close();
+        } catch (NoSuchAlgorithmException e) {
+            WalletLogger.logException(e, "severe", WalletLogger.getLogTimeStamp()
+                    + " No such algo exception occurred while writing to key ring! See below:\n"
+                    + WalletLogger.exceptionStacktraceToString(e));
+        } catch (FileNotFoundException fnfe) {
+            WalletLogger.logException(fnfe, "severe", WalletLogger.getLogTimeStamp()
+                    + " File not found exception occurred while writing to keyring! See below:\n"
+                    + WalletLogger.exceptionStacktraceToString(fnfe));
         } catch (IOException ioe) {
             WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp()
-                    + " IO exception occurred while generating private key! See below:\n"
+                    + " IO exception occurred while writing to key ring! See below:\n"
                     + WalletLogger.exceptionStacktraceToString(ioe));
-        }
-        File keyRingFile = new File( configProps.getProperty("datadir") + "/keyring.dat");
-        if (!keyRingFile.exists()) {
-            new KeyRing();
-            try {
-                KeyRing.keyRing.add(privKey);
-                FileOutputStream fos = new FileOutputStream(configProps.getProperty("datadir") + "/keyring.dat");
-                ObjectOutputStream oos = new ObjectOutputStream(fos);
-                oos.writeObject(KeyRing.keyRing);
-                oos.close();
-                fos.close();
-            } catch (IOException ioe) {
-                WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp()
-                        + " IO exception occurred while writing to keyring! See below:\n"
-                        + WalletLogger.exceptionStacktraceToString(ioe));
-            }
-        } else {
-            KeyRing.keyRing.add(privKey);
-            try {
-                configProps.load(new FileInputStream(configPath));
-                FileOutputStream fos = new FileOutputStream(configProps.getProperty("datadir") + "/keyring.dat");
-                ObjectOutputStream oos = new ObjectOutputStream(fos);
-                oos.writeObject(KeyRing.keyRing);
-                oos.close();
-                fos.close();
-            } catch (IOException ioe) {
-                WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp()
-                        + " IO exception occurred while writing to keyring! See below:\n"
-                        + WalletLogger.exceptionStacktraceToString(ioe));
-            }
+        } catch (InvalidAlgorithmParameterException iape) {
+            WalletLogger.logException(iape, "severe", WalletLogger.getLogTimeStamp()
+                    + " Invalid algo parameter exception occurred while writing to key ring! See below:\n"
+                    + WalletLogger.exceptionStacktraceToString(iape));
         }
     }
 
-    public String generateAddress(int keyIndex){
-        byte[] hashedPrivKeyBytes = SHA256.SHA256HashByteArray(SHA256.SHA256HashByteArray(KeyRing.keyRing.get(keyIndex).getBytes()));
-        address = Base58.encode(hashedPrivKeyBytes);
-        addToAddressBook(address);
+    public String generateCBPubKey() {
+        BigInteger ecPubKey = null;
+        try {
+            KeyPairGenerator keyGen;
+            keyGen = KeyPairGenerator.getInstance("EC");
+            ECGenParameterSpec ecSpec = new ECGenParameterSpec("secp256k1");
+            keyGen.initialize(ecSpec);
+            KeyPair kp = keyGen.generateKeyPair();
+            PrivateKey privKey = kp.getPrivate();
+            ECPrivateKey ecPrivKey = (ECPrivateKey) privKey;
+            String ecPrivKeyAsString = new Miner().leftPad(ecPrivKey.getS().toString(16), 64, '0');
+            ecPubKey = Sign.publicKeyFromPrivate(new BigInteger(ecPrivKeyAsString, 16));
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        } catch (InvalidAlgorithmParameterException e) {
+            e.printStackTrace();
+        }
+        return ecPubKey.toString(16);
+    }
+
+    public String generateAddress(int keyIndex) {
+        if (KeyRing.keyRing.get(keyIndex).length() > 64) {
+            String pubKey = KeyRing.keyRing.get(keyIndex);
+            byte[] hashedPubKey = SHA256.SHA256HashByteArray(SHA256.SHA256HashByteArray(pubKey.getBytes()));
+            address = Base58.encode(hashedPubKey);
+            addToAddressBook(address);
+        } else {
+            try {
+                throw new Base58.AddressFormatException("Error! Attempted to generate address using private key! Please use a public key!\n");
+            } catch (Base58.AddressFormatException e) {
+                WalletLogger.logException(e, "warning", WalletLogger.getLogTimeStamp() + " Address format exception occurred whilst" +
+                        " generating an address, see below:\n" + WalletLogger.exceptionStacktraceToString(e));
+            }
+        }
         return address;
+    }
+
+    public String generateCBAddress(String cbPubKey) {
+        if (cbPubKey.length() > 64) {
+            byte[] hashedPubKey = SHA256.SHA256HashByteArray(SHA256.SHA256HashByteArray(cbPubKey.getBytes()));
+            address = Base58.encode(hashedPubKey);
+        } else {
+            try {
+                throw new Base58.AddressFormatException("Error! Attempted to generate address using private key! Please use a public key!\n");
+            } catch (Base58.AddressFormatException e) {
+                WalletLogger.logException(e, "warning", WalletLogger.getLogTimeStamp() + " Address format exception occurred whilst" +
+                        " generating an address, see below:\n" + WalletLogger.exceptionStacktraceToString(e));
+            }
+        }
+        return "CB" + address;
     }
 
     private void addToAddressBook(String address) {
@@ -425,10 +413,12 @@ public class MainChain {
             configProps.load(new FileInputStream(configPath));
             File keyRingFile = new File(configProps.getProperty("datadir") + "/keyring.dat");
             if (!keyRingFile.exists()) {
-                new KeyRing();
                 FileOutputStream fos = new FileOutputStream(configProps.getProperty("datadir") + "/keyring.dat");
                 ObjectOutputStream oos = new ObjectOutputStream(fos);
+                new KeyRing();
                 oos.writeObject(KeyRing.keyRing);
+                fos.close();
+                oos.close();
             } else {
                 FileInputStream fis = new FileInputStream(configProps.getProperty("datadir") + "/keyring.dat");
                 ObjectInputStream ois = new ObjectInputStream(fis);
@@ -452,9 +442,7 @@ public class MainChain {
     }
 
     void sendTx(long timeStamp, String fromAddress, String toAddress, double amount) {
-        byte[] txHashBytes = MainChain.swapEndianness(MainChain.hexStringToByteArray(MainChain.getHex(
-                (fromAddress + toAddress + amount).getBytes())));
-        String txHash = MainChain.getHex(SHA256.SHA256HashByteArray(SHA256.SHA256HashByteArray(txHashBytes)));
+        String txHash = MainChain.calculateTxHashHex(timeStamp, fromAddress, toAddress, amount);
         writeTxPool(timeStamp, fromAddress, toAddress, amount, txHash);
     }
 
@@ -530,6 +518,7 @@ public class MainChain {
         System.out.println("Difficulty: \n" + difficulty);
     }
 
+    // maybe use bitwise ops in some of the target adjustment vs. big decimal arithmetic?
     public static void calculateTarget(long deltaT, String previousTarget) {
         double adjustmentFactor;
         BigDecimal targetAsBigDec;
@@ -544,61 +533,93 @@ public class MainChain {
         } else if (BlockChain.blockChain.size() % 5 == 0) {
             targetAsBigDec = new BigDecimal(new BigInteger(previousTarget, 16));
             if (deltaT < Constants.TARGET_WINDOW_DURATION) {
-                BigDecimal deltaTargetTime = new BigDecimal(String.valueOf(Constants.TARGET_WINDOW_DURATION - deltaT));
+                BigDecimal deltaTAsBigDec = new BigDecimal(String.valueOf(deltaT));
                 BigDecimal targetWindow = new BigDecimal(String.valueOf(Constants.TARGET_WINDOW_DURATION));
-                adjustmentFactor = (deltaTargetTime.multiply(new BigDecimal(String.valueOf(1 / targetWindow.doubleValue()))).doubleValue());
-                if (adjustmentFactor > 1.5) {
-                    System.out.println("Capped adjustment factor at 1.5, " + "actual was: " + adjustmentFactor);
-                    adjustmentFactor = 1.5;
+                adjustmentFactor = (deltaTAsBigDec.multiply(new BigDecimal(String.valueOf(1 / targetWindow.doubleValue()))).doubleValue());
+                if (adjustmentFactor < 0.5) {
+                    adjustmentFactor = (deltaTAsBigDec.multiply(new BigDecimal(String.valueOf(1 / targetWindow.doubleValue()))).doubleValue() * 2);
+                }
+                if (adjustmentFactor > 2.5) {
+                    System.out.println("Capped adjustment factor at 2.5, " + "actual was: " + adjustmentFactor);
+                    adjustmentFactor = 2.5;
                 }
                 System.out.println("Delta time: " + deltaT);
-                System.out.println("Delta target time: " + deltaTargetTime);
                 System.out.println("Adjustment factor: " + adjustmentFactor);
-                if (adjustmentFactor < 1) {
-                    targetAsBigDec = targetAsBigDec.multiply(new BigDecimal(String.valueOf(1 - adjustmentFactor)));
-                    setTargetHex(getHex(targetAsBigDec.toBigInteger().toByteArray()));
-                } else {
-                    targetAsBigDec = targetAsBigDec.multiply(new BigDecimal(String.valueOf(adjustmentFactor - 1)));
-                    setTargetHex(getHex(targetAsBigDec.toBigInteger().toByteArray()));
-                }
+                targetAsBigDec = targetAsBigDec.multiply(new BigDecimal(String.valueOf(adjustmentFactor)));
+                setTargetHex(getHex(targetAsBigDec.toBigInteger().toByteArray()));
                 if (MainChain.targetHex.length() < 64) {
                     MainChain.targetHex = new Miner().leftPad(MainChain.targetHex, 64, '0');
                     System.out.println("New target hex: " + MainChain.targetHex);
                 }
-                MainChain.difficulty += adjustmentFactor;
+                MainChain.difficulty += 1 - adjustmentFactor;
             } else if (deltaT > Constants.TARGET_WINDOW_DURATION) {
-                BigDecimal deltaTargetTime = new BigDecimal(String.valueOf(deltaT - Constants.TARGET_WINDOW_DURATION));
+                BigDecimal deltaTAsBigDec = new BigDecimal(String.valueOf(deltaT));
                 BigDecimal targetWindow = new BigDecimal(String.valueOf(Constants.TARGET_WINDOW_DURATION));
-                adjustmentFactor = (deltaTargetTime.multiply(new BigDecimal(String.valueOf(1 / targetWindow.doubleValue()))).doubleValue());
-                if (adjustmentFactor > 1.5) {
-                    System.out.println("Capped adjustment factor at 1.5, " + "actual was: " + adjustmentFactor);
-                    adjustmentFactor = 1.5;
+                adjustmentFactor = (deltaTAsBigDec.multiply(new BigDecimal(String.valueOf(1 / targetWindow.doubleValue()))).doubleValue());
+                if (adjustmentFactor > 2.5) {
+                    System.out.println("Capped adjustment factor at 2.5, " + "actual was: " + adjustmentFactor);
+                    adjustmentFactor = 2.5;
                 }
                 System.out.println("Delta time: " + deltaT);
-                System.out.println("Delta target time: " + deltaTargetTime);
                 System.out.println("Adjustment factor: " + adjustmentFactor);
-                if (adjustmentFactor < 1) {
-                    targetAsBigDec = targetAsBigDec.multiply(new BigDecimal(String.valueOf(1 / (1 - adjustmentFactor))));
-                    setTargetHex(getHex(targetAsBigDec.toBigInteger().toByteArray()));
-                } else {
-                    targetAsBigDec = targetAsBigDec.multiply(new BigDecimal(String.valueOf(1 / (adjustmentFactor - 1))));
-                    setTargetHex(getHex(targetAsBigDec.toBigInteger().toByteArray()));
-                }
+                targetAsBigDec = targetAsBigDec.multiply(new BigDecimal(String.valueOf(adjustmentFactor)));
+                setTargetHex(getHex(targetAsBigDec.toBigInteger().toByteArray()));
                 System.out.println("New target as big dec: " + targetAsBigDec);
-                if (MainChain.targetHex.length() < 64) {
-                    MainChain.targetHex = new Miner().leftPad(MainChain.targetHex, 64, '0');
-                    System.out.println("New target hex: " + MainChain.targetHex);
-                }
                 if (MainChain.difficulty - adjustmentFactor < 1) {
                     MainChain.difficulty = 1;
                     targetAsBigDec = new BigDecimal(new BigInteger(Constants.GENESIS_TARGET, 16));
                     setTargetHex(getHex(targetAsBigDec.toBigInteger().toByteArray()));
                 } else {
-                    MainChain.difficulty -= adjustmentFactor;
-                    setTargetHex(getHex(targetAsBigDec.toBigInteger().toByteArray()));
+                    if (adjustmentFactor > 1) {
+                        MainChain.difficulty -= adjustmentFactor - 1;
+                    } else {
+                        MainChain.difficulty -= 1 - adjustmentFactor;
+                        setTargetHex(getHex(targetAsBigDec.toBigInteger().toByteArray()));
+                    }
+                }
+                if (MainChain.targetHex.length() < 64) {
+                    MainChain.targetHex = new Miner().leftPad(MainChain.targetHex, 64, '0');
+                    System.out.println("New target hex: " + MainChain.targetHex);
                 }
             }
         }
+    }
+
+    static String calculateTxHashHex(long timeStamp, String fromAddress, String toAddress, double amount) {
+        AtomicReference<String> txHash = new AtomicReference<>();
+        String txValueHash =  (MainChain.getHex(SHA256.SHA256HashByteArray(SHA256.SHA256HashByteArray(MainChain.swapEndianness((
+                timeStamp + fromAddress + toAddress + amount).getBytes())))));
+        KeyRing.keyRing.forEach(key -> {
+            if (key.length() > 64) {
+                String addressFromPubKey = Base58.encode(SHA256.SHA256HashByteArray(SHA256.SHA256HashByteArray(key.getBytes())));
+                if (fromAddress.contentEquals(addressFromPubKey) || toAddress.contentEquals(addressFromPubKey)) {
+                    byte[] txHashBytes = Hash.sha3(txValueHash.getBytes());
+                    txHash.set(MainChain.getHex(txHashBytes));
+                }
+            }
+        });
+        return String.valueOf(txHash);
+    }
+
+    static Sign.SignatureData signTx(String fromAddress, String toAddress, String txHash) {
+        final ECKeyPair[] keyPair = new ECKeyPair[1];
+        final byte[][] txHashBytes = new byte[txHash.length()][1];
+        KeyRing.keyRing.forEach(key -> {
+            if (key.length() > 64) {
+                String addressFromPubKey = Base58.encode(SHA256.SHA256HashByteArray(SHA256.SHA256HashByteArray(key.getBytes())));
+                if (fromAddress.contentEquals(addressFromPubKey) || toAddress.contentEquals(addressFromPubKey)) {
+                    int privateKeyIndex = KeyRing.keyRing.indexOf(key) - 1;
+                    keyPair[0] = new ECKeyPair(new BigInteger(KeyRing.keyRing.get(privateKeyIndex), 16),
+                            new BigInteger(KeyRing.keyRing.get(privateKeyIndex + 1), 16));
+                    txHashBytes[0] = Hash.sha3(txHash.getBytes());
+                }
+            }
+        });
+        return Sign.signMessage(txHashBytes[0], keyPair[0], false);
+    }
+
+    static double calculateTxFee(double amount) {
+        return (amount * Constants.TX_FEE);
     }
 
     static String getTargetHex() {
@@ -635,6 +656,9 @@ public class MainChain {
         return hex.toString();
     }
     public static String calculateMerkleRoot(String[] txs) {
+        if (txs.length == 1) {
+            return (txs[0]);
+        }
         String merkleRoot = null;
         if (txs.length == 2) {
             byte[] txABytes = (MainChain.swapEndianness(MainChain.hexStringToByteArray(txs[0])));

@@ -98,7 +98,7 @@ public class Base58 {
     }
 
     public static class AddressFormatException extends Exception {
-        AddressFormatException(String msg) {
+        public AddressFormatException(String msg) {
             System.out.println(msg);
         }
     }

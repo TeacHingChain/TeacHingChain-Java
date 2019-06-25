@@ -5,7 +5,7 @@ import java.util.List;
 
 public class KeyRing {
 
-    KeyRing() { initKeyRing();}
+    public KeyRing() { initKeyRing();}
 
     public static List<String> keyRing;
 

@@ -2,7 +2,6 @@ package com.thc.blockchain.network.objects;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.Objects;
 
 public final class Block {
@@ -20,7 +19,7 @@ public final class Block {
     @JsonProperty ("merkle root")
     private final String merkleRoot;
     @JsonProperty("nonce")
-    private final long Nonce;
+    private final long nonce;
     @JsonProperty("previous block hash")
     private final String previousBlockHash;
     @JsonProperty("algo")
@@ -38,7 +37,7 @@ public final class Block {
     public Block(@JsonProperty("index") long index, @JsonProperty("time stamps") long[] timeStamps,
                  @JsonProperty("tx inputs") String[] txins, @JsonProperty("tx outputs") String[] txouts,
                  @JsonProperty("transactions") String[] txs, @JsonProperty("merkle root") String merkleRoot,
-                 @JsonProperty("nonce") Long Nonce, @JsonProperty("previous block hash") String previousBlockHash,
+                 @JsonProperty("nonce") long nonce, @JsonProperty("previous block hash") String previousBlockHash,
                  @JsonProperty("algo") String algo, @JsonProperty("block hash") String blockHash,
                  @JsonProperty("target") String target, @JsonProperty("difficulty") double difficulty, @JsonProperty("amounts") double[] amounts) {
         Objects.requireNonNull(timeStamps);
@@ -46,7 +45,6 @@ public final class Block {
         Objects.requireNonNull(txouts);
         Objects.requireNonNull(txs);
         Objects.requireNonNull(merkleRoot);
-        Objects.requireNonNull(Nonce);
         Objects.requireNonNull(previousBlockHash);
         Objects.requireNonNull(algo);
         Objects.requireNonNull(blockHash);
@@ -58,7 +56,7 @@ public final class Block {
         this.txouts = txouts;
         this.txs = txs;
         this.merkleRoot = merkleRoot;
-        this.Nonce = Nonce;
+        this.nonce = nonce;
         this.previousBlockHash = previousBlockHash;
         this.algo = algo;
         this.blockHash = blockHash;
@@ -80,7 +78,7 @@ public final class Block {
     }
     public String getMerkleRoot() { return this.merkleRoot; }
     public Long getNonce() {
-        return this.Nonce;
+        return this.nonce;
     }
     public String getPreviousBlockHash() {
         return this.previousBlockHash;
@@ -94,7 +92,4 @@ public final class Block {
     public double[] getAmounts() {
         return this.amounts;
     }
-
-
-
 }

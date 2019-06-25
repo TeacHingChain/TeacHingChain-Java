@@ -2,15 +2,14 @@ package com.thc.blockchain.network.objects;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.Objects;
 
 public final class GenesisBlock {
 
     @JsonProperty("index")
-    private final String index;
+    private final long index;
     @JsonProperty("time stamp")
-    private final String timeStamp;
+    private final long timeStamp;
     @JsonProperty("pszTimestamp")
     private final String pszTimestamp;
     @JsonProperty("from address")
@@ -22,7 +21,7 @@ public final class GenesisBlock {
     @JsonProperty ("merkle root")
     private final String merkleRoot;
     @JsonProperty("nonce")
-    private final String Nonce;
+    private final long nonce;
     @JsonProperty("previous block hash")
     private final String previousBlockHash;
     @JsonProperty("algo")
@@ -32,32 +31,27 @@ public final class GenesisBlock {
     @JsonProperty("target")
     private final String target;
     @JsonProperty("difficulty")
-    private final String difficulty;
+    private final double difficulty;
     @JsonProperty("amount")
-    private final String amount;
+    private final double amount;
     
     @JsonCreator
-    public GenesisBlock(@JsonProperty("index") String index, @JsonProperty("time stamp") String timeStamp,
+    public GenesisBlock(@JsonProperty("index") long index, @JsonProperty("time stamp") long timeStamp,
                         @JsonProperty("pszTimestamp") String pszTimestamp, @JsonProperty("from address") String fromAddress,
                         @JsonProperty("to address") String toAddress, @JsonProperty("tx hash") String txHash,
-                        @JsonProperty("merkle root") String merkleRoot, @JsonProperty("nonce") String Nonce,
+                        @JsonProperty("merkle root") String merkleRoot, @JsonProperty("nonce") long nonce,
                         @JsonProperty("previous block hash") String previousBlockHash, @JsonProperty("algo") String algo,
                         @JsonProperty("block hash") String blockHash, @JsonProperty("target") String target,
-                        @JsonProperty("difficulty") String difficulty, @JsonProperty("amount") String amount) {
-        Objects.requireNonNull(index);
-        Objects.requireNonNull(timeStamp);
+                        @JsonProperty("difficulty") double difficulty, @JsonProperty("amount") double amount) {
         Objects.requireNonNull(pszTimestamp);
         Objects.requireNonNull(fromAddress);
         Objects.requireNonNull(toAddress);
         Objects.requireNonNull(txHash);
         Objects.requireNonNull(merkleRoot);
-        Objects.requireNonNull(Nonce);
         Objects.requireNonNull(previousBlockHash);
         Objects.requireNonNull(algo);
         Objects.requireNonNull(blockHash);
         Objects.requireNonNull(target);
-        Objects.requireNonNull(difficulty);
-        Objects.requireNonNull(amount);
         this.index = index;
         this.timeStamp = timeStamp;
         this.pszTimestamp = pszTimestamp;
@@ -65,7 +59,7 @@ public final class GenesisBlock {
         this.toAddress = toAddress;
         this.txHash = txHash;
         this.merkleRoot = merkleRoot;
-        this.Nonce = Nonce;
+        this.nonce = nonce;
         this.previousBlockHash = previousBlockHash;
         this.algo = algo;
         this.blockHash = blockHash;
@@ -74,10 +68,10 @@ public final class GenesisBlock {
         this.amount = amount;
     }
 
-    public String getIndex() {
+    public long getIndex() {
         return this.index;
     }
-    public String getTimeStamp() {
+    public long getTimeStamp() {
         return this.timeStamp;
     }
     public String getPszTimestamp() {
@@ -86,15 +80,17 @@ public final class GenesisBlock {
     public String getFromAddress() {
         return this.fromAddress;
     }
-    public String getToAddress() { return this.toAddress; }
+    public String getToAddress() {
+        return this.toAddress;
+    }
     public String getTxHash() {
         return this.txHash;
     }
     public String getMerkleRoot() {
         return this.merkleRoot;
     }
-    public String getNonce() {
-        return this.Nonce;
+    public long getNonce() {
+        return this.nonce;
     }
     public String getPreviousBlockHash() {
         return this.previousBlockHash;
@@ -102,12 +98,16 @@ public final class GenesisBlock {
     public String getAlgo() {
         return this.algo;
     }
-    public String getBlockHash() { return this.blockHash; }
+    public String getBlockHash() {
+        return this.blockHash;
+    }
     public String getTarget() {
         return this.target;
     }
-    public String getDifficulty() { return this.difficulty; }
-    public String getAmount() {
+    public double getDifficulty() {
+        return this.difficulty;
+    }
+    public double getAmount() {
         return this.amount;
     }
 }

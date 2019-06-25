@@ -3,7 +3,6 @@ package com.thc.blockchain.network.nodes;
 import com.thc.blockchain.network.nodes.client.endpoints.*;
 import com.thc.blockchain.util.NetworkConfigFields;
 import com.thc.blockchain.util.WalletLogger;
-
 import javax.websocket.ContainerProvider;
 import javax.websocket.DeploymentException;
 import javax.websocket.WebSocketContainer;
@@ -11,8 +10,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-
-import static com.thc.blockchain.network.Constants.GENESIS_NODE_FQN;
+import static com.thc.blockchain.network.Constants.*;
 
 public final class EndpointManager {
 

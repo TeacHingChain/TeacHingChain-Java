@@ -5,12 +5,12 @@ import com.thc.blockchain.network.Constants;
 import com.thc.blockchain.network.decoders.GenesisBlockDecoder;
 import com.thc.blockchain.network.encoders.GenesisBlockEncoder;
 import com.thc.blockchain.network.nodes.NodeManager;
-import com.thc.blockchain.network.nodes.client.endpoints.GenesisChainClientEndpoint;
 import com.thc.blockchain.network.objects.GenesisBlock;
 import com.thc.blockchain.util.WalletLogger;
 import com.thc.blockchain.wallet.BlockChain;
 import com.thc.blockchain.wallet.KeyRing;
 import com.thc.blockchain.wallet.MainChain;
+import org.web3j.crypto.ECKeyPair;
 
 import javax.websocket.EncodeException;
 import javax.websocket.OnMessage;
@@ -52,15 +52,16 @@ public class GenesisChainServerEndpoint {
     }
 
     public void initChain() {
-        mc.generatePrivateKey();
-        System.out.println("Generated private key: " + KeyRing.keyRing.get(0) + " Generated address: " +  mc.generateAddress(0));
+        new KeyRing();
+        mc.generateKeyPair();
+        System.out.println("Generated private key: " + KeyRing.keyRing.get(0) + " Generated address: " +  mc.generateAddress(1));
     }
 
     private static boolean validateGenesisBlock(GenesisBlock genesisBlock) {
-        byte[] genesisHeaderBytes = MainChain.swapEndianness((Long.parseLong(genesisBlock.getIndex()) + Long.parseLong(genesisBlock.getTimeStamp())
+        byte[] genesisHeaderBytes = MainChain.swapEndianness((genesisBlock.getIndex() + genesisBlock.getTimeStamp()
                 + genesisBlock.getPszTimestamp() + genesisBlock.getFromAddress() + genesisBlock.getToAddress() + genesisBlock.getTxHash()
-                + genesisBlock.getMerkleRoot() + Long.parseLong(genesisBlock.getNonce()) + genesisBlock.getPreviousBlockHash() + genesisBlock.getAlgo()
-                + genesisBlock.getTarget() + Double.parseDouble(genesisBlock.getDifficulty()) + Float.parseFloat(genesisBlock.getAmount())).getBytes());
+                + genesisBlock.getMerkleRoot() + genesisBlock.getNonce() + genesisBlock.getPreviousBlockHash() + genesisBlock.getAlgo()
+                + genesisBlock.getTarget() + genesisBlock.getDifficulty() + genesisBlock.getAmount()).getBytes());
         String hashedGenesisBytes = MainChain.getHex(SHA256.SHA256HashByteArray(SHA256.SHA256HashByteArray(genesisHeaderBytes)));
         return hashedGenesisBytes.contentEquals(Constants.GENESIS_HASH);
     }

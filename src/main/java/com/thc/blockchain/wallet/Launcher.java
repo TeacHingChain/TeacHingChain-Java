@@ -5,7 +5,6 @@ import com.thc.blockchain.consensus.Consensus;
 import com.thc.blockchain.network.Constants;
 import com.thc.blockchain.network.decoders.BlockDecoder;
 import com.thc.blockchain.network.decoders.GenesisBlockDecoder;
-import com.thc.blockchain.network.decoders.TxDecoder;
 import com.thc.blockchain.network.nodes.EndpointManager;
 import com.thc.blockchain.network.nodes.NodeManager;
 import com.thc.blockchain.network.nodes.server.endpoints.GenesisChainServerEndpoint;
@@ -14,12 +13,21 @@ import com.thc.blockchain.network.objects.Tx;
 import com.thc.blockchain.util.Miner;
 import com.thc.blockchain.util.WalletLogger;
 import com.thc.blockchain.util.addresses.AddressBook;
+import org.web3j.crypto.ECKeyPair;
+import org.web3j.crypto.Hash;
+import org.web3j.crypto.Sign;
 
 import javax.websocket.DecodeException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.*;
+import java.math.BigInteger;
+import java.security.*;
+import java.security.interfaces.ECPrivateKey;
+import java.security.spec.ECGenParameterSpec;
+import java.util.Properties;
+import java.util.Random;
+import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 
 class Launcher {
@@ -60,7 +68,7 @@ class Launcher {
                 } else {
                     mc.readTxPool();
                     MainChain.setTargetHex(new GenesisBlockDecoder().decode(BlockChain.blockChain.get(0)).getTarget());
-                    MainChain.difficulty = Double.parseDouble(new GenesisBlockDecoder().decode(BlockChain.blockChain.get(0)).getDifficulty());
+                    MainChain.difficulty = new GenesisBlockDecoder().decode(BlockChain.blockChain.get(0)).getDifficulty();
                 }
             }
             System.out.println("\n");
@@ -77,7 +85,7 @@ class Launcher {
                         Scanner txData = new Scanner(System.in);
                         System.out.println("\n");
                         System.out.println("Please enter to address: \n");
-                        String fromAddress = AddressBook.addressBook.get(0);
+                        String fromAddress = AddressBook.addressBook.get(rand.nextInt(AddressBook.addressBook.size()));
                         String toAddress = txData.nextLine();
                         System.out.println("\n");
                         System.out.println("Please enter amount: \n");
@@ -159,12 +167,11 @@ class Launcher {
                                 MainChain.difficulty = 1;
                                 String previousHash = mc.getPreviousBlockHash();
                                 double[] amounts = {MainChain.nSubsidy};
-                                String[] txins = {Constants.CB_ADDRESS};
-                                String[] txouts = {AddressBook.addressBook.get(0)};
-                                String[] txs = {MainChain.getHex(SHA256.SHA256HashByteArray(SHA256.SHA256HashByteArray(
-                                        MainChain.swapEndianness((System.currentTimeMillis() + Constants.CB_ADDRESS
-                                                + AddressBook.addressBook.get(0) + MainChain.nSubsidy).getBytes()))))};
+                                String cbPubKey = mc.generateCBPubKey();
+                                String[] txins = {mc.generateCBAddress(cbPubKey)};
+                                String[] txouts = {AddressBook.addressBook.get(rand.nextInt(AddressBook.addressBook.size()))};
                                 long[] timeStamps = {System.currentTimeMillis()};
+                                String[] txs = {MainChain.calculateTxHashHex(timeStamps[0], txins[0], txouts[0], amounts[0])};
                                 try {
                                     miner.mine(indexValue, timeStamps, txins, txouts, txs, txs[0], 0L, previousHash, algo,
                                             MainChain.getTargetHex(), MainChain.difficulty, amounts);
@@ -180,12 +187,11 @@ class Launcher {
                                 mc.readBlockChain();
                                 String previousHash = mc.getPreviousBlockHash();
                                 double[] amounts = {MainChain.nSubsidy};
-                                String[] txins = {Constants.CB_ADDRESS};
-                                String[] txouts = {AddressBook.addressBook.get(0)};
-                                String[] txs = {MainChain.getHex(SHA256.SHA256HashByteArray(SHA256.SHA256HashByteArray(
-                                        MainChain.swapEndianness((System.currentTimeMillis() + Constants.CB_ADDRESS
-                                                + AddressBook.addressBook.get(0) + MainChain.nSubsidy).getBytes()))))};
+                                String cbPubKey = mc.generateCBPubKey();
+                                String[] txins = {mc.generateCBAddress(cbPubKey)};
+                                String[] txouts = {AddressBook.addressBook.get(rand.nextInt(AddressBook.addressBook.size()))};
                                 long[] timeStamps = {System.currentTimeMillis()};
+                                String[] txs = {MainChain.calculateTxHashHex(timeStamps[0], txins[0], txouts[0], amounts[0])};
 
                                 try {
                                     miner.mine(indexValue, timeStamps, txins, txouts, txs, txs[0], 0L, previousHash, algo,
@@ -240,7 +246,7 @@ class Launcher {
                     }
 
                     case "generate private key": {
-                        mc.generatePrivateKey();
+                        mc.generateKeyPair();
                         break;
                     }
 
@@ -263,9 +269,35 @@ class Launcher {
                         endpointManager.connectAsClient("sync");
                         break;
                     }
-                    case "view private key": {
-                        for (Object o : KeyRing.keyRing) {
-                            System.out.println("Private key: " + o.toString());
+                    case "show private keys": {
+                        mc.readKeyRing();
+                        System.out.println("**WARNING!** \n" + "You are about to display your private keys on screen!\n"
+                                + "Are you sure you want to do this?[Y/n]\n");
+                        String confirmResult = new Scanner(System.in).nextLine();
+                        if (confirmResult.contentEquals("Y") || confirmResult.contentEquals("y")) {
+                            KeyRing.keyRing.forEach(key -> {
+                                if (key.length() <= 64) {
+                                    System.out.println(key);
+                                }
+                            });
+                        } else {
+                            break;
+                        }
+                        break;
+                    }
+
+                    case "get private key": {
+                        mc.readKeyRing();
+                        System.out.println("Enter index of key: \n");
+                        int index = new Scanner(System.in).nextInt();
+                        System.out.println("**WARNING!** \n" + "You are about to display your private keys on screen!\n"
+                                + "Are you sure you want to do this?[Y/n]\n");
+                        Scanner confirm = new Scanner(System.in);
+                        String confirmResult = confirm.nextLine();
+                        if (confirmResult.contentEquals("Y") || confirmResult.contentEquals("y")) {
+                            System.out.println("Key #" + index + ": " + KeyRing.keyRing.get(index));
+                        } else {
+                            break;
                         }
                         break;
                     }
@@ -281,11 +313,18 @@ class Launcher {
                         System.out.println("Number of connected peers: " + NodeManager.getPeerCount());
                         break;
                     }
-                    case "test pad string": {
-                        Block decodedBlock = new BlockDecoder().decode(BlockChain.blockChain.get(6));
-                        String testTarget = decodedBlock.getTarget();
-                        String testPad = new Miner().leftPad(testTarget, 64, '0');
-                        System.out.println("test padded string: " + testPad);
+
+                    case "test lambda": {
+                        BlockChain.blockChain.forEach((s -> {
+                            if (!s.contains("pszTimestamp")) {
+                                try {
+                                    Block testBlock =  new BlockDecoder().decode(s);
+                                    System.out.println("Found block: " + testBlock.getIndex());
+                                } catch (DecodeException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        }));
                         break;
                     }
                     case "get target": {
