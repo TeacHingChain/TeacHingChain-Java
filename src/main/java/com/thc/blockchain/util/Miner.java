@@ -92,11 +92,12 @@ public class Miner {
                             System.out.println("Is node 1 connected: " + endpointManager.getIsNode1Connected());
                             System.out.println("Is node 2 connected: " + endpointManager.getIsNode2Connected());
                             Session sessionForMiner = NodeManager.getSession();
-                            NodeManager.pushBlock(block, sessionForMiner);
                             if (new Consensus().isBlockOrphan(block.getIndex())) {
                                 BlockChain.blockChain.add(encodedBlock);
                                 mc.writeBlockChain();
                                 System.out.println("Size: " + BlockChain.blockChain.size());
+                                endpointManager.connectAsClient("update");
+                                NodeManager.pushBlock(block, sessionForMiner);
                                 if (BlockChain.blockChain.size() == 5) {
                                     long deltaT = ((new BlockDecoder().decode(BlockChain.blockChain.get(
                                            4)).getTimeStamps()[0]) - new GenesisBlockDecoder()

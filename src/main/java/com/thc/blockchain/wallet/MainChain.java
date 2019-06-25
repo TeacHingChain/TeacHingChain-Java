@@ -169,11 +169,29 @@ public class MainChain {
                 String[] txs = blockObject.getTransactions();
                 String[] txins = blockObject.getTxins();
                 String[] txouts = blockObject.getTxouts();
+                Sign.SignatureData sigData = signTx(txins[0], txouts[0], calculateTxHashHex(blockObject.getTimeStamps()[0],
+                        txins[0], txouts[0], blockObject.getAmounts()[0]));
+                for (String txInput : txins) {
+                    if (txInput.startsWith("CB")) {
+                        for (int j = 0; j < KeyRing.keyRing.size(); j++ ) {
+                            if (Sign.signedMessageToKey(txs[0].getBytes(), sigData).toString(16).contentEquals(KeyRing.keyRing.get(j))) {
+                                WalletLogger.logEvent("info", WalletLogger.getLogTimeStamp() + " Mined transaction " + txs[0] + "found!\n"
+                                        + "Found in block: " + blockObject.getBlockHash() + " at index: "
+                                        + blockObject.getIndex() + " amount: " + blockObject.getAmounts()[0] + "\n" + "Recovered key: "
+                                        + Sign.signedMessageToKey(txs[0].getBytes(), sigData).toString(16) + " ("
+                                        + KeyRing.keyRing.indexOf(Sign.signedMessageToKey(txs[0].getBytes(), sigData).toString(16)) + ")");
+                                balance += blockObject.getAmounts()[0];
+                            }
+                        }
+                    }
+                }
             }
         } catch (DecodeException de) {
             WalletLogger.logException(de, "warning", WalletLogger.getLogTimeStamp()
                     + " Failed to decode block fetching chain.dat! See below:\n"
                     + WalletLogger.exceptionStacktraceToString(de));
+        } catch (SignatureException e) {
+            e.printStackTrace();
         }
 
     }
