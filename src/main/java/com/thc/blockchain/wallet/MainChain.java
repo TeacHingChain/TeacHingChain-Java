@@ -609,10 +609,13 @@ public class MainChain {
     }
 
     public static void writeTargetCache(BigInteger target, double difficulty) {
-        MainChain.targetHex = target.toString(16);
-        if (MainChain.targetHex.length() < 64) {
-            new Miner().leftPad(MainChain.targetHex, 64, '0');
+        String paddedTarget;
+        if (target.toString(16).length() < 64) {
+            paddedTarget = new Miner().leftPad(target.toString(16), 64, '0');
+        } else {
+            paddedTarget = target.toString(16);
         }
+        MainChain.setTargetHex(paddedTarget);
         MainChain.difficulty = difficulty;
         String configPath;
         if (Constants.BASEDIR.contains("apache-tomcat-8.5.23")) {
