@@ -132,8 +132,11 @@ public class Miner {
                         byte[] txHashBytes = (Arrays.toString(txins) + Arrays.toString(txouts) + Arrays.toString(amounts)).getBytes();
                         merkleRoot = MainChain.getHex(SHA256.SHA256HashByteArray(txHashBytes));
                         MainChain.readTargetCache();
+                        if (target.length() < 64) {
+                            leftPad(target, 64, '0');
+                        }
                         restartMiner(updatedIndex, timeStamps, txins, txouts, txHash, merkleRoot,
-                                nonce, previousBlockHash, algo, MainChain.targetHex, amounts);
+                                nonce, previousBlockHash, algo, target, amounts);
                         break;
                     }
                 }

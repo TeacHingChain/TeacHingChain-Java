@@ -708,7 +708,7 @@ public class MainChain {
         return (amount * Constants.TX_FEE);
     }
 
-    static String getTargetHex() {
+    public static String getTargetHex() {
         return targetHex;
     }
 
