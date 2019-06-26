@@ -33,7 +33,7 @@ public class UpdateServerEndPoint {
                 String encodedBlock = new BlockEncoder().encode(block);
                 BlockChain.blockChain.add(encodedBlock);
                 mc.writeBlockChain();
-                if (BlockChain.blockChain.size() % 5 == 0) {
+                if (BlockChain.blockChain.size() > 5 && BlockChain.blockChain.size() % 5 == 0) {
                     MainChain.calculateTarget(((new BlockDecoder().decode(BlockChain.blockChain.get(
                             mc.getIndexOfBlockChain())).getTimeStamps()[0]) - (new BlockDecoder()
                             .decode(BlockChain.blockChain.get(mc.getIndexOfBlockChain() - 5)).getTimeStamps()[0])) / 1000, MainChain.targetHex);

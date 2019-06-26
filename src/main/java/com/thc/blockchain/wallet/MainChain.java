@@ -565,15 +565,8 @@ public class MainChain {
                 BigDecimal deltaTAsBigDec = new BigDecimal(String.valueOf(deltaT));
                 BigDecimal targetWindow = new BigDecimal(String.valueOf(Constants.TARGET_WINDOW_DURATION));
                 adjustmentFactor = (deltaTAsBigDec.multiply(new BigDecimal(String.valueOf(1 / targetWindow.doubleValue()))).doubleValue());
-                if (adjustmentFactor < 0.5) {
-                    adjustmentFactor = (deltaTAsBigDec.multiply(new BigDecimal(String.valueOf(1 / targetWindow.doubleValue()))).doubleValue() * 2);
-                }
-                if (adjustmentFactor > 2.5) {
-                    System.out.println("Capped adjustment factor at 2.5, " + "actual was: " + adjustmentFactor);
-                    adjustmentFactor = 2.5;
-                }
                 System.out.println("Delta time: " + deltaT);
-                System.out.println("Adjustment factor: " + adjustmentFactor);
+                System.out.println("Adjustment factor: " + adjustmentFactor + " Actual change: " + (1 - adjustmentFactor));
                 targetAsBigDec = targetAsBigDec.multiply(new BigDecimal(String.valueOf(adjustmentFactor)));
                 setTargetHex(getHex(targetAsBigDec.toBigInteger().toByteArray()));
                 if (MainChain.targetHex.length() < 64) {
@@ -586,9 +579,8 @@ public class MainChain {
                 BigDecimal deltaTAsBigDec = new BigDecimal(String.valueOf(deltaT));
                 BigDecimal targetWindow = new BigDecimal(String.valueOf(Constants.TARGET_WINDOW_DURATION));
                 adjustmentFactor = (deltaTAsBigDec.multiply(new BigDecimal(String.valueOf(1 / targetWindow.doubleValue()))).doubleValue());
-                if (adjustmentFactor > 2.5) {
-                    System.out.println("Capped adjustment factor at 2.5, " + "actual was: " + adjustmentFactor);
-                    adjustmentFactor = 2.5;
+                if (adjustmentFactor > 3.5) {
+                    adjustmentFactor = 3.5;
                 }
                 System.out.println("Delta time: " + deltaT);
                 System.out.println("Adjustment factor: " + adjustmentFactor);
@@ -601,14 +593,9 @@ public class MainChain {
                     setTargetHex(getHex(targetAsBigDec.toBigInteger().toByteArray()));
                     writeTargetCache(new BigInteger(getTargetHex(), 16), MainChain.difficulty);
                 } else {
-                    if (adjustmentFactor > 1) {
-                        MainChain.difficulty -= adjustmentFactor - 1;
-                        writeTargetCache(new BigInteger(getTargetHex(), 16), MainChain.difficulty);
-                    } else {
-                        MainChain.difficulty -= 1 - adjustmentFactor;
-                        setTargetHex(getHex(targetAsBigDec.toBigInteger().toByteArray()));
-                        writeTargetCache(new BigInteger(getTargetHex(), 16), MainChain.difficulty);
-                    }
+                    MainChain.difficulty -= (adjustmentFactor - 1);
+                    setTargetHex(getHex(targetAsBigDec.toBigInteger().toByteArray()));
+                    writeTargetCache(new BigInteger(getTargetHex(), 16), MainChain.difficulty);
                 }
                 if (MainChain.targetHex.length() < 64) {
                     setTargetHex(new Miner().leftPad(MainChain.targetHex, 64, '0'));
