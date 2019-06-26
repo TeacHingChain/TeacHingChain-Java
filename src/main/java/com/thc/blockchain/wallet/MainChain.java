@@ -161,37 +161,38 @@ public class MainChain {
     }
 
     void calculateBalance() {
-        Sign.SignatureData sigData = null;
+        Sign.SignatureData sigData;
+        String recoveredKey;
         balance = 0;
         try {
             readBlockChain();
             readKeyRing();
             for (int i = 1; i < BlockChain.blockChain.size(); i++) {
-                Block blockObject = new BlockDecoder().decode(BlockChain.blockChain.get(i));
-                String[] txs = blockObject.getTransactions();
-                String[] txins = blockObject.getTxins();
-                String[] txouts = blockObject.getTxouts();
                 try {
+                    Block blockObject = new BlockDecoder().decode(BlockChain.blockChain.get(i));
+                    String[] txs = blockObject.getTransactions();
+                    String[] txins = blockObject.getTxins();
+                    String[] txouts = blockObject.getTxouts();
                     sigData = signTx(txins[0], txouts[0], calculateTxHashHex(blockObject.getTimeStamps()[0],
                             txins[0], txouts[0], blockObject.getAmounts()[0]));
-                } catch (NullPointerException npe) {
-                    if (i + 1 < BlockChain.blockChain.size()) {
-                        i += 1;
-                    }
-                }
-                for (String txInput : txins) {
-                    if (txInput.startsWith("CB")) {
-                        for (int j = 0; j < KeyRing.keyRing.size(); j++) {
-                            String recoveredKey = Sign.signedMessageToKey(txs[0].getBytes(), sigData).toString(16);
-                            if (recoveredKey.contentEquals(KeyRing.keyRing.get(j))) {
-                                WalletLogger.logEvent("info", WalletLogger.getLogTimeStamp() + " Mined transaction " + txs[0] + " found!\n"
-                                        + "Found in block: " + blockObject.getBlockHash() + " at index: "
-                                        + blockObject.getIndex() + " amount: " + blockObject.getAmounts()[0] + "\n" + "Recovered key: "
-                                        + Sign.signedMessageToKey(txs[0].getBytes(), sigData).toString(16) + " ("
-                                        + KeyRing.keyRing.indexOf(Sign.signedMessageToKey(txs[0].getBytes(), sigData).toString(16)) + ")");
-                                balance += blockObject.getAmounts()[0];
+                    for (String txInput : txins) {
+                        if (txInput.startsWith("CB")) {
+                            for (int j = 0; j < KeyRing.keyRing.size(); j++) {
+                                recoveredKey = Sign.signedMessageToKey(txs[0].getBytes(), sigData).toString(16);
+                                if (recoveredKey.contentEquals(KeyRing.keyRing.get(j))) {
+                                    WalletLogger.logEvent("info", WalletLogger.getLogTimeStamp() + " Mined transaction " + txs[0] + " found!\n"
+                                            + "Found in block: " + blockObject.getBlockHash() + " at index: "
+                                            + blockObject.getIndex() + " amount: " + blockObject.getAmounts()[0] + "\n" + "Recovered key: "
+                                            + Sign.signedMessageToKey(txs[0].getBytes(), sigData).toString(16) + " ("
+                                            + KeyRing.keyRing.indexOf(Sign.signedMessageToKey(txs[0].getBytes(), sigData).toString(16)) + ")");
+                                    balance += blockObject.getAmounts()[0];
+                                }
                             }
                         }
+                    }
+                } catch (NullPointerException npe) {
+                    if (i + 1 < BlockChain.blockChain.size()) {
+                            i += 1;
                     }
                 }
             }
