@@ -12,6 +12,7 @@ import com.thc.blockchain.wallet.MainChain;
 
 import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
+import java.math.BigInteger;
 
 @ServerEndpoint(value = "/" + Constants.UPDATE_KEY, encoders = BlockEncoder.class, decoders = BlockDecoder.class)
 public class UpdateServerEndPoint {
@@ -29,7 +30,8 @@ public class UpdateServerEndPoint {
         try {
             mc.readBlockChain();
             System.out.println("Processing block number: " + block.getIndex());
-            if (consensus.isBlockOrphan(block.getIndex())) {
+            if (consensus.isBlockOrphan(block.getIndex()) && new Consensus().validateTarget(new BigInteger(
+                    block.getTarget(), 16), block.getIndex())) {
                 String encodedBlock = new BlockEncoder().encode(block);
                 BlockChain.blockChain.add(encodedBlock);
                 mc.writeBlockChain();

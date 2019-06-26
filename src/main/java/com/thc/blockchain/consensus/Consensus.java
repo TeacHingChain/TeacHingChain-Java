@@ -1,6 +1,7 @@
 package com.thc.blockchain.consensus;
 
 import com.thc.blockchain.algos.SHA256;
+import com.thc.blockchain.network.Constants;
 import com.thc.blockchain.network.decoders.BlockDecoder;
 import com.thc.blockchain.network.objects.Block;
 import com.thc.blockchain.util.WalletLogger;
@@ -70,5 +71,19 @@ public class Consensus {
         }
         WalletLogger.logEvent("info", WalletLogger.getLogTimeStamp() + " Chain passed validation!");
         return true;
+    }
+
+    public boolean validateTarget(BigInteger target, long index) {
+        BigInteger previousTarget = new BigInteger(MainChain.targetHex, 16);
+        try {
+            if ((index + 1) % 5 != 0) {
+                previousTarget = new BigInteger(new BlockDecoder().decode(BlockChain.blockChain.get(Math.toIntExact(index - 1))).getTarget(), 16);
+            }
+        } catch (DecodeException de) {
+            WalletLogger.logException(de, "warning", WalletLogger.getLogTimeStamp() + " An error occurred decoding a block! See details below:\n"
+                    + WalletLogger.exceptionStacktraceToString(de));
+        }
+        return (previousTarget.toString(16).contentEquals(target.toString(16)) && target.compareTo(
+                new BigInteger(Constants.GENESIS_TARGET, 16)) <= 0);
     }
 }
