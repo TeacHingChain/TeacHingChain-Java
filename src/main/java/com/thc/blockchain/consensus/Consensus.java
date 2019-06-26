@@ -18,8 +18,10 @@ public class Consensus {
     private static final StringBuilder sb = new StringBuilder();
 
     public boolean isBlockOrphan(long index) {
+        new MainChain().readBlockChain();
         int mostRecentIndex = new MainChain().getIndexOfBlockChain();
-        return index == mostRecentIndex + 1;
+        boolean isOrphan = index == mostRecentIndex + 1;
+        return !isOrphan;
     }
 
     public static boolean validateChainChecksum(int remoteChainSize, String remoteChecksum) {

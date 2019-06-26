@@ -30,7 +30,7 @@ public class UpdateServerEndPoint {
         try {
             mc.readBlockChain();
             System.out.println("Processing block number: " + block.getIndex());
-            if (consensus.isBlockOrphan(block.getIndex())) {
+            if (!consensus.isBlockOrphan(block.getIndex())) {
                 if (consensus.validateTarget(block)) {
                     String encodedBlock = new BlockEncoder().encode(block);
                     BlockChain.blockChain.add(encodedBlock);

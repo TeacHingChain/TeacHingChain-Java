@@ -337,6 +337,10 @@ class Launcher {
                                 .decode(BlockChain.blockChain.get(new MainChain().getIndexOfBlockChain()))));
                         break;
                     }
+                    case "test orphan": {
+                        System.out.println("Is block 1 orphan: " + new Consensus().isBlockOrphan(1));
+                        break;
+                    }
                     case "quit": {
                         System.exit(1);
                         break;
