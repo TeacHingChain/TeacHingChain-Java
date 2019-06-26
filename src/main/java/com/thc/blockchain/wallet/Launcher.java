@@ -328,6 +328,7 @@ class Launcher {
                         break;
                     }
                     case "get target": {
+                        MainChain.readTargetCache();
                         System.out.println("Target: " + MainChain.getTargetHex());
                         break;
                     }

@@ -541,12 +541,14 @@ public class MainChain {
     }
 
     void getDifficulty(){
+        readTargetCache();
         System.out.println("\n");
         System.out.println("Difficulty: \n" + difficulty);
     }
 
     // maybe use bitwise ops in some of the target adjustment vs. big decimal arithmetic?
     public static void calculateTarget(long deltaT, String previousTarget) {
+        readTargetCache();
         double adjustmentFactor;
         BigDecimal targetAsBigDec;
         if (BlockChain.blockChain.size() < 5) {

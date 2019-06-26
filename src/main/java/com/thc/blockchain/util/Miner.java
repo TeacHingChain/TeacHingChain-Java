@@ -131,8 +131,9 @@ public class Miner {
                         nonce = 0L;
                         byte[] txHashBytes = (Arrays.toString(txins) + Arrays.toString(txouts) + Arrays.toString(amounts)).getBytes();
                         merkleRoot = MainChain.getHex(SHA256.SHA256HashByteArray(txHashBytes));
+                        MainChain.readTargetCache();
                         restartMiner(updatedIndex, timeStamps, txins, txouts, txHash, merkleRoot,
-                                nonce, previousBlockHash, algo, target, amounts);
+                                nonce, previousBlockHash, algo, MainChain.targetHex, amounts);
                         break;
                     }
                 }
@@ -152,6 +153,7 @@ public class Miner {
     private void restartMiner(long index, long[] timeStamps, String[] txins, String[] txouts, String[] txs,
                               String merkleRoot, long nonce, String previousBlockHash, String algo, String target, double[] amounts) {
         timer.cancel();
+        MainChain.readTargetCache();
         System.out.println("Trying to restart miner!\n");
         mine(index, timeStamps, txins, txouts, txs, merkleRoot, nonce, previousBlockHash, algo, target, difficulty, amounts);
     }
