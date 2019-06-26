@@ -556,8 +556,9 @@ public class MainChain {
             targetAsBigDec = new BigDecimal(new BigInteger(previousTarget, 16));
             setTargetHex(getHex(targetAsBigDec.toBigInteger().toByteArray()));
             if (MainChain.targetHex.length() < 64) {
-                MainChain.targetHex = new Miner().leftPad(MainChain.targetHex, 64, '0');
-                setTargetHex(MainChain.targetHex);
+                setTargetHex(new Miner().leftPad(MainChain.targetHex, 64, '0'));
+                writeTargetCache(new BigInteger(getTargetHex(), 16), MainChain.difficulty);
+                System.out.println("New target hex: " + getTargetHex());
             }
         } else if (BlockChain.blockChain.size() % 5 == 0) {
             targetAsBigDec = new BigDecimal(new BigInteger(previousTarget, 16));
@@ -571,6 +572,7 @@ public class MainChain {
                 setTargetHex(getHex(targetAsBigDec.toBigInteger().toByteArray()));
                 if (MainChain.targetHex.length() < 64) {
                     setTargetHex(new Miner().leftPad(MainChain.targetHex, 64, '0'));
+                    writeTargetCache(new BigInteger(getTargetHex(), 16), MainChain.difficulty);
                     System.out.println("New target hex: " + getTargetHex());
                 }
                 MainChain.difficulty += 1 - adjustmentFactor;
@@ -599,6 +601,7 @@ public class MainChain {
                 }
                 if (MainChain.targetHex.length() < 64) {
                     setTargetHex(new Miner().leftPad(MainChain.targetHex, 64, '0'));
+                    writeTargetCache(new BigInteger(getTargetHex(), 16), MainChain.difficulty);
                     System.out.println("New target hex: " + getTargetHex());
                 }
             }
