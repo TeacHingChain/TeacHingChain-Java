@@ -73,17 +73,23 @@ public class Consensus {
         return true;
     }
 
-    public boolean validateTarget(BigInteger target, long index) {
-        BigInteger previousTarget = new BigInteger(MainChain.targetHex, 16);
+    public boolean validateTarget(Block block) {
+        BigInteger previousTarget = new BigInteger(block.getTarget(), 16);
         try {
-            if ((index + 1) % 5 != 0) {
-                previousTarget = new BigInteger(new BlockDecoder().decode(BlockChain.blockChain.get(Math.toIntExact(index - 1))).getTarget(), 16);
+            if ((block.getIndex() + 1) % 5 != 0) {
+                previousTarget = new BigInteger(new BlockDecoder().decode(BlockChain.blockChain.get(new MainChain()
+                        .getIndexOfBlockChain())).getTarget(), 16);
+            } else {
+                previousTarget = new BigInteger(new BlockDecoder().decode(BlockChain.blockChain.get(
+                        new MainChain().getIndexOfBlockChain())).getTarget(), 16);
+                return (!previousTarget.toString(16).contentEquals(block.getTarget()) && new BigInteger(block.getTarget(), 16).compareTo(
+                        new BigInteger(Constants.GENESIS_TARGET, 16)) <= 0);
             }
         } catch (DecodeException de) {
             WalletLogger.logException(de, "warning", WalletLogger.getLogTimeStamp() + " An error occurred decoding a block! See details below:\n"
                     + WalletLogger.exceptionStacktraceToString(de));
         }
-        return (previousTarget.toString(16).contentEquals(target.toString(16)) && target.compareTo(
+        return (previousTarget.toString(16).contentEquals(block.getTarget()) && new BigInteger(block.getTarget(), 16).compareTo(
                 new BigInteger(Constants.GENESIS_TARGET, 16)) <= 0);
     }
 }
