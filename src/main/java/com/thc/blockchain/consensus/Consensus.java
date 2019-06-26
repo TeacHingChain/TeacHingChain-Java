@@ -8,6 +8,7 @@ import com.thc.blockchain.wallet.BlockChain;
 import com.thc.blockchain.wallet.MainChain;
 
 import javax.websocket.DecodeException;
+import java.math.BigInteger;
 import java.util.Arrays;
 
 public class Consensus {
@@ -65,7 +66,7 @@ public class Consensus {
             }
         } catch (DecodeException de) {
             WalletLogger.logException(de, "severe", WalletLogger.getLogTimeStamp()
-                    + " Decode exception occurred during mining operation! See below:\n" + WalletLogger.exceptionStacktraceToString(de));
+                    + " Decode exception occurred during a consensus operation! See below:\n" + WalletLogger.exceptionStacktraceToString(de));
         }
         WalletLogger.logEvent("info", WalletLogger.getLogTimeStamp() + " Chain passed validation!");
         return true;

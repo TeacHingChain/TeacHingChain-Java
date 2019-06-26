@@ -8,13 +8,7 @@ unlock.txt
 unlock.txt.gpg
 
 # Program data files
-chain.dat
-tx-pool.dat
-keyring.dat
-PRIVATE_KEY
-THC_PRIVATE_KEY
-addressBook.dat
-debug.log
+data
 
 # Config file
 config/config.properties

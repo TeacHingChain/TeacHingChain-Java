@@ -575,10 +575,11 @@ public class MainChain {
                 targetAsBigDec = targetAsBigDec.multiply(new BigDecimal(String.valueOf(adjustmentFactor)));
                 setTargetHex(getHex(targetAsBigDec.toBigInteger().toByteArray()));
                 if (MainChain.targetHex.length() < 64) {
-                    MainChain.targetHex = new Miner().leftPad(MainChain.targetHex, 64, '0');
-                    System.out.println("New target hex: " + MainChain.targetHex);
+                    setTargetHex(new Miner().leftPad(MainChain.targetHex, 64, '0'));
+                    System.out.println("New target hex: " + getTargetHex());
                 }
                 MainChain.difficulty += 1 - adjustmentFactor;
+                writeTargetCache(new BigInteger(getTargetHex(), 16), MainChain.difficulty);
             } else if (deltaT > Constants.TARGET_WINDOW_DURATION) {
                 BigDecimal deltaTAsBigDec = new BigDecimal(String.valueOf(deltaT));
                 BigDecimal targetWindow = new BigDecimal(String.valueOf(Constants.TARGET_WINDOW_DURATION));
@@ -596,19 +597,81 @@ public class MainChain {
                     MainChain.difficulty = 1;
                     targetAsBigDec = new BigDecimal(new BigInteger(Constants.GENESIS_TARGET, 16));
                     setTargetHex(getHex(targetAsBigDec.toBigInteger().toByteArray()));
+                    writeTargetCache(new BigInteger(getTargetHex(), 16), MainChain.difficulty);
                 } else {
                     if (adjustmentFactor > 1) {
                         MainChain.difficulty -= adjustmentFactor - 1;
+                        writeTargetCache(new BigInteger(getTargetHex(), 16), MainChain.difficulty);
                     } else {
                         MainChain.difficulty -= 1 - adjustmentFactor;
                         setTargetHex(getHex(targetAsBigDec.toBigInteger().toByteArray()));
+                        writeTargetCache(new BigInteger(getTargetHex(), 16), MainChain.difficulty);
                     }
                 }
                 if (MainChain.targetHex.length() < 64) {
-                    MainChain.targetHex = new Miner().leftPad(MainChain.targetHex, 64, '0');
-                    System.out.println("New target hex: " + MainChain.targetHex);
+                    setTargetHex(new Miner().leftPad(MainChain.targetHex, 64, '0'));
+                    System.out.println("New target hex: " + getTargetHex());
                 }
             }
+        }
+    }
+
+    public static void writeTargetCache(BigInteger target, double difficulty) {
+        MainChain.targetHex = target.toString(16);
+        MainChain.difficulty = difficulty;
+        String configPath;
+        if (Constants.BASEDIR.contains("apache-tomcat-8.5.23")) {
+            configPath = Constants.BASEDIR + "/../../config/config.properties";
+        } else {
+            configPath = Constants.BASEDIR + "/config/config.properties";
+        }
+        Properties configProps = new Properties();
+        try {
+            configProps.load(new FileInputStream(configPath));
+            FileOutputStream fos = new FileOutputStream(configProps.getProperty("datadir") + "/target-cache.dat");
+            ObjectOutputStream oos = new ObjectOutputStream(fos);
+            oos.writeObject(MainChain.targetHex);
+            oos.close();
+            fos.close();
+            fos = new FileOutputStream(configProps.getProperty("datadir") + "/difficulty-cache.dat");
+            oos = new ObjectOutputStream(fos);
+            oos.writeObject(MainChain.difficulty);
+            oos.close();
+            fos.close();
+            readTargetCache();
+        } catch (IOException ioe) {
+            WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp()
+                    + " IO exception occurred while writing target cache! See below:\n"
+                    + WalletLogger.exceptionStacktraceToString(ioe));
+        }
+    }
+
+    public static void readTargetCache() {
+        String configPath;
+        if (Constants.BASEDIR.contains("apache-tomcat-8.5.23")) {
+            configPath = Constants.BASEDIR + "/../../config/config.properties";
+        } else {
+            configPath = Constants.BASEDIR + "/config/config.properties";
+        }
+        Properties configProps = new Properties();
+        try {
+            configProps.load(new FileInputStream(configPath));
+            FileInputStream fis = new FileInputStream(configProps.getProperty("datadir") + "/target-cache.dat");
+            ObjectInputStream ois = new ObjectInputStream(fis);
+            MainChain.targetHex = (String) ois.readObject();
+            ois.close();
+            fis.close();
+            fis = new FileInputStream(configProps.getProperty("datadir") + "/difficulty-cache.dat");
+            ois = new ObjectInputStream(fis);
+            MainChain.difficulty = (double) ois.readObject();
+            ois.close();
+            fis.close();
+        } catch (IOException ioe) {
+            WalletLogger.logException(ioe, "severe", WalletLogger.getLogTimeStamp()
+                    + " IO exception occurred while writing target cache! See below:\n"
+                    + WalletLogger.exceptionStacktraceToString(ioe));
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
         }
     }
 
