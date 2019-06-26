@@ -30,22 +30,30 @@ public class UpdateServerEndPoint {
         try {
             mc.readBlockChain();
             System.out.println("Processing block number: " + block.getIndex());
-            if (consensus.isBlockOrphan(block.getIndex()) && new Consensus().validateTarget(block)) {
-                String encodedBlock = new BlockEncoder().encode(block);
-                BlockChain.blockChain.add(encodedBlock);
-                mc.writeBlockChain();
-                if (BlockChain.blockChain.size() > 5 && BlockChain.blockChain.size() % 5 == 0) {
-                    MainChain.calculateTarget(((new BlockDecoder().decode(BlockChain.blockChain.get(
-                            mc.getIndexOfBlockChain())).getTimeStamps()[0]) - (new BlockDecoder()
-                            .decode(BlockChain.blockChain.get(mc.getIndexOfBlockChain() - 5)).getTimeStamps()[0])) / 1000, MainChain.targetHex);
+            if (consensus.isBlockOrphan(block.getIndex())) {
+                if (consensus.validateTarget(block)) {
+                    String encodedBlock = new BlockEncoder().encode(block);
+                    BlockChain.blockChain.add(encodedBlock);
+                    mc.writeBlockChain();
+                    if (BlockChain.blockChain.size() > 5 && BlockChain.blockChain.size() % 5 == 0) {
+                        MainChain.calculateTarget(((new BlockDecoder().decode(BlockChain.blockChain.get(
+                                mc.getIndexOfBlockChain())).getTimeStamps()[0]) - (new BlockDecoder()
+                                .decode(BlockChain.blockChain.get(mc.getIndexOfBlockChain() - 5)).getTimeStamps()[0])) / 1000, MainChain.targetHex);
+                    } else {
+                        MainChain.difficulty = block.getDifficulty();
+                        MainChain.targetHex = block.getTarget();
+                    }
                 } else {
-                    MainChain.difficulty = block.getDifficulty();
-                    MainChain.targetHex = block.getTarget();
+                    System.out.println("A consensus error occurred while trying to add a block! See log for details\n");
+                    WalletLogger.logEvent("warning", WalletLogger.getLogTimeStamp()
+                            + " A consensus error occurred while trying to add a block with the following details:\n"
+                            + "Block index: " + block.getIndex() + "\n Block hash: " + block.getBlockHash() + "\n Block target: "
+                            + block.getTarget());
                 }
             } else {
                 System.out.println("A consensus error occurred while trying to add a block! See log for details\n");
                 WalletLogger.logEvent("warning", WalletLogger.getLogTimeStamp()
-                        + " A consensus error occurred while trying to add the block with the following details:\n"
+                        + " An orphan block was detected with the following details:\n"
                         + "Block index: " + block.getIndex() + "\n Block hash: " + block.getBlockHash() + "\n Block target: "
                         + block.getTarget());
             }
