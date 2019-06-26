@@ -76,7 +76,7 @@ public class Consensus {
     public boolean validateTarget(Block block) {
         BigInteger previousTarget = new BigInteger(block.getTarget(), 16);
         try {
-            if ((block.getIndex() + 1) % 5 != 0) {
+            if (BlockChain.blockChain.size() > 5 && ((block.getIndex() + 1) % 5 != 0)) {
                 previousTarget = new BigInteger(new BlockDecoder().decode(BlockChain.blockChain.get(new MainChain()
                         .getIndexOfBlockChain())).getTarget(), 16);
             } else {
