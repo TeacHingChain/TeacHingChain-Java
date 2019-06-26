@@ -332,6 +332,11 @@ class Launcher {
                         System.out.println("Target: " + MainChain.getTargetHex());
                         break;
                     }
+                    case "test validate target": {
+                        System.out.println("Is target valid: " + new Consensus().validateTarget(new BlockDecoder()
+                                .decode(BlockChain.blockChain.get(new MainChain().getIndexOfBlockChain()))));
+                        break;
+                    }
                     case "quit": {
                         System.exit(1);
                         break;

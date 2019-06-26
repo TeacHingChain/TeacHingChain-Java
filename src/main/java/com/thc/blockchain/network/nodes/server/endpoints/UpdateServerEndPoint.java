@@ -42,6 +42,12 @@ public class UpdateServerEndPoint {
                     MainChain.difficulty = block.getDifficulty();
                     MainChain.targetHex = block.getTarget();
                 }
+            } else {
+                System.out.println("A consensus error occurred while trying to add a block! See log for details\n");
+                WalletLogger.logEvent("warning", WalletLogger.getLogTimeStamp()
+                        + " A consensus error occurred while trying to add the block with the following details:\n"
+                        + "Block index: " + block.getIndex() + "\n Block hash: " + block.getBlockHash() + "\n Block target: "
+                        + block.getTarget());
             }
         } catch (EncodeException ee) {
             WalletLogger.logException(ee, "severe", WalletLogger.getLogTimeStamp() + " Encode exception occurred during mining operation! See below:\n" + WalletLogger.exceptionStacktraceToString(ee));

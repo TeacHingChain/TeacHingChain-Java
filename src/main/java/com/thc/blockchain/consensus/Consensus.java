@@ -4,6 +4,7 @@ import com.thc.blockchain.algos.SHA256;
 import com.thc.blockchain.network.Constants;
 import com.thc.blockchain.network.decoders.BlockDecoder;
 import com.thc.blockchain.network.objects.Block;
+import com.thc.blockchain.util.Miner;
 import com.thc.blockchain.util.WalletLogger;
 import com.thc.blockchain.wallet.BlockChain;
 import com.thc.blockchain.wallet.MainChain;
@@ -76,14 +77,16 @@ public class Consensus {
     public boolean validateTarget(Block block) {
         BigInteger previousTarget = new BigInteger(block.getTarget(), 16);
         try {
-            if (BlockChain.blockChain.size() > 5 && ((block.getIndex() + 1) % 5 != 0)) {
+            if (BlockChain.blockChain.size() > 10 && ((block.getIndex() + 1) % 5 != 0)) {
                 previousTarget = new BigInteger(new BlockDecoder().decode(BlockChain.blockChain.get(new MainChain()
                         .getIndexOfBlockChain())).getTarget(), 16);
-            } else if (BlockChain.blockChain.size() > 5 && ((block.getIndex() + 1) % 5 == 0)) {
+            } else if (BlockChain.blockChain.size() > 10 && ((block.getIndex() + 1) % 5 == 0)) {
                 previousTarget = new BigInteger(new BlockDecoder().decode(BlockChain.blockChain.get(
                         new MainChain().getIndexOfBlockChain())).getTarget(), 16);
-                return (!previousTarget.toString(16).contentEquals(block.getTarget()) && new BigInteger(block.getTarget(), 16).compareTo(
+                return (!leftPad(previousTarget.toString(16), 64, '0').contentEquals(block.getTarget()) && new BigInteger(block.getTarget(), 16).compareTo(
                         new BigInteger(Constants.GENESIS_TARGET, 16)) <= 0);
+            } else {
+                return true;
             }
         } catch (DecodeException de) {
             WalletLogger.logException(de, "warning", WalletLogger.getLogTimeStamp() + " An error occurred decoding a block! See details below:\n"
@@ -91,5 +94,28 @@ public class Consensus {
         }
         return (previousTarget.toString(16).contentEquals(block.getTarget()) && new BigInteger(block.getTarget(), 16).compareTo(
                 new BigInteger(Constants.GENESIS_TARGET, 16)) <= 0);
+    }
+
+    private String leftPad(String originalString, int length, char padChar) {
+        StringBuilder sb = new StringBuilder();
+        if (originalString.length() > length) {
+            try {
+                throw new PadLengthException("Error! Original string is longer than desired padded length!\n");
+            } catch (PadLengthException e) {
+                WalletLogger.logEvent("warning", WalletLogger.getLogTimeStamp() + " Pad length exception occurred!\n");
+            }
+        } else {
+            int padLength = length - originalString.length();
+            for (int i = 0; i < padLength; i++) {
+                sb.append(padChar);
+            }
+        }
+        return sb.toString() + originalString;
+    }
+
+    public class PadLengthException extends Exception {
+        PadLengthException(String msg) {
+            System.out.println(msg);
+        }
     }
 }
