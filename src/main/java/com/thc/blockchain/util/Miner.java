@@ -91,7 +91,7 @@ public class Miner {
                         if (endpointManager.getIsNode1Connected() || endpointManager.getIsNode2Connected()) {
                             System.out.println("Is node 1 connected: " + endpointManager.getIsNode1Connected());
                             System.out.println("Is node 2 connected: " + endpointManager.getIsNode2Connected());
-                            if (new Consensus().isBlockOrphan(block.getIndex())) {
+                            if (!new Consensus().isBlockOrphan(block.getIndex())) {
                                 BlockChain.blockChain.add(encodedBlock);
                                 mc.writeBlockChain();
                                 System.out.println("Size: " + BlockChain.blockChain.size());
