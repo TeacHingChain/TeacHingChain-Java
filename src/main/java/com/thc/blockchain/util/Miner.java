@@ -139,7 +139,7 @@ public class Miner {
                             leftPad(MainChain.targetHex, 64, '0');
                         }
                         restartMiner(updatedIndex, timeStamps, txins, txouts, txHash, merkleRoot,
-                                nonce, previousBlockHash, algo, target, amounts);
+                                nonce, previousBlockHash, algo, amounts);
                         break;
                     } else if (updatedIndex > indexAtStart && BlockChain.blockChain.size() > 5 && BlockChain.blockChain.size() % 5 == 0) {
                         timer.cancel();
@@ -157,7 +157,7 @@ public class Miner {
                         }
                         readTargetCache();
                         restartMiner(updatedIndex, timeStamps, txins, txouts, txHash, merkleRoot,
-                                nonce, previousBlockHash, algo, MainChain.targetHex, amounts);
+                                nonce, previousBlockHash, algo, amounts);
                         break;
                     }
                 }
@@ -175,11 +175,11 @@ public class Miner {
     }
 
     private void restartMiner(long index, long[] timeStamps, String[] txins, String[] txouts, String[] txs,
-                              String merkleRoot, long nonce, String previousBlockHash, String algo, String target, double[] amounts) {
+                              String merkleRoot, long nonce, String previousBlockHash, String algo, double[] amounts) {
         timer.cancel();
         readTargetCache();
         System.out.println("Trying to restart miner!\n");
-        mine(index, timeStamps, txins, txouts, txs, merkleRoot, nonce, previousBlockHash, algo, target, difficulty, amounts);
+        mine(index, timeStamps, txins, txouts, txs, merkleRoot, nonce, previousBlockHash, algo, MainChain.getTargetHex(), difficulty, amounts);
     }
 
     public double calculateNetworkHashRate() {
