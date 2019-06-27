@@ -22,6 +22,7 @@ import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 
 import static com.thc.blockchain.wallet.MainChain.difficulty;
+import static com.thc.blockchain.wallet.MainChain.readTargetCache;
 
 public class Miner {
 
@@ -33,6 +34,7 @@ public class Miner {
     public void mine(long index, long[] timeStamps, String[] txins, String[] txouts, String[] txHash, String merkleRoot,
                      long nonce, String previousBlockHash, String algo, String target, double difficulty, double[] amounts) {
         try {
+            readTargetCache();
             new NetworkConfigFields();
             EndpointManager endpointManager = new EndpointManager();
             int indexAtStart = BlockChain.blockChain.size();
@@ -126,32 +128,34 @@ public class Miner {
                     deltaS = (deltaN / 1000000000);
                     hashRate = nonce / deltaS;
                     if (updatedIndex > indexAtStart) {
+                        timer.cancel();
                         previousBlockHash = mc.getPreviousBlockHash();
                         timeStamps[0] = System.currentTimeMillis();
                         nonce = 0L;
                         byte[] txHashBytes = (Arrays.toString(txins) + Arrays.toString(txouts) + Arrays.toString(amounts)).getBytes();
                         merkleRoot = MainChain.getHex(SHA256.SHA256HashByteArray(txHashBytes));
                         MainChain.readTargetCache();
-                        if (target.length() < 64) {
-                            leftPad(target, 64, '0');
+                        if (MainChain.targetHex.length() < 64) {
+                            leftPad(MainChain.targetHex, 64, '0');
                         }
                         restartMiner(updatedIndex, timeStamps, txins, txouts, txHash, merkleRoot,
                                 nonce, previousBlockHash, algo, target, amounts);
                         break;
                     } else if (updatedIndex > indexAtStart && BlockChain.blockChain.size() > 5 && BlockChain.blockChain.size() % 5 == 0) {
+                        timer.cancel();
                         previousBlockHash = mc.getPreviousBlockHash();
                         timeStamps[0] = System.currentTimeMillis();
                         nonce = 0L;
                         byte[] txHashBytes = (Arrays.toString(txins) + Arrays.toString(txouts) + Arrays.toString(amounts)).getBytes();
                         merkleRoot = MainChain.getHex(SHA256.SHA256HashByteArray(txHashBytes));
                         long deltaT = ((new BlockDecoder().decode(BlockChain.blockChain.get(
-                                4)).getTimeStamps()[0]) - new GenesisBlockDecoder()
-                                .decode(BlockChain.blockChain.get(0)).getTimeStamp()) / 1000;
+                                mc.getIndexOfBlockChain())).getTimeStamps()[0]) - (new BlockDecoder()
+                                .decode(BlockChain.blockChain.get(mc.getIndexOfBlockChain() - 5)).getTimeStamps()[0])) / 1000;
                         MainChain.calculateTarget(deltaT, MainChain.targetHex);
-
                         if (MainChain.targetHex.length() < 64) {
                             leftPad(MainChain.targetHex, 64, '0');
                         }
+                        readTargetCache();
                         restartMiner(updatedIndex, timeStamps, txins, txouts, txHash, merkleRoot,
                                 nonce, previousBlockHash, algo, MainChain.targetHex, amounts);
                         break;
@@ -173,7 +177,7 @@ public class Miner {
     private void restartMiner(long index, long[] timeStamps, String[] txins, String[] txouts, String[] txs,
                               String merkleRoot, long nonce, String previousBlockHash, String algo, String target, double[] amounts) {
         timer.cancel();
-        MainChain.readTargetCache();
+        readTargetCache();
         System.out.println("Trying to restart miner!\n");
         mine(index, timeStamps, txins, txouts, txs, merkleRoot, nonce, previousBlockHash, algo, target, difficulty, amounts);
     }
