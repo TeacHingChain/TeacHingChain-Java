@@ -138,6 +138,23 @@ public class Miner {
                         restartMiner(updatedIndex, timeStamps, txins, txouts, txHash, merkleRoot,
                                 nonce, previousBlockHash, algo, target, amounts);
                         break;
+                    } else if (updatedIndex > indexAtStart && BlockChain.blockChain.size() > 5 && BlockChain.blockChain.size() % 5 == 0) {
+                        previousBlockHash = mc.getPreviousBlockHash();
+                        timeStamps[0] = System.currentTimeMillis();
+                        nonce = 0L;
+                        byte[] txHashBytes = (Arrays.toString(txins) + Arrays.toString(txouts) + Arrays.toString(amounts)).getBytes();
+                        merkleRoot = MainChain.getHex(SHA256.SHA256HashByteArray(txHashBytes));
+                        long deltaT = ((new BlockDecoder().decode(BlockChain.blockChain.get(
+                                4)).getTimeStamps()[0]) - new GenesisBlockDecoder()
+                                .decode(BlockChain.blockChain.get(0)).getTimeStamp()) / 1000;
+                        MainChain.calculateTarget(deltaT, MainChain.targetHex);
+
+                        if (MainChain.targetHex.length() < 64) {
+                            leftPad(MainChain.targetHex, 64, '0');
+                        }
+                        restartMiner(updatedIndex, timeStamps, txins, txouts, txHash, merkleRoot,
+                                nonce, previousBlockHash, algo, MainChain.targetHex, amounts);
+                        break;
                     }
                 }
             }

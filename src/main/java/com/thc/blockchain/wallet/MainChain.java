@@ -191,9 +191,7 @@ public class MainChain {
                         }
                     }
                 } catch (NullPointerException npe) {
-                    if (i + 1 < BlockChain.blockChain.size()) {
-                            i += 1;
-                    }
+                    i++;
                 }
             }
         } catch (DecodeException de) {
