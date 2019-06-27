@@ -83,8 +83,15 @@ public class Consensus {
                     new MainChain().getIndexOfBlockChain())).getTarget(), 16);
         } catch (DecodeException de) {
             WalletLogger.logException(de, "warning", WalletLogger.getLogTimeStamp() + " An error occurred decoding a block! See details below:\n"
-                    + WalletLogger.exceptionStacktraceToString(de));        }
+                    + WalletLogger.exceptionStacktraceToString(de));
+        }
         if (BlockChain.blockChain.size() > 10 && (block.getIndex() % 5 == 0)) {
+            try {
+                previousTarget = new BigInteger(new BlockDecoder().decode(BlockChain.blockChain.get(
+                        new MainChain().getIndexOfBlockChain() - 1)).getTarget(), 16);
+            } catch (DecodeException de) {
+                WalletLogger.logException(de, "warning", WalletLogger.getLogTimeStamp() + " An error occurred decoding a block! See details below:\n"
+                        + WalletLogger.exceptionStacktraceToString(de));              }
             return (!leftPad(previousTarget.toString(16), 64, '0').contentEquals(block.getTarget()) && new BigInteger(block.getTarget(), 16).compareTo(
                     new BigInteger(Constants.GENESIS_TARGET, 16)) <= 0);
         } else if (BlockChain.blockChain.size() > 10) {
