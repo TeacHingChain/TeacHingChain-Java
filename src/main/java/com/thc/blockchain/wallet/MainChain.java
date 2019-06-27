@@ -587,7 +587,8 @@ public class MainChain {
                 targetAsBigDec = targetAsBigDec.multiply(new BigDecimal(String.valueOf(adjustmentFactor)));
                 setTargetHex(getHex(targetAsBigDec.toBigInteger().toByteArray()));
                 System.out.println("New target as big dec: " + targetAsBigDec);
-                if (MainChain.difficulty - adjustmentFactor < 1) {
+                if (MainChain.difficulty - (adjustmentFactor - 1) < 1 || new BigInteger(String.valueOf(targetAsBigDec), 16).compareTo(
+                        new BigInteger(Constants.GENESIS_TARGET, 16)) > 0) {
                     MainChain.difficulty = 1;
                     targetAsBigDec = new BigDecimal(new BigInteger(Constants.GENESIS_TARGET, 16));
                     setTargetHex(getHex(targetAsBigDec.toBigInteger().toByteArray()));
